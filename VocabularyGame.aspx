@@ -269,6 +269,135 @@
                 box-shadow: 0 0 12px rgba(255, 100, 100, 0.8); /* 紅色光暈，可自定顏色 */
                 transform: scale(1.1);
             }
+        /* ✅ 祭壇選擇儀表板（置中浮出） */
+        .altar-options-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            background-color: #fffaf0;
+            border: 3px solid #deb887;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(139, 69, 19, 0.4);
+            padding: 30px;
+            z-index: 10002;
+            display: none;
+        }
+
+        /* 儀表板內部排版 */
+        .altar-options-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .altar-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: #444;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+            .altar-close:hover {
+                box-shadow: 0 0 12px rgba(255, 100, 100, 0.8);
+                transform: scale(1.1);
+            }
+
+        .altar-header {
+            position: relative; /* 🔺 要配合子元素絕對定位 */
+            width: 100%;
+            height: 40px;
+        }
+
+        .altar-title-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 24px;
+            color: #6b4226;
+        }
+
+        .altar-days-text {
+            position: absolute;
+            left: calc(50% + 110px); /* ✅ 往右再多偏移（原本 +70px） */
+            top: 2px;
+            font-size: 20px; /* ✅ 放大字體（原本 16px） */
+            color: #999;
+            font-weight: 500; /* ✅ 微加粗，讓它更清楚（可選） */
+        }
+
+        /* 南瓜進度列區塊 */
+        .altar-progress {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            margin: 20px auto;
+            gap: 0px;
+        }
+
+        .altar-pumpkin {
+            width: 36px;
+            height: auto;
+            transition: transform 0.3s;
+        }
+
+            .altar-pumpkin:hover {
+                transform: scale(1.1);
+            }
+
+        .altar-line {
+            width: 24px;
+            height: auto;
+            margin: 0 2px;
+        }
+
+        .altar-line, .altar-pumpkin {
+            margin-left: -0.55px; /* 負 margin 把圖壓緊 */
+            margin-right: -0.55px; /* 負 margin 把圖壓緊 */
+        }
+
+        /* 中央按鈕 */
+        .altar-button-action {
+            font-size: 20px;
+            padding: 10px 30px;
+            border-radius: 25px;
+            background-color: #66d3e8;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+            .altar-button-action:hover {
+                background-color: #4ab8cc;
+            }
+
+        /* 單字圖標 */
+        .vocab-icon {
+            width: 50px;
+            height: auto;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            .vocab-icon:hover {
+                transform: scale(1.1);
+            }
     </style>
 </head>
 <body>
@@ -346,7 +475,35 @@
                         <!-- ✅ 🔽 新增：祭壇選擇儀表板（點選祭壇按鈕後顯示） -->
                         <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
                             <div class="altar-options-content">
-                                <!-- 日後放「進入學習」「開始測驗」「關閉」等選項 -->
+                                <!-- 🔴 右上角叉叉關閉按鈕 -->
+                                <span class="altar-close" onclick="closeAltarOptions()">×</span>
+                                <!-- 上方：祭壇資訊 -->
+                                <div class="altar-header">
+                                    <span id="altarTitle" class="altar-title-text">祭壇209</span>
+                                    <span id="daysSinceReview" class="altar-days-text">5 天未複習</span>
+                                </div>
+                                <!-- 中段：進度南瓜與連接線 -->
+                                <div class="altar-progress" id="pumpkinProgress">
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                    <img src="images/connectline.svg" class="altar-line" />
+                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                </div>
+                                <!-- 下方：單字圖標 & 攻略按鈕 -->
+                                <div style="position: relative; width: 100%; height: 60px;">
+                                    <img src="images/vocabulary.svg" class="vocab-icon" style="position: absolute; left: 10px; bottom: 0;" onclick="showAncientScrollPanel()" />
+                                    <button class="altar-button-action" style="position: absolute; left: 130px; bottom: 0; width: 180px;" onclick="alert('點了攻略按鈕')">攻略</button>
+                                </div>
+
                             </div>
                         </asp:Panel>
 
@@ -354,7 +511,7 @@
                 </div>
             </div>
         </div>
-        <!-- 🔸 暫時用不到之後會大改古代卷軸面板（預設為隱藏，後端控制可見性） -->
+        <!-- 🔸 !!!!!!!!!!!!!!!暫時用不到之後會大改古代卷軸面板（預設為隱藏，JS控制可見性） -->
         <div id="pnlAncientScroll" runat="server" visible="false">
             <!-- 🔹 用 asp:Literal 動態產生單字列表或其他內容 -->
             <asp:Literal ID="litWordList" runat="server"></asp:Literal>
@@ -441,8 +598,6 @@
                 sessionStorage.setItem("bgmShouldPlay", "false");
             });
         });
-    </script>
-    <script>
         function showInfoModal() {
             document.getElementById("infoModal").classList.remove("d-none");
         }
@@ -461,6 +616,58 @@
                 audio.load();    // 強迫重新載入，觸發「音訊已停止」
             }
         }
+    </script>
+    <script>
+        // ✅ 點選祭壇按鈕時呼叫：顯示祭壇選擇儀表板
+        function showAltarOptions(altarId) {
+            // 顯示儀表板
+            const panel = document.getElementById("pnlAltarOptions");
+            panel.style.display = "block";
+
+            // 更新標題
+            const altarTitleLabel = document.getElementById("altarTitle");
+            altarTitleLabel.textContent = "祭壇 " + altarId;
+
+            // ❗假設你之後會用 AJAX 查資料，這裡先用模擬資料（你可以換成真正的查詢結果）
+            // 模擬回傳的 learning_status
+            let learningStatus = 0; // 0=未進行，1~6=充能中，7+=完成，999=需複習
+
+            // ✅ 模擬：每個祭壇依據 id 給不同狀態（之後你用資料庫填入）
+            if (altarId % 10 === 1) learningStatus = 0; // 初次
+            else if (altarId % 10 >= 2 && altarId % 10 <= 7) learningStatus = altarId % 10; // 充能
+            else if (altarId % 10 === 8) learningStatus = 999; // 乾枯提醒
+            else learningStatus = 10; // 完成
+
+            // ✅ 更新下方按鈕文字
+            const actionButton = document.querySelector(".altar-button-action");
+            if (learningStatus === 0) {
+                actionButton.textContent = "攻略";
+            } else if (learningStatus >= 1 && learningStatus < 7) {
+                actionButton.textContent = "充能";
+            } else if (learningStatus === 999 || learningStatus >= 7) {
+                actionButton.textContent = "複習";
+            }
+
+            // ✅ 更新「幾天未複習」的假數值（你之後可接資料庫）
+            const daysLabel = document.getElementById("daysSinceReview");
+            daysLabel.textContent = "5 天未複習";
+        }
+
+        // ✅ 點擊叉叉關閉儀表板
+        function closeAltarOptions() {
+            const panel = document.getElementById("pnlAltarOptions");
+            panel.style.display = "none";
+        }
+
+        // ✅ 防止攻略按鈕觸發表單提交（避免 BGM 中斷）
+        document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".altar-button-action");
+            buttons.forEach(btn => {
+                btn.addEventListener("click", function (event) {
+                    event.preventDefault();
+                });
+            });
+        });
     </script>
 </body>
 </html>

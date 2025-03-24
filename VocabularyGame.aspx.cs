@@ -10,7 +10,7 @@ public partial class VocabularyGame : System.Web.UI.Page
     // 1.頁面初始化邏輯🔷 1. 初始化 / 頁面載入相關這是入口，負責從資料庫抓資料來初始化 UI 畫面。
     //==============================================
     private string connectionString;
-    //方法1.1-首次載入頁面
+    //方法1.1-首次載入頁面此方法負責頁面首次載入時的初始化工作，包括驗證使用者登入、呼叫方法取得使用者和森林資訊等等
     protected void Page_Load(object sender, EventArgs e)
     {
         Debug.WriteLine(" [Page_Load] - 頁面載入開始");
@@ -125,7 +125,7 @@ public partial class VocabularyGame : System.Web.UI.Page
 
 
 
-    //方法1.2載入使用者的魔法能量、魔法鑽石等等
+    //方法1.2-從資料庫讀取使用者的魔法能量和鑽石數量，並將其顯示在頁面上。
     private void LoadUserStats()
     {
         Debug.WriteLine(" [LoadUserStats] - 讀取使用者體力與鑽石");
@@ -161,7 +161,7 @@ public partial class VocabularyGame : System.Web.UI.Page
         }
     }
 
-    //方法1.3載入魔法森林
+    //方法1.3-從資料庫載入所有魔法森林的ID和名稱，並將它們記錄到Debug輸出中。
     private void LoadMagicForests()
     {
         Debug.WriteLine(" [LoadMagicForests] - 開始載入魔法森林");
@@ -190,7 +190,7 @@ public partial class VocabularyGame : System.Web.UI.Page
             }
         }
     }
-    //方法1.4依照用戶的遊戲進度載入魔法祭壇
+    //方法1.4-從資料庫載入對應的魔法祭壇，並根據使用者的學習進度，動態生成包含祭壇按鈕的HTML網格，顯示在頁面上。
     private void LoadMagicAltars()
     {
         if (Session["SelectedForestID"] == null)
@@ -268,9 +268,9 @@ public partial class VocabularyGame : System.Web.UI.Page
     //方法2.2-此為pnlMagicForest儀表板內的按鈕事件，點選後導向首頁
     protected void btnBackHome_Click(object sender, EventArgs e)
     {
-        Response.Redirect("HomePage.aspx"); // 或你自己的首頁網址
+        Response.Redirect("HomePage.aspx"); 
     }
-    //方法2.3-此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者關閉單字學習面板
+    //方法2.3-!!!!!!!!!暫時沒功能，此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者關閉單字學習面板
     protected void btnCloseWordList_Click(object sender, EventArgs e)
     {
         Debug.WriteLine(" [btnCloseWordList_Click] - 使用者關閉單字學習面板");
@@ -286,7 +286,7 @@ public partial class VocabularyGame : System.Web.UI.Page
     //==============================================
     //  3. 學習流程邏輯🔷包含進入祭壇學單字、開始測驗的業務邏輯。
     //==============================================
-    //方法3.1-顯示祭壇單字列表
+    //方法3.1-根據祭壇ID從資料庫檢索單字及其含義，並將它們以HTML格式顯示在頁面的單字列表中。
     protected void ShowAncientScroll(int altarId)
     {
         Debug.WriteLine($" [ShowAncientScroll] - 進入祭壇 {altarId} 的單字學習");
