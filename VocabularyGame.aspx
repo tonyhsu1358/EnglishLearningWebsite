@@ -324,9 +324,17 @@
                                     OnClientClick="stopBGM();"
                                     OnClick="btnSwitchForest_Click" />
                                 <!-- 返回首頁按鈕 -->
-                                <asp:Button ID="btnBackHome" runat="server" Text="返回首頁" CssClass="btn btn-secondary m-2" OnClick="btnBackHome_Click" />
+                                <asp:Button ID="btnBackHome" runat="server"
+                                    Text="返回首頁"
+                                    CssClass="btn btn-secondary m-2"
+                                    OnClientClick="stopBGM();"
+                                    OnClick="btnBackHome_Click" />
                                 <!-- 查看統計按鈕 -->
-                                <asp:Button ID="btnViewStats" runat="server" Text="查看統計" CssClass="btn btn-info m-2" OnClick="btnViewStats_Click" />
+                                <asp:Button ID="btnViewStats" runat="server"
+                                    Text="查看統計"
+                                    CssClass="btn btn-info m-2"
+                                    OnClientClick="stopBGM();"
+                                    OnClick="btnViewStats_Click" />
                             </div>
                         </asp:Panel>
 
@@ -393,25 +401,44 @@
             const volumeSlider = document.getElementById("volumeSlider");
             const volumeIcon = document.getElementById("volumeIcon");
 
-            // 預設音量為 0.5
-            audio.volume = 0.5;
+            // 1️⃣ 從 sessionStorage 取出記錄的音量與播放狀態
+            const savedVolume = sessionStorage.getItem("bgmVolume");
+            const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
 
-            // 根據音量設定圖示
-            function updateVolumeIcon(volume) {
-                if (volume == 0) {
-                    volumeIcon.src = "images/volume0.svg";
-                } else {
-                    volumeIcon.src = "images/volume.svg";
-                }
+            // 設定音量
+            if (savedVolume !== null) {
+                audio.volume = parseFloat(savedVolume);
+                volumeSlider.value = savedVolume;
+            } else {
+                audio.volume = 0.5; // 預設音量
+                volumeSlider.value = 0.5;
             }
+
             // 初始化圖示
+            function updateVolumeIcon(volume) {
+                volumeIcon.src = volume == 0 ? "images/volume0.svg" : "images/volume.svg";
+            }
             updateVolumeIcon(audio.volume);
 
-            // 當滑桿變動時
+            // 音量滑桿變動時
             volumeSlider.addEventListener("input", function () {
                 const newVolume = parseFloat(this.value);
                 audio.volume = newVolume;
+                sessionStorage.setItem("bgmVolume", newVolume); // ⚠ 儲存音量
                 updateVolumeIcon(newVolume);
+            });
+
+            // 2️⃣ 如果之前是播放狀態，則恢復播放
+            if (shouldPlay === "true") {
+                audio.play().catch(() => { });
+            }
+
+            // 3️⃣ 監聽播放與暫停事件，紀錄狀態
+            audio.addEventListener("play", () => {
+                sessionStorage.setItem("bgmShouldPlay", "true");
+            });
+            audio.addEventListener("pause", () => {
+                sessionStorage.setItem("bgmShouldPlay", "false");
             });
         });
     </script>
@@ -429,6 +456,7 @@
             const audio = document.getElementById("bgm");
             if (audio) {
                 audio.pause();
+                sessionStorage.setItem("bgmShouldPlay", "false"); // ❗ 確保狀態儲存
                 audio.src = "";  // 關鍵：清掉音源，讓瀏覽器以為沒有聲音了
                 audio.load();    // 強迫重新載入，觸發「音訊已停止」
             }

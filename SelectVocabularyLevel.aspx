@@ -167,7 +167,7 @@
             overflow-y: auto; /* ✅ 當內容過長時，允許內部捲動 */
         }
 
-        /* ✅ 美化回首頁按鈕 (莫蘭迪色系) */
+        /* ✅ 原本的莫蘭迪按鈕 */
         .btn-primary {
             background: linear-gradient(135deg, #A89F91, #8D7E77); /* ✅ 莫蘭迪暖灰色調 */
             color: white;
@@ -178,14 +178,60 @@
             border-radius: 25px;
             transition: all 0.3s ease-in-out;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
         }
 
-            /* ✅ 按鈕 Hover 效果 */
-            .btn-primary:hover {
-                background: linear-gradient(135deg, #8D7E77, #756B63); /* ✅ 略深的莫蘭迪色 */
-                transform: translateY(-3px);
-                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        .home-button {
+            width: 200px;
+            max-width: 100%;
+            margin: 0 auto; /* ✅ 讓它置中 */
+        }
+        /* ✅ 你的 Hover 效果 —— 有！保留著！*/
+        .btn-primary:hover:not(.home-button) {
+            background: linear-gradient(135deg, #8D7E77, #756B63); /* ✅ 略深的莫蘭迪色 */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ✅ 只有回首頁這顆按鈕 hover 會放大 */
+        .home-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ✅ 外層金色邊框 + 流動畫效果 */
+        .glow-border {
+            display: inline-block;
+            padding: 3px; /* 邊框厚度 */
+            border-radius: 30px;
+            background: linear-gradient(270deg, gold, #ffcc00, #ffd700, gold); /* 金色漸層 */
+            background-size: 600% 600%;
+            animation: borderMove 5s linear infinite;
+        }
+
+            /* ✅ 包住的按鈕樣式保留 */
+            .glow-border .btn-primary {
+                border-radius: 25px;
+                display: inline-block;
+                z-index: 1;
+                position: relative;
             }
+
+        /* ✅ 邊框動畫 */
+        @keyframes borderMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -216,12 +262,13 @@
 
         <!-- 🔹 ✅ **回首頁按鈕**，放在 <form> 結束標籤前 -->
         <div class="text-center mt-4">
-            <asp:Button ID="btnHome" runat="server" CssClass="btn btn-primary px-4 py-2" Text="回首頁" OnClick="btnHome_Click" />
+            <div class="glow-border">
+                <asp:Button ID="btnHome" runat="server" CssClass="btn btn-primary home-button px-4 py-2" Text="回首頁" OnClick="btnHome_Click" />
+            </div>
         </div>
 
     </form>
     <!-- ✅ 確保這是 `</form>` 的正確結尾 -->
-
 
     <!-- 🔹 Bootstrap 5 Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1">

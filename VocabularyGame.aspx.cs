@@ -4,7 +4,6 @@ using System.Text;
 using System.Web.UI.WebControls;
 using System.Diagnostics;
 using System.Configuration; // 引入 ConfigurationManager
-//變更測試ˋ是事事試試
 public partial class VocabularyGame : System.Web.UI.Page
 {
     //==============================================
