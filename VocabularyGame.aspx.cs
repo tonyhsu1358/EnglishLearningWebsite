@@ -1,0 +1,336 @@
+﻿using System;
+using System.Data.SqlClient;
+using System.Text;
+using System.Web.UI.WebControls;
+using System.Diagnostics;
+using System.Configuration; // 引入 ConfigurationManager
+//變更測試ˋ是事事試試
+public partial class VocabularyGame : System.Web.UI.Page
+{
+    //==============================================
+    // 1.頁面初始化邏輯🔷 1. 初始化 / 頁面載入相關這是入口，負責從資料庫抓資料來初始化 UI 畫面。
+    //==============================================
+    private string connectionString;
+    //方法1.1-首次載入頁面
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        Debug.WriteLine(" [Page_Load] - 頁面載入開始");
+
+        connectionString = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
+
+        // 驗證登入狀態
+        if (Session["UserEmail"] == null)
+        {
+            Debug.WriteLine("❌ [Page_Load] - 使用者未登入，Session 無效");
+            Response.Redirect("UserLogin.aspx");
+            return;
+        }
+
+        // 取得 UserID
+        if (Session["UserID"] == null)
+        {
+            string userEmail = Session["UserEmail"].ToString();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT user_id FROM users WHERE id_email = @Email";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Email", userEmail);
+                    object result = cmd.ExecuteScalar();
+
+                    if (result == null)
+                    {
+                        Debug.WriteLine("❌ [Page_Load] - 查無使用者：" + userEmail);
+                        Response.Redirect("UserLogin.aspx");
+                        return;
+                    }
+
+                    Session["UserID"] = Convert.ToInt32(result);
+                    Debug.WriteLine("✅ [Page_Load] - 登入者 UserID：" + Session["UserID"]);
+                }
+            }
+        }
+
+        // 取得 QueryString["level"] 並對應森林 ID 與名稱
+        string levelStr = Request.QueryString["level"];
+        if (!string.IsNullOrEmpty(levelStr))
+        {
+            int level = int.Parse(levelStr);
+            int forestId = 1;
+
+            switch (level)
+            {
+                case 1: forestId = 1; break;
+                case 2: forestId = 2; break;
+                case 3: forestId = 3; break;
+                case 4: forestId = 4; break;
+                case 5: forestId = 5; break;
+                case 6: forestId = 6; break;
+                case 7: forestId = 7; break;
+                default: forestId = 1; break;
+            }
+
+            Session["SelectedForestID"] = forestId;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT forest_name_zh FROM magic_forest WHERE forest_id = @ID";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", forestId);
+                    object name = cmd.ExecuteScalar();
+                    string forestName = name != null ? name.ToString() : "未知森林";
+
+                    // 顯示在畫面上
+                    lblForestName.Text = forestName;
+
+                    // ✅ ✅ ✅ 加入 DEBUG LOG
+                    Debug.WriteLine($"🌲 [Page_Load] - 使用者切換到森林 ID: {forestId}，名稱：{forestName}");
+                }
+            }
+        }
+        else
+        {
+            Debug.WriteLine("❌ [Page_Load] - 無 level 參數");
+        }
+
+        // 初次載入時執行初始化
+        if (!IsPostBack)
+        {
+            try
+            {
+                LoadUserStats();
+                LoadMagicForests();
+                LoadMagicAltars();
+
+                if (Request.QueryString["viewWords"] != null)
+                {
+                    int altarId = int.Parse(Request.QueryString["viewWords"]);
+                    ShowAncientScroll(altarId);
+                }
+                else if (Request.QueryString["startTrial"] != null)
+                {
+                    int altarId = int.Parse(Request.QueryString["startTrial"]);
+                    StartTrial(altarId);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("❌ [Page_Load] 發生錯誤：" + ex.Message);
+            }
+        }
+    }
+
+
+
+    //方法1.2載入使用者的魔法能量、魔法鑽石等等
+    private void LoadUserStats()
+    {
+        Debug.WriteLine(" [LoadUserStats] - 讀取使用者體力與鑽石");
+
+        string query = "SELECT energy, diamonds FROM UserResources WHERE user_id = @UserID";
+
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            try
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@UserID", (int)Session["UserID"]);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    lblEnergy.Text = reader["energy"].ToString();
+                    lblDiamonds.Text = reader["diamonds"].ToString();
+                    Debug.WriteLine($"✅ [LoadUserStats] 體力: {lblEnergy.Text}，鑽石: {lblDiamonds.Text}");
+                }
+                else
+                {
+                    lblEnergy.Text = "0";
+                    lblDiamonds.Text = "0";
+                    Debug.WriteLine("⚠ [LoadUserStats] 找不到使用者資源資料，預設為 0");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("❌ [LoadUserStats] 發生錯誤：" + ex.Message);
+            }
+        }
+    }
+
+    //方法1.3載入魔法森林
+    private void LoadMagicForests()
+    {
+        Debug.WriteLine(" [LoadMagicForests] - 開始載入魔法森林");
+
+        string query = "SELECT forest_id, forest_name_zh FROM magic_forest";
+
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            try
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string forestId = reader["forest_id"].ToString();
+                    string forestName = reader["forest_name_zh"].ToString();
+
+                    Debug.WriteLine($"✅ [LoadMagicForests] 成功載入：{forestName}（ID: {forestId}）");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("❌ [LoadMagicForests] 發生錯誤：" + ex.Message);
+            }
+        }
+    }
+    //方法1.4依照用戶的遊戲進度載入魔法祭壇
+    private void LoadMagicAltars()
+    {
+        if (Session["SelectedForestID"] == null)
+        {
+            Debug.WriteLine("❌ [LoadMagicAltars] - 尚未設定森林 ID");
+            return;
+        }
+
+        int forestId = (int)Session["SelectedForestID"];
+        int userId = (int)Session["UserID"];
+
+        string query = @"
+    SELECT ma.altar_id, COALESCE(up.learning_status, 0) AS learning_status
+    FROM magic_altar ma
+    LEFT JOIN user_altar_progress up
+        ON ma.altar_id = up.altar_id AND up.user_id = @UserID
+    WHERE ma.forest_id = @ForestID";
+
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            try
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                cmd.Parameters.AddWithValue("@ForestID", forestId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                StringBuilder altarHtml = new StringBuilder("<div style='display: grid; grid-template-columns: repeat(20, 1fr); gap: 5px;'>");
+
+                int count = 0;
+                while (reader.Read())
+                {
+                    int altarId = Convert.ToInt32(reader["altar_id"]);
+                    int status = Convert.ToInt32(reader["learning_status"]);
+                    string cssClass = "locked";
+
+                    if (status == 0)
+                        cssClass = "locked";              // 初始狀態
+                    else if (status >= 1 && status < 7)
+                        cssClass = "learning";            // 學習中
+                    else if (status == 999)
+                        cssClass = "withered";            // 乾枯（提醒複習）
+                    else if (status >= 7)
+                        cssClass = "completed";           // 完全型態
+
+                    altarHtml.AppendFormat(
+                        "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
+                        cssClass, altarId
+                    );
+                    count++;
+                }
+
+
+                altarHtml.Append("</div>");
+                litAltarGrid.Text = altarHtml.ToString();
+                Debug.WriteLine($"✅ [LoadMagicAltars] 成功載入 {count} 個祭壇 (forest_id={forestId})");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("❌ [LoadMagicAltars] 發生錯誤：" + ex.Message);
+            }
+        }
+    }
+
+    //==============================================
+    // 2. 下拉選單 / 控制項觸發事件🔷這區是當使用者操作 UI 控制項時，後端要做的事。
+    //==============================================
+
+    //方法2.1-此為pnlMagicForest儀表板內的按鈕事件，點選後導向森林選擇頁面
+    protected void btnSwitchForest_Click(object sender, EventArgs e)
+    {
+        Response.Redirect("SelectVocabularyLevel.aspx");
+    }
+    //方法2.2-此為pnlMagicForest儀表板內的按鈕事件，點選後導向首頁
+    protected void btnBackHome_Click(object sender, EventArgs e)
+    {
+        Response.Redirect("HomePage.aspx"); // 或你自己的首頁網址
+    }
+    //方法2.3-此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者關閉單字學習面板
+    protected void btnCloseWordList_Click(object sender, EventArgs e)
+    {
+        Debug.WriteLine(" [btnCloseWordList_Click] - 使用者關閉單字學習面板");
+        pnlMagicAltar.Visible = true;
+        pnlAncientScroll.Visible = false;
+    }
+    //方法2.4-此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者跳轉至統計結果
+    protected void btnViewStats_Click(object sender, EventArgs e)
+    {
+        Response.Redirect("Statics.aspx");
+    }
+
+    //==============================================
+    //  3. 學習流程邏輯🔷包含進入祭壇學單字、開始測驗的業務邏輯。
+    //==============================================
+    //方法3.1-顯示祭壇單字列表
+    protected void ShowAncientScroll(int altarId)
+    {
+        Debug.WriteLine($" [ShowAncientScroll] - 進入祭壇 {altarId} 的單字學習");
+
+        pnlMagicAltar.Visible = false;
+        pnlAncientScroll.Visible = true;
+
+        string query = "SELECT word, meaning FROM ancient_scrolls WHERE altar_id = @AltarID";
+        using (SqlConnection conn = new SqlConnection(connectionString))
+        {
+            try
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@AltarID", altarId);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                StringBuilder wordListHtml = new StringBuilder();
+                int count = 0;
+
+                while (reader.Read())
+                {
+                    wordListHtml.AppendFormat("<div class='word-item'><b>{0}</b>: {1}</div>", reader["word"], reader["meaning"]);
+                    count++;
+                }
+
+                litWordList.Text = wordListHtml.ToString();
+                Debug.WriteLine($" [ShowAncientScroll] 成功載入 {count} 個單字");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("❌ [ShowAncientScroll] 發生錯誤：" + ex.Message);
+            }
+        }
+    }
+    //方法3.2-開始測驗
+    protected void StartTrial(int altarId)
+    {
+        Debug.WriteLine($" [StartTrial] - 祭壇 {altarId} 測驗開始");
+        pnlMagicAltar.Visible = false;
+        pnlAncientScroll.Visible = false;
+        //pnlTrialChamber.Visible = true;
+    }
+
+
+}
