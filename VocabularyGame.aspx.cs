@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Text;
+using System.Web;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Diagnostics;
 using System.Configuration; // 引入 ConfigurationManager
+using System.Web.Services; // ✅ 確保加上這個
 public partial class VocabularyGame : System.Web.UI.Page
 {
     //==============================================
@@ -104,6 +107,7 @@ public partial class VocabularyGame : System.Web.UI.Page
                 LoadUserStats();
                 LoadMagicForests();
                 LoadMagicAltars();
+                hiddenUserId.Value = Session["UserID"].ToString();
 
                 if (Request.QueryString["viewWords"] != null)
                 {
@@ -121,8 +125,98 @@ public partial class VocabularyGame : System.Web.UI.Page
                 Debug.WriteLine("❌ [Page_Load] 發生錯誤：" + ex.Message);
             }
         }
+        // ✅ 捕捉 __doPostBack 觸發的事件名
+        string eventTarget = Request["__EVENTTARGET"];
+        Debug.WriteLine("🧪 EVENTTARGET: " + eventTarget);
+        if (eventTarget == "QueryAltarStatus")
+        {
+            int userId = (int)Session["UserID"];
+            int altarId = int.Parse(hiddenAltarId.Value);
+
+            int learningStatus = 0;
+            int daysSinceReview = 0;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT learning_status, last_review_time
+            FROM user_altar_progress
+            WHERE user_id = @UserID AND altar_id = @AltarID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+                    cmd.Parameters.AddWithValue("@AltarID", altarId);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            learningStatus = reader["learning_status"] != DBNull.Value ? Convert.ToInt32(reader["learning_status"]) : 0;
+
+                            if (reader["last_review_time"] != DBNull.Value)
+                            {
+                                DateTime lastReview = Convert.ToDateTime(reader["last_review_time"]);
+                                daysSinceReview = (DateTime.Now - lastReview).Days;
+                            }
+                        }
+                    }
+                }
+            }
+            // ✅ 呼叫 JS 函式，丟回去顯示
+            string js = $@"
+    setTimeout(function() {{
+        showAltarPanel({altarId}, {learningStatus}, {daysSinceReview});
+    }}, 0);
+";
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "updateAltarPanel", js, true);
+        }
     }
 
+    [System.Web.Services.WebMethod]
+    public static object GetAltarStatus(int altarId, int userId)
+    {
+        // ✅ 嘗試取得 HttpContext（WebMethod 是 static，得用這方式）
+        var context = HttpContext.Current;
+
+        // ✅ 檢查 Session 是否有效
+        if (context.Session["UserID"] == null || (int)context.Session["UserID"] != userId)
+        {
+            return new { error = "NOT_LOGGED_IN" }; // 不要 redirect，回傳錯誤訊息
+        }
+
+        // 👉 若通過驗證，繼續處理邏輯
+        int learningStatus = 0;
+        int daysSinceReview = 0;
+
+        string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
+
+        using (SqlConnection conn = new SqlConnection(connStr))
+        {
+            conn.Open();
+            string query = @"SELECT learning_status, last_review_time
+                         FROM user_altar_progress
+                         WHERE user_id = @UserID AND altar_id = @AltarID";
+
+            SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@UserID", userId);
+            cmd.Parameters.AddWithValue("@AltarID", altarId);
+
+            SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                learningStatus = reader["learning_status"] != DBNull.Value ? Convert.ToInt32(reader["learning_status"]) : 0;
+                if (reader["last_review_time"] != DBNull.Value)
+                {
+                    DateTime lastReview = Convert.ToDateTime(reader["last_review_time"]);
+                    daysSinceReview = (DateTime.Now - lastReview).Days;
+                }
+            }
+        }
+
+        return new { learningStatus, daysSinceReview };
+    }
 
 
     //方法1.2-從資料庫讀取使用者的魔法能量和鑽石數量，並將其顯示在頁面上。
@@ -219,9 +313,8 @@ public partial class VocabularyGame : System.Web.UI.Page
                 cmd.Parameters.AddWithValue("@ForestID", forestId);
 
                 SqlDataReader reader = cmd.ExecuteReader();
-                StringBuilder altarHtml = new StringBuilder("<div style='display: grid; grid-template-columns: repeat(20, 1fr); gap: 5px;'>");
+                StringBuilder altarHtml = new StringBuilder(); // ⚠️ 不要有多餘 <div>！
 
-                int count = 0;
                 while (reader.Read())
                 {
                     int altarId = Convert.ToInt32(reader["altar_id"]);
@@ -229,25 +322,25 @@ public partial class VocabularyGame : System.Web.UI.Page
                     string cssClass = "locked";
 
                     if (status == 0)
-                        cssClass = "locked";              // 初始狀態
+                        cssClass = "locked";
                     else if (status >= 1 && status < 7)
-                        cssClass = "learning";            // 學習中
+                        cssClass = "learning";
                     else if (status == 999)
-                        cssClass = "withered";            // 乾枯（提醒複習）
+                        cssClass = "withered";
                     else if (status >= 7)
-                        cssClass = "completed";           // 完全型態
+                        cssClass = "completed";
 
                     altarHtml.AppendFormat(
-                        "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
-                        cssClass, altarId
+                      "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
+                       cssClass, altarId
                     );
-                    count++;
                 }
+                litAltarGrid.Text = altarHtml.ToString(); // ✅ 只把按鈕直接放進 .altar-grid 裡！
 
 
                 altarHtml.Append("</div>");
                 litAltarGrid.Text = altarHtml.ToString();
-                Debug.WriteLine($"✅ [LoadMagicAltars] 成功載入 {count} 個祭壇 (forest_id={forestId})");
+                //Debug.WriteLine($"✅ [LoadMagicAltars] 成功載入 {count} 個祭壇 (forest_id={forestId})");
             }
             catch (Exception ex)
             {
@@ -268,7 +361,7 @@ public partial class VocabularyGame : System.Web.UI.Page
     //方法2.2-此為pnlMagicForest儀表板內的按鈕事件，點選後導向首頁
     protected void btnBackHome_Click(object sender, EventArgs e)
     {
-        Response.Redirect("HomePage.aspx"); 
+        Response.Redirect("HomePage.aspx");
     }
     //方法2.3-!!!!!!!!!暫時沒功能，此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者關閉單字學習面板
     protected void btnCloseWordList_Click(object sender, EventArgs e)
@@ -330,6 +423,5 @@ public partial class VocabularyGame : System.Web.UI.Page
         pnlAncientScroll.Visible = false;
         //pnlTrialChamber.Visible = true;
     }
-
 
 }

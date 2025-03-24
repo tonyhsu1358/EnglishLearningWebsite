@@ -82,15 +82,19 @@
         /* 🎯 祭壇內的按鈕排列 (讓按鈕填滿空間) */
         .altar-grid {
             display: grid;
-            gap: 5px; /* 按鈕之間的距離 */
-            width: 100%; /* 讓 Grid 佔滿 `.altar-container` */
-            height: 100%; /* 讓 Grid 自適應高度，避免限制按鈕行距 */
+            grid-template-columns: repeat(20, 1fr); /* 固定 20 欄 */
+            grid-template-rows: repeat(5, 1fr); /* 固定 5 列（總共 100 顆） */
+            gap: 5px;
+            width: 100%;
+            height: 100%;
             padding: 10px;
             box-sizing: border-box;
         }
 
         /* 🪨 初始狀態（未學習）*/
         .altar-button.locked {
+            width: 100%;
+            height: 100%;
             background: #a9a9a9; /* 石頭灰色 */
             color: #fff;
             border: 2px solid #555;
@@ -100,6 +104,8 @@
 
         /* 🌱 學習中狀態 */
         .altar-button.learning {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #b3d59c, #76b852); /* 淺綠 + 森林綠 */
             color: #fff;
             border: 2px solid #4e944f;
@@ -110,6 +116,8 @@
 
         /* 🍂 乾枯狀態（提醒複習） */
         .altar-button.withered {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #c79857, #7e5f33); /* 褐色調 */
             color: #fffbe0;
             border: 2px dashed #5a3e1b;
@@ -119,6 +127,8 @@
 
         /* ✨ 完全狀態（完成） */
         .altar-button.completed {
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #ffd700, #ffb400); /* 金黃色調 */
             color: #fff;
             border: 2px solid #c98c00;
@@ -399,9 +409,45 @@
                 transform: scale(1.1);
             }
     </style>
+    <script>
+        function showAltarOptions(altarId) {
+            console.log("🎯 點到祭壇 ID:", altarId);
+
+            // 把祭壇 ID 存進 hidden 欄位（如果之後還要用）
+            document.getElementById("hiddenAltarId").value = altarId;
+
+            // ✅ 從頁面抓 userId（你等等要在後端加上 <asp:HiddenField> 存進來）
+            const userId = parseInt(document.getElementById("hiddenUserId").value);
+
+            // ✅ 使用 fetch 呼叫後端 WebMethod
+            fetch("AltarService.asmx/GetAltarStatus", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include', // ✅ 傳送 cookie 讓它吃到 session
+                body: JSON.stringify({ altarId: altarId })
+            })
+                .then(response => response.json())
+                .then(result => {
+                    const data = result.d;
+                    if (data.error === "NOT_LOGGED_IN") {
+                        alert("請先登入！");
+                        return;
+                    }
+
+                    showAltarPanel(altarId, data.learningStatus, data.daysSinceReview);
+                })
+                .catch(error => {
+                    console.error("❌ AJAX 發生錯誤：", error);
+                });
+        }
+    </script>
 </head>
 <body>
     <form id="form1" runat="server">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePartialRendering="true" />
+        <asp:HiddenField ID="hiddenUserId" runat="server" ClientIDMode="Static" />
         <div class="container-fluid">
             <!-- 🔹 狀態列 (從資料庫讀取) -->
             <div class="row">
@@ -473,40 +519,44 @@
                         </asp:Panel>
 
                         <!-- ✅ 🔽 新增：祭壇選擇儀表板（點選祭壇按鈕後顯示） -->
-                        <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
-                            <div class="altar-options-content">
-                                <!-- 🔴 右上角叉叉關閉按鈕 -->
-                                <span class="altar-close" onclick="closeAltarOptions()">×</span>
-                                <!-- 上方：祭壇資訊 -->
-                                <div class="altar-header">
-                                    <span id="altarTitle" class="altar-title-text">祭壇209</span>
-                                    <span id="daysSinceReview" class="altar-days-text">5 天未複習</span>
-                                </div>
-                                <!-- 中段：進度南瓜與連接線 -->
-                                <div class="altar-progress" id="pumpkinProgress">
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                    <img src="images/connectline.svg" class="altar-line" />
-                                    <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                </div>
-                                <!-- 下方：單字圖標 & 攻略按鈕 -->
-                                <div style="position: relative; width: 100%; height: 60px;">
-                                    <img src="images/vocabulary.svg" class="vocab-icon" style="position: absolute; left: 10px; bottom: 0;" onclick="showAncientScrollPanel()" />
-                                    <button class="altar-button-action" style="position: absolute; left: 130px; bottom: 0; width: 180px;" onclick="alert('點了攻略按鈕')">攻略</button>
-                                </div>
+                        <asp:UpdatePanel ID="UpdatePanelAltar" runat="server">
+                            <ContentTemplate>
+                                <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
+                                    <div class="altar-options-content">
+                                        <!-- 🔴 右上角叉叉關閉按鈕 -->
+                                        <span class="altar-close" onclick="closeAltarOptions()">×</span>
+                                        <!-- 上方：祭壇資訊 -->
+                                        <div class="altar-header">
+                                            <span id="altarTitle" class="altar-title-text">祭壇209</span>
+                                            <span id="daysSinceReview" class="altar-days-text">5 天未複習</span>
+                                        </div>
+                                        <!-- 中段：進度南瓜與連接線 -->
+                                        <div class="altar-progress" id="pumpkinProgress">
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            <img src="images/connectline.svg" class="altar-line" />
+                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                        </div>
+                                        <!-- 下方：單字圖標 & 攻略按鈕 -->
+                                        <div style="position: relative; width: 100%; height: 60px;">
+                                            <img src="images/vocabulary.svg" class="vocab-icon" style="position: absolute; left: 10px; bottom: 0;" onclick="showAncientScrollPanel()" />
+                                            <button class="altar-button-action" style="position: absolute; left: 130px; bottom: 0; width: 180px;" onclick="alert('點了攻略按鈕')">攻略</button>
+                                        </div>
 
-                            </div>
-                        </asp:Panel>
-
+                                    </div>
+                                </asp:Panel>
+                            </ContentTemplate>
+                        </asp:UpdatePanel>
+                        <asp:HiddenField ID="hiddenAltarId" runat="server" ClientIDMode="Static" />
                     </div>
                 </div>
             </div>
@@ -618,41 +668,6 @@
         }
     </script>
     <script>
-        // ✅ 點選祭壇按鈕時呼叫：顯示祭壇選擇儀表板
-        function showAltarOptions(altarId) {
-            // 顯示儀表板
-            const panel = document.getElementById("pnlAltarOptions");
-            panel.style.display = "block";
-
-            // 更新標題
-            const altarTitleLabel = document.getElementById("altarTitle");
-            altarTitleLabel.textContent = "祭壇 " + altarId;
-
-            // ❗假設你之後會用 AJAX 查資料，這裡先用模擬資料（你可以換成真正的查詢結果）
-            // 模擬回傳的 learning_status
-            let learningStatus = 0; // 0=未進行，1~6=充能中，7+=完成，999=需複習
-
-            // ✅ 模擬：每個祭壇依據 id 給不同狀態（之後你用資料庫填入）
-            if (altarId % 10 === 1) learningStatus = 0; // 初次
-            else if (altarId % 10 >= 2 && altarId % 10 <= 7) learningStatus = altarId % 10; // 充能
-            else if (altarId % 10 === 8) learningStatus = 999; // 乾枯提醒
-            else learningStatus = 10; // 完成
-
-            // ✅ 更新下方按鈕文字
-            const actionButton = document.querySelector(".altar-button-action");
-            if (learningStatus === 0) {
-                actionButton.textContent = "攻略";
-            } else if (learningStatus >= 1 && learningStatus < 7) {
-                actionButton.textContent = "充能";
-            } else if (learningStatus === 999 || learningStatus >= 7) {
-                actionButton.textContent = "複習";
-            }
-
-            // ✅ 更新「幾天未複習」的假數值（你之後可接資料庫）
-            const daysLabel = document.getElementById("daysSinceReview");
-            daysLabel.textContent = "5 天未複習";
-        }
-
         // ✅ 點擊叉叉關閉儀表板
         function closeAltarOptions() {
             const panel = document.getElementById("pnlAltarOptions");
@@ -668,6 +683,31 @@
                 });
             });
         });
+    </script>
+    <script>
+        // ✅ 後端觸發用的版本，包含實際資料
+        function showAltarPanel(altarId, learningStatus, daysSinceReview) {
+            console.log("🧙 showAltarPanel 被呼叫了");
+            // 顯示儀表板
+            const panel = document.getElementById("pnlAltarOptions");
+            panel.style.display = "block";
+
+            // 更新標題
+            document.getElementById("altarTitle").textContent = "祭壇 " + altarId;
+
+            // 更新按鈕文字
+            const actionButton = document.querySelector(".altar-button-action");
+            if (learningStatus === 0) {
+                actionButton.textContent = "攻略";
+            } else if (learningStatus >= 1 && learningStatus < 7) {
+                actionButton.textContent = "充能";
+            } else if (learningStatus === 999 || learningStatus >= 7) {
+                actionButton.textContent = "複習";
+            }
+
+            // 更新幾天未複習
+            document.getElementById("daysSinceReview").textContent = daysSinceReview + " 天未複習";
+        }
     </script>
 </body>
 </html>
