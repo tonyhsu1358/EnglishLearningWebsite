@@ -174,51 +174,6 @@ public partial class VocabularyGame : System.Web.UI.Page
         }
     }
 
-    [System.Web.Services.WebMethod]
-    public static object GetAltarStatus(int altarId, int userId)
-    {
-        // ✅ 嘗試取得 HttpContext（WebMethod 是 static，得用這方式）
-        var context = HttpContext.Current;
-
-        // ✅ 檢查 Session 是否有效
-        if (context.Session["UserID"] == null || (int)context.Session["UserID"] != userId)
-        {
-            return new { error = "NOT_LOGGED_IN" }; // 不要 redirect，回傳錯誤訊息
-        }
-
-        // 👉 若通過驗證，繼續處理邏輯
-        int learningStatus = 0;
-        int daysSinceReview = 0;
-
-        string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
-
-        using (SqlConnection conn = new SqlConnection(connStr))
-        {
-            conn.Open();
-            string query = @"SELECT learning_status, last_review_time
-                         FROM user_altar_progress
-                         WHERE user_id = @UserID AND altar_id = @AltarID";
-
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@UserID", userId);
-            cmd.Parameters.AddWithValue("@AltarID", altarId);
-
-            SqlDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                learningStatus = reader["learning_status"] != DBNull.Value ? Convert.ToInt32(reader["learning_status"]) : 0;
-                if (reader["last_review_time"] != DBNull.Value)
-                {
-                    DateTime lastReview = Convert.ToDateTime(reader["last_review_time"]);
-                    daysSinceReview = (DateTime.Now - lastReview).Days;
-                }
-            }
-        }
-
-        return new { learningStatus, daysSinceReview };
-    }
-
-
     //方法1.2-從資料庫讀取使用者的魔法能量和鑽石數量，並將其顯示在頁面上。
     private void LoadUserStats()
     {
@@ -255,7 +210,7 @@ public partial class VocabularyGame : System.Web.UI.Page
         }
     }
 
-    //方法1.3-從資料庫載入所有魔法森林的ID和名稱，並將它們記錄到Debug輸出中。
+    //方法1.3-從資料庫載入所有魔法森林的ID和名稱，並將它們記錄到Debug輸出中，但沒實際用在前端
     private void LoadMagicForests()
     {
         Debug.WriteLine(" [LoadMagicForests] - 開始載入魔法森林");
@@ -330,17 +285,14 @@ public partial class VocabularyGame : System.Web.UI.Page
                     else if (status >= 7)
                         cssClass = "completed";
 
+                    // 加入 100 顆祭壇按鈕
                     altarHtml.AppendFormat(
                       "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
                        cssClass, altarId
                     );
-                }
-                litAltarGrid.Text = altarHtml.ToString(); // ✅ 只把按鈕直接放進 .altar-grid 裡！
-
-
+                }             
                 altarHtml.Append("</div>");
-                litAltarGrid.Text = altarHtml.ToString();
-                //Debug.WriteLine($"✅ [LoadMagicAltars] 成功載入 {count} 個祭壇 (forest_id={forestId})");
+                litAltarGrid.Text = altarHtml.ToString();// 一次 assign 就好
             }
             catch (Exception ex)
             {
