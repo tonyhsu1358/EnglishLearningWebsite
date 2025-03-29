@@ -413,30 +413,31 @@
         function showAltarOptions(altarId) {
             console.log("🎯 點到祭壇 ID:", altarId);
 
-            // 把祭壇 ID 存進 hidden 欄位（如果之後還要用）
+            // 存進 hidden 欄位
             document.getElementById("hiddenAltarId").value = altarId;
 
-            // ✅ 從頁面抓 userId（你等等要在後端加上 <asp:HiddenField> 存進來）
+            // 從頁面抓 userId（Session 已存在）
             const userId = parseInt(document.getElementById("hiddenUserId").value);
 
-            // ✅ 使用 fetch 呼叫後端 WebMethod
             fetch("AltarService.asmx/GetAltarStatus", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                credentials: 'include', // ✅ 傳送 cookie 讓它吃到 session
+                credentials: 'include',
                 body: JSON.stringify({ altarId: altarId })
             })
                 .then(response => response.json())
                 .then(result => {
                     const data = result.d;
+
                     if (data.error === "NOT_LOGGED_IN") {
                         alert("請先登入！");
                         return;
                     }
 
-                    showAltarPanel(altarId, data.learningStatus, data.daysSinceReview);
+                    // 傳給你原本的 showAltarPanel（✅ 不改你原本的參數）
+                    showAltarPanel(altarId, data.learningStatus, data.nextReviewTime);
                 })
                 .catch(error => {
                     console.error("❌ AJAX 發生錯誤：", error);
@@ -686,16 +687,38 @@
     </script>
     <script>
         // ✅ 後端觸發用的版本，包含實際資料
-        function showAltarPanel(altarId, learningStatus, daysSinceReview) {
+        function showAltarPanel(altarId, learningStatus, nextReviewTimeStr) {
             console.log("🧙 showAltarPanel 被呼叫了");
-            // 顯示儀表板
             const panel = document.getElementById("pnlAltarOptions");
             panel.style.display = "block";
 
-            // 更新標題
+            // 標題更新
             document.getElementById("altarTitle").textContent = "祭壇 " + altarId;
 
-            // 更新按鈕文字
+            // 狀態顯示文字
+            const daysLabel = document.getElementById("daysSinceReview");
+
+            if (!nextReviewTimeStr) {
+                daysLabel.textContent = "尚未學習";
+            } else {
+                const nextTime = new Date(nextReviewTimeStr);
+                const now = new Date();
+                const diffMs = now - nextTime;
+
+                if (diffMs < 0) {
+                    // 尚未可複習：倒數顯示
+                    const totalSeconds = Math.floor(-diffMs / 1000);
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    daysLabel.textContent = `澆水：${hours}時${minutes}分`;
+                } else {
+                    // 可以複習：顯示天數
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    daysLabel.textContent = `${days} 天未複習`;
+                }
+            }
+
+            // 攻略按鈕狀態
             const actionButton = document.querySelector(".altar-button-action");
             if (learningStatus === 0) {
                 actionButton.textContent = "攻略";
@@ -704,9 +727,6 @@
             } else if (learningStatus === 999 || learningStatus >= 7) {
                 actionButton.textContent = "複習";
             }
-
-            // 更新幾天未複習
-            document.getElementById("daysSinceReview").textContent = daysSinceReview + " 天未複習";
         }
     </script>
 </body>
