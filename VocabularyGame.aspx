@@ -437,6 +437,18 @@
             box-sizing: border-box;
         }
 
+        /* 浮出的單字詳細卡片（❗這才是新關鍵） */
+        .word-detail-panel {
+            background: #fffefc;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            padding: 20px 30px;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
         /* ✅ 卷軸本體（幾乎佔滿，但留邊） */
         .scroll-panel {
             width: 100%;
@@ -637,11 +649,11 @@
                         <asp:Label ID="lblEnergy" runat="server"></asp:Label>
                     </span>
                     <span class="resource">
-                       <img src="images/diamond.svg" alt="魔法鑽石" data-toggle="tooltip" title="魔法鑽石" style="width: 24px; height: 24px; vertical-align: middle;" />
+                        <img src="images/diamond.svg" alt="魔法鑽石" data-toggle="tooltip" title="魔法鑽石" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <asp:Label ID="lblDiamonds" runat="server"></asp:Label>
                     </span>
                     <span class="resource">
-                       <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" data-toggle="tooltip" title="背景音樂音量控制" style="width: 24px; height: 24px; vertical-align: middle;" />
+                        <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" data-toggle="tooltip" title="背景音樂音量控制" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" title="調整音量" />
                     </span>
                     <!-- 音效音量控制 -->
@@ -756,6 +768,35 @@
             </div>
         </div>
 
+        <!-- ✅ 🔽 新增：單字詳細資訊儀表板（遮罩 + 單字卡） -->
+        <div id="pnlWordDetail" class="scroll-overlay" style="display: none;">
+            <!-- 小卡浮出中央 -->
+            <div class="word-detail-panel">
+                <!-- 上方叉叉 -->
+                <div class="scroll-header">
+                    <span class="scroll-close" onclick="closeWordDetailPanel()">&times;</span>
+                </div>
+
+                <!-- 詳細內容 -->
+                <div id="pnlWordDetailContent" class="scroll-words-container">
+                    <!-- 動態插入 -->
+                </div>
+
+                <!-- 導覽列與地點 -->
+                <div class="word-detail-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <div>
+                        <img id="btnPrevWord" src="images/arrow-pointing-Upward.svg" style="width: 32px; height: auto; cursor: pointer;" title="上一個" />
+                        <span id="wordPosition" style="font-weight: bold; font-size: 16px;">1 / 1</span>
+                        <img id="btnNextWord" src="images/arrow-pointing-Downward.svg" style="width: 32px; height: auto; cursor: pointer;" title="下一個" />
+                    </div>
+                    <div style="text-align: center; font-size: 14px; color: #555;">
+                        <span id="wordLocation">位於：森林？ 地塊？</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </form>
     <!-- ✅ 遊戲介紹提示框 -->
     <div id="infoModal" class="info-modal d-none">
@@ -774,11 +815,11 @@
         </div>
     </div>
     <!-- jQuery（Bootstrap 4 相依） -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<!-- Popper.js（Tooltip 需要） -->
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<!-- Bootstrap 4 JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Popper.js（Tooltip 需要） -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <!-- Bootstrap 4 JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
         $(function () {
@@ -954,6 +995,14 @@
                 }
             });
         });
+
+        // ✅ 單字詳細資訊遮罩點擊關閉
+        const detailOverlay = document.getElementById("pnlWordDetail");
+        detailOverlay?.addEventListener("click", function (e) {
+            if (e.target === detailOverlay) {
+                closeWordDetailPanel();
+            }
+        });
     </script>
 
     <script>
@@ -1019,6 +1068,9 @@
 
 
     <script>
+        // ✅ 全域單字陣列，供卷軸 & 詳細資訊共用（關鍵）
+        let scrollWords = [];
+
         // ✅ 顯示卷軸面板
         function showAncientScrollPanel() {
             const altarId = parseInt(document.getElementById("hiddenAltarId").value);
@@ -1042,28 +1094,31 @@
             })
                 .then(res => res.json())
                 .then(result => {
-                    const words = result.d;
-                    if (words.length === 0) {
+                    scrollWords = result.d; // ✅ 存入全域變數，供詳細資訊共用
+                    if (scrollWords.length === 0) {
                         container.innerHTML = "<p>⚠ 尚無單字資料。</p>";
                         return;
                     }
 
-                    words.forEach(w => {
+                    scrollWords.forEach((w, i) => {
                         const card = document.createElement("div");
                         card.className = "scroll-word-card";
 
                         const favImg = document.createElement("img");
                         favImg.className = "word-fav";
                         favImg.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                        favImg.onclick = () => toggleFavorite(w.scroll_id, favImg);
+                        favImg.onclick = () => {
+                            toggleFavorite(w.scroll_id, favImg);
+                            w.is_favorite = !w.is_favorite; // ✅ 同步更新全域陣列
+                        };
                         card.appendChild(favImg);
 
                         const left = document.createElement("div");
                         left.className = "word-left";
                         left.innerHTML = `
-                <span class="word">${w.word}</span>
-                <span class="info"><span class="badge badge-secondary">${w.part_of_speech}</span> ${w.meaning}</span>
-            `;
+                        <span class="word">${w.word}</span>
+                        <span class="info"><span class="badge badge-secondary">${w.part_of_speech}</span> ${w.meaning}</span>
+                    `;
                         card.appendChild(left);
 
                         const icons = document.createElement("div");
@@ -1072,17 +1127,19 @@
                         const infoIcon = document.createElement("img");
                         infoIcon.src = "images/list-bullet.svg?v=" + new Date().getTime();
                         infoIcon.title = "查看詳情";
+                        infoIcon.onclick = () => {
+                            showWordDetailPanel(scrollWords, i); // ✅ 傳 index 與原陣列
+                        };
                         icons.appendChild(infoIcon);
 
                         const volIcon = document.createElement("img");
                         volIcon.src = "images/volumewithnocolor.svg?v=" + new Date().getTime();
                         volIcon.title = "播放單字";
-
                         volIcon.onclick = () => {
                             volIcon.src = "images/volumewithlightcolor.svg";
                             const utter = new SpeechSynthesisUtterance(w.word);
                             utter.lang = "en-US";
-                            utter.volume = soundEffectVolume; // ✅ 整合音效音量
+                            utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
                             utter.onend = () => {
                                 volIcon.src = "images/volumewithnocolor.svg";
@@ -1105,12 +1162,12 @@
             document.getElementById("pnlAncientScroll").style.display = "none";
         }
 
-        // ✅ 愛心切換（前端變更）
+        // ✅ 收藏切換邏輯（動畫 + 傳送後端 + 切換圖片）
         function toggleFavorite(scrollId, icon) {
-            const isFav = icon.src.includes("red"); // ✅ 先定義
+            const isFav = icon.src.includes("red");
 
             if (!isFav) {
-                showFlyingHeart(icon); // ✅ 點灰心 → 飛紅心
+                showFlyingHeart(icon);
             }
 
             icon.src = isFav ? "images/heartwithnocolor.svg" : "images/heartwithredcolor.svg";
@@ -1134,28 +1191,130 @@
                 });
         }
 
+        // ✅ 飛紅心動畫
         function showFlyingHeart(targetIcon) {
             const heart = document.createElement("img");
             heart.src = "images/heartwithredcolor.svg";
             heart.className = "fly-heart";
 
-            // 抓 icon 在畫面上的位置
             const rect = targetIcon.getBoundingClientRect();
-            heart.style.left = `${rect.left + rect.width / 2 - 12}px`; // 調整中心點對齊
+            heart.style.left = `${rect.left + rect.width / 2 - 12}px`;
             heart.style.top = `${rect.top + rect.height / 2 - 12}px`;
 
             document.body.appendChild(heart);
-
-            // 🚀 強制觸發一次 reflow，讓動畫確實執行
-            void heart.offsetWidth;
-
+            void heart.offsetWidth; // ✅ 觸發動畫
             heart.style.animation = "fly-heart 0.8s ease-out forwards";
 
-            // 動畫結束後自動移除
             setTimeout(() => {
                 heart.remove();
             }, 800);
         }
     </script>
+
+
+    <script>
+        function showWordDetailPanel(words, index) {
+            const panel = document.getElementById("pnlWordDetail");
+            const container = document.getElementById("pnlWordDetailContent");
+            const posLabel = document.getElementById("wordPosition");
+            const locLabel = document.getElementById("wordLocation");
+
+            let currentIndex = index;
+
+            function renderWordCard(w) {
+                container.innerHTML = "";
+                const card = document.createElement("div");
+                card.className = "scroll-word-card";
+
+                const favImg = document.createElement("img");
+                favImg.className = "word-fav";
+                favImg.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+
+                favImg.onclick = () => {
+                    const newFavStatus = !w.is_favorite;
+                    w.is_favorite = newFavStatus; // ✅ 同步內部變數
+                    favImg.src = newFavStatus ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                    toggleFavorite(w.scroll_id, favImg); // ✅ 呼叫後端
+
+                    // ✅ 🔄 更新全域 scrollWords 陣列中對應 scroll_id 的 is_favorite
+                    const found = scrollWords.find(item => item.scroll_id === w.scroll_id);
+                    if (found) {
+                        found.is_favorite = newFavStatus;
+                    }
+
+                    // ✅ 🔄 更新卷軸清單裡的那顆愛心圖示（同步視覺）
+                    const scrollCards = document.querySelectorAll(".scroll-word-card");
+                    scrollCards.forEach(c => {
+                        const icon = c.querySelector(".word-fav");
+                        const word = c.querySelector(".word-left .word");
+                        if (word && word.textContent === w.word) {
+                            icon.src = newFavStatus ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                        }
+                    });
+
+                    // ✅ 💓 飛心動畫（只有從灰變紅才飛）
+                    if (newFavStatus) showFlyingHeart(favImg);
+                };
+
+                card.appendChild(favImg);
+
+                const left = document.createElement("div");
+                left.className = "word-left";
+                left.innerHTML = `
+        <span class="word">${w.word}</span>
+        <span class="info"><strong>${w.pronunciation}</strong></span>
+        <span class="info"><span class="badge badge-secondary">${w.part_of_speech}</span> ${w.meaning}</span>
+        <span class="info">過去式：${w.past_tense || '—'}<br/>過去分詞：${w.past_participle || '—'}</span>
+        <span class="info">${w.example_sentence}</span>
+        <span class="info text-muted">${w.example_translation}</span>
+    `;
+                card.appendChild(left);
+
+                const icons = document.createElement("div");
+                icons.className = "word-icons";
+
+                const volIcon = document.createElement("img");
+                volIcon.src = "images/volumewithnocolor.svg";
+                volIcon.title = "播放單字";
+                volIcon.onclick = () => {
+                    volIcon.src = "images/volumewithlightcolor.svg";
+                    const utter = new SpeechSynthesisUtterance(w.word);
+                    utter.lang = "en-US";
+                    utter.volume = soundEffectVolume;
+                    speechSynthesis.speak(utter);
+                    utter.onend = () => {
+                        volIcon.src = "images/volumewithnocolor.svg";
+                    };
+                };
+                icons.appendChild(volIcon);
+                card.appendChild(icons);
+
+                container.appendChild(card);
+                posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
+                locLabel.textContent = w.location_text;
+            }
+
+            document.getElementById("btnPrevWord").onclick = () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    renderWordCard(words[currentIndex]);
+                }
+            };
+
+            document.getElementById("btnNextWord").onclick = () => {
+                if (currentIndex < words.length - 1) {
+                    currentIndex++;
+                    renderWordCard(words[currentIndex]);
+                }
+            };
+
+            renderWordCard(words[currentIndex]);
+            panel.style.display = "flex";
+        }
+
+        function closeWordDetailPanel() {
+            document.getElementById("pnlWordDetail").style.display = "none";
+        }
+</script>
 </body>
 </html>

@@ -12,12 +12,13 @@ public class ScrollService : System.Web.Services.WebService
 {
     public ScrollService() { }
 
-    // ✅ 取得指定祭壇的單字列表，包含是否為最愛
+    // ✅ 取得指定祭壇的單字列表（簡略版，適用捲軸列表 UI）
     [WebMethod(EnableSession = true)]
     public List<object> GetScrollWords(int altarId)
     {
         var results = new List<object>();
 
+        // ⛔ 若未登入，直接回傳空陣列
         if (HttpContext.Current.Session["UserID"] == null)
             return results;
 
@@ -49,7 +50,6 @@ public class ScrollService : System.Web.Services.WebService
     WHERE fm.rn = 1
     ORDER BY fm.word";
 
-
             SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@UserID", userId);
             cmd.Parameters.AddWithValue("@AltarID", altarId);
@@ -70,6 +70,63 @@ public class ScrollService : System.Web.Services.WebService
         }
 
         return results;
+    }
+
+    // ✅ 取得單字詳細資訊（點選單字後才查詢）
+    [WebMethod(EnableSession = true)]
+    public object GetWordDetail(int scrollId)
+    {
+        if (HttpContext.Current.Session["UserID"] == null)
+            return new { error = "NOT_LOGGED_IN" };
+
+        string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
+        using (SqlConnection conn = new SqlConnection(connStr))
+        {
+            conn.Open();
+            string query = @"
+    SELECT 
+        s.scroll_id,
+        s.word,
+        s.pronunciation,
+        s.part_of_speech,
+        s.meaning,
+        s.example_sentence,
+        s.example_translation,
+        s.past_tense,
+        s.past_participle,
+        s.word_audio_url,
+        mf.forest_name_zh + N' ' + N'地塊' + CAST(ma.altar_id AS NVARCHAR) AS location_text
+    FROM ancient_scrolls s
+    INNER JOIN magic_altar ma ON s.altar_id = ma.altar_id
+    INNER JOIN magic_forest mf ON ma.forest_id = mf.forest_id
+    WHERE s.scroll_id = @ScrollID";
+
+            SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@ScrollID", scrollId);
+            SqlDataReader reader = cmd.ExecuteReader();
+
+            if (reader.Read())
+            {
+                return new
+                {
+                    scroll_id = (int)reader["scroll_id"],
+                    word = reader["word"].ToString(),
+                    pronunciation = reader["pronunciation"].ToString(),
+                    part_of_speech = reader["part_of_speech"].ToString(),
+                    meaning = reader["meaning"].ToString(),
+                    example_sentence = reader["example_sentence"].ToString(),
+                    example_translation = reader["example_translation"].ToString(),
+                    past_tense = string.IsNullOrEmpty(reader["past_tense"].ToString()) ? "—" : reader["past_tense"].ToString(),
+                    past_participle = string.IsNullOrEmpty(reader["past_participle"].ToString()) ? "—" : reader["past_participle"].ToString(),
+                    word_audio_url = reader["word_audio_url"]?.ToString(),
+                    location_text = reader["location_text"].ToString()
+                };
+            }
+            else
+            {
+                return new { error = "NOT_FOUND" };
+            }
+        }
     }
 
     // ✅ 新增或移除收藏
