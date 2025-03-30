@@ -109,12 +109,7 @@ public partial class VocabularyGame : System.Web.UI.Page
                 LoadMagicAltars();
                 hiddenUserId.Value = Session["UserID"].ToString();
 
-                if (Request.QueryString["viewWords"] != null)
-                {
-                    int altarId = int.Parse(Request.QueryString["viewWords"]);
-                    ShowAncientScroll(altarId);
-                }
-                else if (Request.QueryString["startTrial"] != null)
+                if (Request.QueryString["startTrial"] != null)
                 {
                     int altarId = int.Parse(Request.QueryString["startTrial"]);
                     StartTrial(altarId);
@@ -290,7 +285,7 @@ public partial class VocabularyGame : System.Web.UI.Page
                       "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
                        cssClass, altarId
                     );
-                }             
+                }
                 altarHtml.Append("</div>");
                 litAltarGrid.Text = altarHtml.ToString();// 一次 assign 就好
             }
@@ -315,14 +310,7 @@ public partial class VocabularyGame : System.Web.UI.Page
     {
         Response.Redirect("HomePage.aspx");
     }
-    //方法2.3-!!!!!!!!!暫時沒功能，此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者關閉單字學習面板
-    protected void btnCloseWordList_Click(object sender, EventArgs e)
-    {
-        Debug.WriteLine(" [btnCloseWordList_Click] - 使用者關閉單字學習面板");
-        pnlMagicAltar.Visible = true;
-        pnlAncientScroll.Visible = false;
-    }
-    //方法2.4-此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者跳轉至統計結果
+    //方法2.3-此為pnlAncientScroll儀表板內的按鈕事件，可讓使用者跳轉至統計結果
     protected void btnViewStats_Click(object sender, EventArgs e)
     {
         Response.Redirect("Statics.aspx");
@@ -331,48 +319,11 @@ public partial class VocabularyGame : System.Web.UI.Page
     //==============================================
     //  3. 學習流程邏輯🔷包含進入祭壇學單字、開始測驗的業務邏輯。
     //==============================================
-    //方法3.1-根據祭壇ID從資料庫檢索單字及其含義，並將它們以HTML格式顯示在頁面的單字列表中。
-    protected void ShowAncientScroll(int altarId)
-    {
-        Debug.WriteLine($" [ShowAncientScroll] - 進入祭壇 {altarId} 的單字學習");
-
-        pnlMagicAltar.Visible = false;
-        pnlAncientScroll.Visible = true;
-
-        string query = "SELECT word, meaning FROM ancient_scrolls WHERE altar_id = @AltarID";
-        using (SqlConnection conn = new SqlConnection(connectionString))
-        {
-            try
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@AltarID", altarId);
-                SqlDataReader reader = cmd.ExecuteReader();
-
-                StringBuilder wordListHtml = new StringBuilder();
-                int count = 0;
-
-                while (reader.Read())
-                {
-                    wordListHtml.AppendFormat("<div class='word-item'><b>{0}</b>: {1}</div>", reader["word"], reader["meaning"]);
-                    count++;
-                }
-
-                litWordList.Text = wordListHtml.ToString();
-                Debug.WriteLine($" [ShowAncientScroll] 成功載入 {count} 個單字");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("❌ [ShowAncientScroll] 發生錯誤：" + ex.Message);
-            }
-        }
-    }
-    //方法3.2-開始測驗
+    //方法3.1-開始測驗
     protected void StartTrial(int altarId)
     {
         Debug.WriteLine($" [StartTrial] - 祭壇 {altarId} 測驗開始");
         pnlMagicAltar.Visible = false;
-        pnlAncientScroll.Visible = false;
         //pnlTrialChamber.Visible = true;
     }
 
