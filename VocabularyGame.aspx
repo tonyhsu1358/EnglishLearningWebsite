@@ -9,8 +9,8 @@
     <style>
         /* ===== 全局樣式 ===== */
         body {
-            background: url('images/grassland1.svg') no-repeat center center fixed;
-            background-size: cover;
+            background: url('images/grassland1.svg') no-repeat center center fixed; /* 設定背景圖片不重複、置中且固定 */
+            background-size: cover; /* 背景圖填滿整個畫面 */
         }
 
         /* 狀態欄 */
@@ -453,7 +453,7 @@
 
         /* ✅ 上方標題 + 關閉 */
         .scroll-header {
-            width: 30%; /* ✅ 跟單字卡一樣窄 */
+            width: 450px; /* ✅ 跟單字卡一樣窄 */
             margin: 0 auto; /* ✅ 置中 */
             position: sticky;
             top: 0;
@@ -509,7 +509,7 @@
             border-radius: 12px;
             padding: 15px;
             position: relative;
-            width: 30%; /* ✅ 收窄一點，讓左右不貼邊 */
+            width: 450px; /* ✅ 收窄一點，讓左右不貼邊 */
             margin: 0 auto; /* ✅ 置中 */
             background-color: #ffffffee; /* ✅ 淡白底更清晰（可選） */
         }
@@ -633,20 +633,20 @@
             <div class="row">
                 <div class="col-12" id="navbar">
                     <span class="resource">
-                        <img src="images/energy.svg" alt="魔法能量" style="width: 24px; height: 24px; vertical-align: middle;" />
+                        <img src="images/energy.svg" alt="魔法能量" data-toggle="tooltip" title="魔法能量" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <asp:Label ID="lblEnergy" runat="server"></asp:Label>
                     </span>
                     <span class="resource">
-                        <img src="images/diamond.svg" alt="魔法鑽石" style="width: 24px; height: 24px; vertical-align: middle;" />
+                       <img src="images/diamond.svg" alt="魔法鑽石" data-toggle="tooltip" title="魔法鑽石" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <asp:Label ID="lblDiamonds" runat="server"></asp:Label>
                     </span>
                     <span class="resource">
-                        <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" style="width: 24px; height: 24px; vertical-align: middle;" />
+                       <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" data-toggle="tooltip" title="背景音樂音量控制" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" title="調整音量" />
                     </span>
                     <!-- 音效音量控制 -->
                     <span class="resource" id="soundEffectControl">
-                        <img id="soundEffectIcon" src="images/music-note-beamed.svg" alt="音效音量" style="width: 24px; height: 24px;" />
+                        <img id="soundEffectIcon" src="images/music-note-beamed.svg" alt="音效音量" data-toggle="tooltip" title="調整音效(按鈕聲/發音等)" style="width: 24px; height: 24px;" />
                         <input type="range" id="soundEffectSlider" min="0" max="1" step="0.01" value="1.0" title="調整音效音量" />
                     </span>
                 </div>
@@ -671,32 +671,24 @@
                         </div>
 
                         <!-- ✅ 🔽 新增：森林功能儀表板 (會在點選圖示後浮出) -->
-                        <asp:Panel ID="pnlMagicForest" runat="server" ClientIDMode="Static" CssClass="magic-forest-panel" Style="display: none;">
-                            <div class="forest-panel-content">
-                                <!-- 叉叉關閉 -->
-                                <span class="forest-close" onclick="closeForestPanel()">&times;</span>
-                                <!-- 面板標題 -->
-                                <h3>森林功能面板</h3>
-                                <!-- 切換森林按鈕 -->
-                                <asp:Button ID="btnSwitchForest" runat="server"
-                                    Text="切換森林"
-                                    CssClass="btn btn-primary m-2"
-                                    OnClientClick="stopBGM();"
-                                    OnClick="btnSwitchForest_Click" />
-                                <!-- 返回首頁按鈕 -->
-                                <asp:Button ID="btnBackHome" runat="server"
-                                    Text="返回首頁"
-                                    CssClass="btn btn-secondary m-2"
-                                    OnClientClick="stopBGM();"
-                                    OnClick="btnBackHome_Click" />
-                                <!-- 查看統計按鈕 -->
-                                <asp:Button ID="btnViewStats" runat="server"
-                                    Text="查看統計"
-                                    CssClass="btn btn-info m-2"
-                                    OnClientClick="stopBGM();"
-                                    OnClick="btnViewStats_Click" />
-                            </div>
-                        </asp:Panel>
+                        <div id="forestOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 10000;">
+                            <asp:Panel ID="pnlMagicForest" runat="server" ClientIDMode="Static" CssClass="magic-forest-panel">
+                                <div class="forest-panel-content">
+                                    <!-- 叉叉關閉 -->
+                                    <span class="forest-close" onclick="closeForestPanel()">&times;</span>
+                                    <!-- 面板標題 -->
+                                    <h3>森林功能面板</h3>
+                                    <!-- 三個按鈕 -->
+                                    <asp:Button ID="btnSwitchForest" runat="server" Text="切換森林" CssClass="btn btn-primary m-2"
+                                        OnClientClick="stopBGM();" OnClick="btnSwitchForest_Click" />
+                                    <asp:Button ID="btnBackHome" runat="server" Text="返回首頁" CssClass="btn btn-secondary m-2"
+                                        OnClientClick="stopBGM();" OnClick="btnBackHome_Click" />
+                                    <asp:Button ID="btnViewStats" runat="server" Text="查看統計" CssClass="btn btn-info m-2"
+                                        OnClientClick="stopBGM();" OnClick="btnViewStats_Click" />
+                                </div>
+                            </asp:Panel>
+                        </div>
+
 
                         <!-- !-- ✅ 🔽 新增：祭壇儀表板 (永遠顯示在UI，每個LEVEL裡面都包含100顆按鈕) -->
                         <asp:Panel ID="pnlMagicAltar" runat="server" Visible="true" CssClass="altar-grid">
@@ -706,39 +698,41 @@
                         <!-- ✅ 🔽 新增：祭壇選擇儀表板（點選祭壇按鈕後顯示） -->
                         <asp:UpdatePanel ID="UpdatePanelAltar" runat="server">
                             <ContentTemplate>
-                                <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
-                                    <div class="altar-options-content">
-                                        <!-- 🔴 右上角叉叉關閉按鈕 -->
-                                        <span class="altar-close" onclick="closeAltarOptions()">×</span>
-                                        <!-- 上方：祭壇資訊 -->
-                                        <div class="altar-header">
-                                            <span id="altarTitle" class="altar-title-text">祭壇209</span>
-                                            <span id="daysSinceReview" class="altar-days-text">5 天未複習</span>
-                                        </div>
-                                        <!-- 中段：進度南瓜與連接線 -->
-                                        <div class="altar-progress" id="pumpkinProgress">
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                            <img src="images/connectline.svg" class="altar-line" />
-                                            <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
-                                        </div>
-                                        <!-- 下方：單字圖標 & 攻略按鈕 -->
-                                        <div style="position: relative; width: 100%; height: 60px;">
-                                            <img src="images/vocabulary.svg" class="vocab-icon" style="position: absolute; left: 10px; bottom: 0;" onclick="showAncientScrollPanel()" />
-                                            <button class="altar-button-action" style="position: absolute; left: 130px; bottom: 0; width: 180px;" onclick="alert('點了攻略按鈕')">攻略</button>
-                                        </div>
+                                <div id="altarOptionsOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); z-index: 10001;">
+                                    <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
+                                        <div class="altar-options-content">
+                                            <!-- 🔴 右上角叉叉關閉按鈕 -->
+                                            <span class="altar-close" onclick="closeAltarOptions()">×</span>
+                                            <!-- 上方：祭壇資訊 -->
+                                            <div class="altar-header">
+                                                <span id="altarTitle" class="altar-title-text">祭壇209</span>
+                                                <span id="daysSinceReview" class="altar-days-text">5 天未複習</span>
+                                            </div>
+                                            <!-- 中段：進度南瓜與連接線 -->
+                                            <div class="altar-progress" id="pumpkinProgress">
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                                <img src="images/connectline.svg" class="altar-line" />
+                                                <img src="images/pumpkinwithnocolor.svg" class="altar-pumpkin" />
+                                            </div>
+                                            <!-- 下方：單字圖標 & 攻略按鈕 -->
+                                            <div style="position: relative; width: 100%; height: 60px;">
+                                                <img src="images/vocabulary.svg" class="vocab-icon" style="position: absolute; left: 10px; bottom: 0;" onclick="showAncientScrollPanel()" />
+                                                <button class="altar-button-action" style="position: absolute; left: 130px; bottom: 0; width: 180px;" onclick="alert('點了攻略按鈕')">攻略</button>
+                                            </div>
 
-                                    </div>
-                                </asp:Panel>
+                                        </div>
+                                    </asp:Panel>
+                                </div>
                             </ContentTemplate>
                         </asp:UpdatePanel>
                         <asp:HiddenField ID="hiddenAltarId" runat="server" ClientIDMode="Static" />
@@ -779,28 +773,40 @@
             </p>
         </div>
     </div>
+    <!-- jQuery（Bootstrap 4 相依） -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<!-- Popper.js（Tooltip 需要） -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<!-- Bootstrap 4 JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
 
     <script>
         // 顯示森林儀表板
         function toggleForestPanel() {
-            const forestPanel = document.getElementById("<%= pnlMagicForest.ClientID %>");
-            const altarPanel = document.getElementById("pnlAltarOptions"); // 🔹 抓祭壇面板
+            const overlay = document.getElementById("forestOverlay");
+            const altarPanel = document.getElementById("pnlAltarOptions");
 
-            // ✅ 顯示森林功能面板
-            if (forestPanel) {
-                forestPanel.style.display = "block";
+            // 顯示森林面板與遮罩
+            if (overlay) {
+                overlay.style.display = "block";
             }
 
-            // ✅ 同時隱藏祭壇儀表板，避免重疊
+            // 同時關掉祭壇面板
             if (altarPanel) {
                 altarPanel.style.display = "none";
             }
         }
-        // 關閉森林儀表板
+
         function closeForestPanel() {
-            const panel = document.getElementById("<%= pnlMagicForest.ClientID %>");
-            if (panel) {
-                panel.style.display = "none";
+            const overlay = document.getElementById("forestOverlay");
+            if (overlay) {
+                overlay.style.display = "none";
             }
         }
     </script>
@@ -912,17 +918,61 @@
                 console.error("播放音效失敗：", err);
             });
         }
-</script>
+    </script>
 
     <script>
-        // ✅ 點擊叉叉關閉儀表板
+        document.addEventListener("DOMContentLoaded", function () {
+            // 祭壇遮罩關閉
+            const altarOverlay = document.getElementById("altarOptionsOverlay");
+            altarOverlay?.addEventListener("click", function (e) {
+                if (e.target === altarOverlay) {
+                    closeAltarOptions();
+                }
+            });
+
+            // 卷軸遮罩關閉
+            const scrollOverlay = document.getElementById("pnlAncientScroll");
+            scrollOverlay?.addEventListener("click", function (e) {
+                if (e.target === scrollOverlay) {
+                    closeScrollPanel();
+                }
+            });
+
+            // ✅ 森林遮罩關閉（正確）
+            const forestOverlay = document.getElementById("forestOverlay");
+            forestOverlay?.addEventListener("click", function (e) {
+                if (e.target === forestOverlay) {
+                    closeForestPanel();
+                }
+            });
+
+            // 遊戲說明關閉
+            const infoModal = document.getElementById("infoModal");
+            infoModal?.addEventListener("click", function (e) {
+                if (e.target === infoModal) {
+                    infoModal.classList.add("d-none");
+                }
+            });
+        });
+    </script>
+
+    <script>
         function closeAltarOptions() {
-            const panel = document.getElementById("pnlAltarOptions");
-            panel.style.display = "none";
+            document.getElementById("altarOptionsOverlay").style.display = "none";
         }
 
-        // ✅ 防止攻略按鈕觸發表單提交（避免 BGM 中斷）
         document.addEventListener("DOMContentLoaded", function () {
+            // ✅ 點擊遮罩關閉祭壇儀表板
+            const overlay = document.getElementById("altarOptionsOverlay");
+            const panel = document.getElementById("pnlAltarOptions");
+
+            overlay.addEventListener("click", function (e) {
+                if (e.target === overlay) {
+                    closeAltarOptions();
+                }
+            });
+
+            // ✅ 防止攻略按鈕觸發表單提交（避免 BGM 中斷）
             const buttons = document.querySelectorAll(".altar-button-action");
             buttons.forEach(btn => {
                 btn.addEventListener("click", function (event) {
@@ -930,21 +980,14 @@
                 });
             });
         });
-    </script>
 
-    <script>
-        // ✅ 後端觸發用的版本，包含實際資料
+        // ✅ 顯示祭壇儀表板（更新為顯示整個 overlay）
         function showAltarPanel(altarId, learningStatus, nextReviewTimeStr) {
-            console.log("🧙 showAltarPanel 被呼叫了");
-            const panel = document.getElementById("pnlAltarOptions");
-            panel.style.display = "block";
-
-            // 標題更新
+            document.getElementById("altarOptionsOverlay").style.display = "block";
+            document.getElementById("pnlAltarOptions").style.display = "block"; // 🟢 加這一行，顯示儀表板
             document.getElementById("altarTitle").textContent = "祭壇 " + altarId;
 
-            // 狀態顯示文字
             const daysLabel = document.getElementById("daysSinceReview");
-
             if (!nextReviewTimeStr) {
                 daysLabel.textContent = "尚未學習";
             } else {
@@ -953,19 +996,16 @@
                 const diffMs = now - nextTime;
 
                 if (diffMs < 0) {
-                    // 尚未可複習：倒數顯示
                     const totalSeconds = Math.floor(-diffMs / 1000);
                     const hours = Math.floor(totalSeconds / 3600);
                     const minutes = Math.floor((totalSeconds % 3600) / 60);
                     daysLabel.textContent = `澆水：${hours}時${minutes}分`;
                 } else {
-                    // 可以複習：顯示天數
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                     daysLabel.textContent = `${days} 天未複習`;
                 }
             }
 
-            // 攻略按鈕狀態
             const actionButton = document.querySelector(".altar-button-action");
             if (learningStatus === 0) {
                 actionButton.textContent = "攻略";
@@ -976,6 +1016,7 @@
             }
         }
     </script>
+
 
     <script>
         // ✅ 顯示卷軸面板
@@ -990,10 +1031,6 @@
             // ✅ 2️. 顯示卷軸面板
             panel.style.display = "flex";
             container.innerHTML = "";
-
-            // ✅ 3️. 自動隱藏祭壇儀表板，避免同時顯示兩個視窗
-            const altarPanel = document.getElementById("pnlAltarOptions");
-            if (altarPanel) altarPanel.style.display = "none";
 
             fetch("ScrollService.asmx/GetScrollWords", {
                 method: "POST",
