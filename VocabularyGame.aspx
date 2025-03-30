@@ -1211,105 +1211,135 @@
         }
     </script>
 
-
     <script>
+        //此為顯示詳細單字資訊的方法
         function showWordDetailPanel(words, index) {
             const panel = document.getElementById("pnlWordDetail");
             const container = document.getElementById("pnlWordDetailContent");
             const posLabel = document.getElementById("wordPosition");
             const locLabel = document.getElementById("wordLocation");
-
             let currentIndex = index;
 
-            function renderWordCard(w) {
-                container.innerHTML = "";
+            // 建立卡片 DOM 結構，只做一次
+            if (container.children.length === 0) {
                 const card = document.createElement("div");
                 card.className = "scroll-word-card";
 
                 const favImg = document.createElement("img");
                 favImg.className = "word-fav";
-                favImg.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-
-                favImg.onclick = () => {
-                    const newFavStatus = !w.is_favorite;
-                    w.is_favorite = newFavStatus; // ✅ 同步內部變數
-                    favImg.src = newFavStatus ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                    toggleFavorite(w.scroll_id, favImg); // ✅ 呼叫後端
-
-                    // ✅ 🔄 更新全域 scrollWords 陣列中對應 scroll_id 的 is_favorite
-                    const found = scrollWords.find(item => item.scroll_id === w.scroll_id);
-                    if (found) {
-                        found.is_favorite = newFavStatus;
-                    }
-
-                    // ✅ 🔄 更新卷軸清單裡的那顆愛心圖示（同步視覺）
-                    const scrollCards = document.querySelectorAll(".scroll-word-card");
-                    scrollCards.forEach(c => {
-                        const icon = c.querySelector(".word-fav");
-                        const word = c.querySelector(".word-left .word");
-                        if (word && word.textContent === w.word) {
-                            icon.src = newFavStatus ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                        }
-                    });
-
-                    // ✅ 💓 飛心動畫（只有從灰變紅才飛）
-                    if (newFavStatus) showFlyingHeart(favImg);
-                };
-
+                favImg.id = "favIcon";
                 card.appendChild(favImg);
 
                 const left = document.createElement("div");
                 left.className = "word-left";
                 left.innerHTML = `
-        <span class="word">${w.word}</span>
-        <span class="info"><strong>${w.pronunciation}</strong></span>
-        <span class="info"><span class="badge badge-secondary">${w.part_of_speech}</span> ${w.meaning}</span>
-        <span class="info">過去式：${w.past_tense || '—'}<br/>過去分詞：${w.past_participle || '—'}</span>
-        <span class="info">${w.example_sentence}</span>
-        <span class="info text-muted">${w.example_translation}</span>
-    `;
+            <span id="wordText" class="word"></span>
+            <span id="pronunciationText" class="info"></span>
+            <span id="posMeaningText" class="info"></span>
+            <span id="tenseText" class="info"></span>
+            <span id="exampleText" class="info"></span>
+            <span id="translationText" class="info text-muted"></span>
+        `;
                 card.appendChild(left);
 
                 const icons = document.createElement("div");
                 icons.className = "word-icons";
-
                 const volIcon = document.createElement("img");
+                volIcon.id = "wordAudioIcon";
                 volIcon.src = "images/volumewithnocolor.svg";
                 volIcon.title = "播放單字";
-                volIcon.onclick = () => {
-                    volIcon.src = "images/volumewithlightcolor.svg";
-                    const utter = new SpeechSynthesisUtterance(w.word);
-                    utter.lang = "en-US";
-                    utter.volume = soundEffectVolume;
-                    speechSynthesis.speak(utter);
-                    utter.onend = () => {
-                        volIcon.src = "images/volumewithnocolor.svg";
-                    };
-                };
                 icons.appendChild(volIcon);
                 card.appendChild(icons);
 
                 container.appendChild(card);
-                posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
-                locLabel.textContent = w.location_text;
             }
 
+            // 只更新卡片資料
+            function updateCard(w) {
+                fetch("ScrollService.asmx/GetWordDetail", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ scrollId: w.scroll_id })
+                })
+                    .then(res => res.json())
+                    .then(result => {
+                        const data = result.d;
+                        if (data.error) {
+                            container.innerHTML = "<p>❌ 無法載入資料</p>";
+                            return;
+                        }
+
+                        // 更新文字
+                        document.getElementById("wordText").innerText = data.word;
+                        document.getElementById("pronunciationText").innerHTML = `<strong>${data.pronunciation}</strong>`;
+                        document.getElementById("posMeaningText").innerHTML =
+                            `<span class="badge badge-secondary">${data.part_of_speech}</span> ${data.meaning}`;
+                        document.getElementById("tenseText").innerHTML =
+                            `過去式：${data.past_tense}<br/>過去分詞：${data.past_participle}`;
+                        document.getElementById("exampleText").innerText = data.example_sentence;
+                        document.getElementById("translationText").innerText = data.example_translation;
+                        locLabel.textContent = data.location_text;
+                        posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
+
+                        // 更新愛心圖示
+                        const favIcon = document.getElementById("favIcon");
+                        favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                        favIcon.onclick = () => {
+                            const newFav = !w.is_favorite;
+                            w.is_favorite = newFav;
+                            favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                            toggleFavorite(w.scroll_id, favIcon);
+
+                            const found = scrollWords.find(item => item.scroll_id === w.scroll_id);
+                            if (found) found.is_favorite = newFav;
+
+                            const scrollCards = document.querySelectorAll(".scroll-word-card");
+                            scrollCards.forEach(c => {
+                                const icon = c.querySelector(".word-fav");
+                                const word = c.querySelector(".word-left .word");
+                                if (word && word.textContent === w.word) {
+                                    icon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                                }
+                            });
+
+                            if (newFav) showFlyingHeart(favIcon);
+                        };
+
+                        // 更新發音圖示
+                        const volIcon = document.getElementById("wordAudioIcon");
+                        volIcon.onclick = () => {
+                            volIcon.src = "images/volumewithlightcolor.svg";
+                            const utter = new SpeechSynthesisUtterance(data.word);
+                            utter.lang = "en-US";
+                            utter.volume = soundEffectVolume;
+                            speechSynthesis.speak(utter);
+                            utter.onend = () => {
+                                volIcon.src = "images/volumewithnocolor.svg";
+                            };
+                        };
+                    });
+            }
+
+            // 初始載入
+            updateCard(words[currentIndex]);
+            panel.style.display = "flex";
+
+            // 切換按鈕
             document.getElementById("btnPrevWord").onclick = () => {
                 if (currentIndex > 0) {
                     currentIndex--;
-                    renderWordCard(words[currentIndex]);
+                    updateCard(words[currentIndex]);
                 }
             };
-
             document.getElementById("btnNextWord").onclick = () => {
                 if (currentIndex < words.length - 1) {
                     currentIndex++;
-                    renderWordCard(words[currentIndex]);
+                    updateCard(words[currentIndex]);
                 }
             };
-
-            renderWordCard(words[currentIndex]);
-            panel.style.display = "flex";
         }
 
         function closeWordDetailPanel() {
