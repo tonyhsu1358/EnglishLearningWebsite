@@ -231,59 +231,67 @@
             text-align: left;
         }
 
-        /* ❌ 右上角關閉按鈕 */
+        /* ===== 📌 提示視窗：右上角的關閉按鈕樣式 ===== */
         .info-modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 22px;
-            font-weight: bold;
-            color: #333;
-            cursor: pointer;
-            transition: 0.3s;
+            position: absolute; /* 固定在父元素的右上角 */
+            top: 10px; /* 距離上方 10px */
+            right: 15px; /* 距離右側 15px */
+            font-size: 22px; /* 字體大小 */
+            font-weight: bold; /* 粗體字 */
+            color: #333; /* 深灰色字體 */
+            cursor: pointer; /* 滑鼠變成手指 */
+            transition: 0.3s; /* 滑鼠懸停時有動畫過渡 */
         }
 
             .info-modal-close:hover {
-                color: #e74c3c;
-                transform: scale(1.2);
+                color: #e74c3c; /* 懸停時變成紅色 */
+                transform: scale(1.2); /* 略為放大 */
             }
 
+        /* ===== 📌 森林功能面板主框架（浮出的功能選單） ===== */
         .magic-forest-panel {
-            position: fixed;
+            position: fixed; /* 固定在畫面中央 */
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff7e6;
-            border: 3px solid #d2b48c;
-            border-radius: 15px;
-            padding: 30px;
-            z-index: 9999;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-            width: 400px;
-            text-align: center;
+            transform: translate(-50%, -50%); /* 完全置中 */
+            background-color: #fff7e6; /* 淡黃色背景 */
+            border: 3px solid #d2b48c; /* 褐色邊框 */
+            border-radius: 15px; /* 圓角 */
+            padding: 30px; /* 內距 */
+            z-index: 9999; /* 層級非常高，壓過其他 UI */
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4); /* 外陰影 */
+            width: 400px; /* 固定寬度 */
+            text-align: center; /* 內容置中 */
         }
 
+        /* 標題樣式（森林功能面板內的 h3） */
         .forest-panel-content h3 {
-            font-weight: bold;
-            margin-bottom: 20px;
+            font-weight: bold; /* 加粗 */
+            margin-bottom: 20px; /* 下方留空 */
         }
 
+        /* ===== 📌 森林功能面板右上角關閉叉叉 ===== */
         .forest-close {
-            position: absolute;
+            position: absolute; /* 固定位置在右上角 */
             top: 10px;
             right: 15px;
-            width: 36px;
+            width: 36px; /* 按鈕大小 */
             height: 36px;
-            border-radius: 50%;
-            color: #444;
-            font-size: 20px;
-            font-weight: bold;
-            display: flex;
+            border-radius: 50%; /* 圓形按鈕 */
+            color: #444; /* 按鈕顏色 */
+            font-size: 20px; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            display: flex; /* 置中內容 */
             justify-content: center;
             align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
+            cursor: pointer; /* 滑鼠為手指 */
+            transition: all 0.3s ease-in-out; /* 動畫過渡 */
         }
+
+            .forest-close:hover {
+                box-shadow: 0 0 12px rgba(255, 100, 100, 0.8); /* 懸停時出現紅色光暈 */
+                transform: scale(1.1); /* 略為放大 */
+            }
 
             /* ✨ 滑鼠懸停時出現光暈效果 */
             .forest-close:hover {
@@ -315,235 +323,265 @@
             gap: 15px;
         }
 
+        /* 🔶 祭壇選擇儀表板右上角的關閉按鈕樣式（叉叉） */
         .altar-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            color: #444;
-            font-size: 20px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
+            position: absolute; /* 絕對定位（靠右上） */
+            top: 10px; /* 距離頂部 10px */
+            right: 15px; /* 距離右邊 15px */
+            width: 36px; /* 按鈕寬度 */
+            height: 36px; /* 按鈕高度 */
+            border-radius: 50%; /* 圓形按鈕 */
+            color: #444; /* 字體深灰色 */
+            font-size: 20px; /* 字體大小 */
+            font-weight: bold; /* 粗體字 */
+            display: flex; /* 彈性盒子置中內容 */
+            justify-content: center; /* 水平置中 */
+            align-items: center; /* 垂直置中 */
+            cursor: pointer; /* 滑鼠變成手指 */
+            transition: all 0.3s ease-in-out; /* 滑動過渡動畫 */
         }
 
             .altar-close:hover {
-                box-shadow: 0 0 12px rgba(255, 100, 100, 0.8);
-                transform: scale(1.1);
+                box-shadow: 0 0 12px rgba(255, 100, 100, 0.8); /* 懸停時出現紅色光暈 */
+                transform: scale(1.1); /* 放大效果 */
             }
 
+        /* 🔶 儀表板上方：標題與天數提示的外層容器 */
         .altar-header {
-            position: relative; /* 🔺 要配合子元素絕對定位 */
-            width: 100%;
-            height: 40px;
+            position: relative; /* 讓子元素可以絕對定位 */
+            width: 100%; /* 滿版寬度 */
+            height: 40px; /* 固定高度 */
         }
 
+        /* 🔶 儀表板標題「祭壇 X」 */
         .altar-title-text {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-weight: bold;
-            font-size: 24px;
-            color: #6b4226;
+            position: absolute; /* 絕對定位於中間 */
+            left: 50%; /* 從中間開始 */
+            transform: translateX(-50%); /* 向左位移自身一半達成置中 */
+            font-weight: bold; /* 粗體 */
+            font-size: 24px; /* 字體大小 */
+            color: #6b4226; /* 咖啡色 */
         }
 
+        /* 🔶 儀表板右上角顯示幾天未複習 */
         .altar-days-text {
-            position: absolute;
-            left: calc(50% + 110px); /* ✅ 往右再多偏移（原本 +70px） */
-            top: 2px;
-            font-size: 20px; /* ✅ 放大字體（原本 16px） */
-            color: #999;
-            font-weight: 500; /* ✅ 微加粗，讓它更清楚（可選） */
+            position: absolute; /* 絕對定位 */
+            left: calc(50% + 110px); /* 相對中間再偏右 110px */
+            top: 2px; /* 距頂 2px */
+            font-size: 20px; /* 字體大小 */
+            color: #999; /* 淡灰色 */
+            font-weight: 500; /* 中粗體 */
         }
 
-        /* 南瓜進度列區塊 */
+        /* 🔶 南瓜進度列（祭壇進度條） */
         .altar-progress {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-            margin: 20px auto;
-            gap: 0px;
+            display: flex; /* 彈性排版 */
+            justify-content: center; /* 水平置中 */
+            align-items: center; /* 垂直置中 */
+            flex-wrap: nowrap; /* 不換行 */
+            margin: 20px auto; /* 上下間距 + 水平置中 */
+            gap: 0px; /* 無額外間距 */
         }
 
+        /* 🔶 南瓜圖片（小 icon） */
         .altar-pumpkin {
-            width: 36px;
-            height: auto;
-            transition: transform 0.3s;
+            width: 36px; /* 寬度固定 */
+            height: auto; /* 自動高度 */
+            transition: transform 0.3s; /* 放大縮小動畫 */
         }
 
             .altar-pumpkin:hover {
-                transform: scale(1.1);
+                transform: scale(1.1); /* 懸停放大 */
             }
 
+        /* 🔶 南瓜之間的連線圖片 */
         .altar-line {
-            width: 24px;
-            height: auto;
-            margin: 0 2px;
+            width: 24px; /* 寬度 */
+            height: auto; /* 自動高度 */
+            margin: 0 2px; /* 左右間距 */
         }
 
+        /* 🔶 為了讓南瓜與線圖片緊密貼合的負邊距 */
         .altar-line, .altar-pumpkin {
-            margin-left: -0.55px; /* 負 margin 把圖壓緊 */
-            margin-right: -0.55px; /* 負 margin 把圖壓緊 */
+            margin-left: -0.55px; /* 負值讓圖形貼近 */
+            margin-right: -0.55px;
         }
 
-        /* 中央按鈕 */
+        /* 🔶 儀表板下方中央按鈕（攻略／充能／複習） */
         .altar-button-action {
-            font-size: 20px;
-            padding: 10px 30px;
-            border-radius: 25px;
-            background-color: #6b4226;
-            border: none;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
+            font-size: 20px; /* 字體大小 */
+            padding: 10px 30px; /* 上下10px，左右30px */
+            border-radius: 25px; /* 橢圓形按鈕 */
+            background-color: #6b4226; /* 咖啡色背景 */
+            border: none; /* 無邊框 */
+            color: white; /* 白色文字 */
+            font-weight: bold; /* 粗體 */
+            cursor: pointer; /* 滑鼠為手指 */
+            transition: all 0.3s ease-in-out; /* 動畫過渡 */
         }
 
             .altar-button-action:hover {
-                background-color: #8b5a2b; /* 深咖啡的加亮版 */
+                background-color: #8b5a2b; /* 滑鼠懸停變亮一點 */
             }
 
-        /* 單字圖標 */
+        /* 🔶 單字圖示（顯示卷軸按鈕） */
         .vocab-icon {
-            width: 50px;
-            height: auto;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out;
+            width: 50px; /* 圖示寬度 */
+            height: auto; /* 自動高度 */
+            cursor: pointer; /* 滑鼠為手指 */
+            transition: transform 0.3s ease-in-out; /* 放大動畫 */
         }
 
             .vocab-icon:hover {
-                transform: scale(1.1);
+                transform: scale(1.1); /* 放大效果 */
             }
 
-        /* ✅ 卷軸總容器（背景半透明，全畫面置中） */
+        /* 🔶 卷軸浮出區塊（遮罩 + 卷軸內容） */
         .scroll-overlay {
-            position: fixed;
+            position: fixed; /* 固定在畫面最上層 */
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 10003;
-            display: flex;
+            width: 100vw; /* 滿版寬度 */
+            height: 100vh; /* 滿版高度 */
+            background: rgba(0, 0, 0, 0.5); /* 半透明黑底 */
+            z-index: 10003; /* 高層級 */
+            display: flex; /* 彈性置中 */
             justify-content: center;
             align-items: center;
-            padding: 2vh 2vw; /* 讓內容不會貼邊，2%~5%間都可 */
+            padding: 2vh 2vw; /* 四周留白避免貼邊 */
             box-sizing: border-box;
         }
 
-        /* 浮出的單字詳細卡片（❗這才是新關鍵） */
+        /* 🔶 單字詳細資訊面板（內部小卡浮出區域） */
         .word-detail-panel {
-            background: #fffefc;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.3);
-            padding: 20px 30px;
-            width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
+            background: #fffefc; /* 米白背景 */
+            border-radius: 15px; /* 圓角 */
+            box-shadow: 0 0 15px rgba(0,0,0,0.3); /* 外陰影 */
+            padding: 20px 30px; /* 內距 */
+            width: 600px; /* 固定寬度 */
+            max-height: 90vh; /* 最多高度 */
+            overflow-y: auto; /* 垂直捲動 */
+            position: relative; /* 內部定位基準 */
         }
 
-        /* ✅ 卷軸本體（幾乎佔滿，但留邊） */
+            /* 🔶 單字詳細面板的上方區塊（標題 + 收藏） */
+            .word-detail-panel .scroll-header {
+                justify-content: space-between; /* 左右兩側 */
+                padding: 0 20px; /* 左右內距 */
+            }
+
+            /* 🔶 詳細面板的關閉叉叉按鈕 */
+            .word-detail-panel .scroll-close {
+                position: absolute; /* 左上角固定位置 */
+                top: 10px;
+                left: 15px;
+            }
+
+        /* ✅ 卷軸本體（背景、框線與內部 padding 設定） */
         .scroll-panel {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom right, #f7f1e3, #e4dcc9, #d0c8a0); /* 🌿 魔法森林卷軸色調 */
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            padding: 0 20px 20px 20px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            position: relative;
-            box-sizing: border-box;
+            width: 80%; /* 滿寬 */
+            height: 100%; /* 滿高 */
+            background: linear-gradient(to bottom right, #f7f1e3, #e4dcc9, #d0c8a0); /* 漸層背景：魔法森林風格 */
+            border-radius: 10px; /* 圓角 */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* 外陰影 */
+            padding: 0 20px 20px 20px; /* 上右下左 padding */
+            overflow-y: auto; /* 垂直可滾動 */
+            overflow-x: hidden; /* 隱藏水平捲軸 */
+            position: relative; /* 供內部定位參考 */
+            box-sizing: border-box; /* 包含 padding 與 border */
         }
 
-        /* ✅ 上方標題 + 關閉 */
+        /* ✅ 卷軸上方標題列 + 關閉按鈕（固定頂部） */
         .scroll-header {
-            width: 450px; /* ✅ 跟單字卡一樣窄 */
-            margin: 0 auto; /* ✅ 置中 */
-            position: sticky;
-            top: 0;
-            background-color: #fefefe; /* ✅ 確保上面有背景會蓋住下方單字 */
-            z-index: 10;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 20px;
-            border-bottom: 2px solid #ddd;
-            /* ✅ 加上圓角，讓它融合外框 */
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 450px; /* 固定寬度，與卡片一致 */
+            margin: 0 auto; /* 水平置中 */
+            position: sticky; /* 捲動時固定上方 */
+            top: 0; /* 貼齊頂部 */
+            background-color: #fefefe; /* 白色背景，避免透出後方 */
+            z-index: 10; /* 疊層高 */
+            height: 50px; /* 高度固定 */
+            display: flex; /* 彈性容器 */
+            align-items: center; /* 垂直置中 */
+            justify-content: flex-end; /* 右對齊（關閉按鈕） */
+            padding: 0 20px; /* 左右 padding */
+            border-bottom: 2px solid #ddd; /* 下邊框 */
+            border-top-left-radius: 10px; /* 左上角圓角 */
+            border-top-right-radius: 10px; /* 右上角圓角 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 底部陰影 */
         }
 
+        /* ✅ 卷軸標題文字 */
         .scroll-title {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 22px;
-            font-weight: bold;
-            color: #444;
+            position: absolute; /* 絕對定位（不影響彈性排版） */
+            left: 50%; /* 從中間開始 */
+            transform: translateX(-50%); /* 向左平移自身寬度一半 */
+            font-size: 22px; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            color: #444; /* 深灰色 */
         }
 
+        /* ✅ 卷軸關閉按鈕（❌） */
         .scroll-close {
-            cursor: pointer;
-            font-size: 28px;
-            color: #555;
-            transition: 0.3s;
+            position: absolute; /* 絕對定位 */
+            top: 10px; /* 距頂 10px */
+            left: 10px; /* 靠左 10px */
+            font-size: 26px; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            cursor: pointer; /* 滑鼠為手指 */
+            color: #444; /* 深灰色 */
+            transition: 0.3s; /* 過渡動畫 */
         }
 
             .scroll-close:hover {
-                color: red;
-                transform: scale(1.1);
+                color: red; /* 滑鼠懸停變紅 */
+                transform: scale(1.1); /* 放大效果 */
             }
 
-        /* ✅ 單字卡片區域 */
+        /* ✅ 卷軸內部：所有單字卡片的容器 */
         .scroll-words-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px; /* ✅ 加這行！距離 scroll-header 多 20px */
+            display: flex; /* 彈性排版 */
+            flex-direction: column; /* 垂直排列 */
+            height:355px;
+            gap: 15px; /* 卡片間距 */
+            margin-top: 20px; /* 距離標題列的間距 */
         }
 
-        /* ✅ 單字卡片 */
+        /* ✅ 每張單字卡片（內部一列） */
         .scroll-word-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            padding: 15px;
-            position: relative;
-            width: 450px; /* ✅ 收窄一點，讓左右不貼邊 */
-            margin: 0 auto; /* ✅ 置中 */
-            background-color: #ffffffee; /* ✅ 淡白底更清晰（可選） */
+            display: flex; /* 彈性排版（橫向） */
+            justify-content: space-between; /* 左右對齊 */
+            align-items: center; /* 垂直置中 */
+            border: 2px solid #ddd; /* 淺灰框線 */
+            border-radius: 12px; /* 圓角 */
+            padding: 15px; /* 內距 */
+            position: relative; /* 為絕對定位元素做參考 */
+            width: 450px; /* 固定寬度 */
+            margin: 0 auto; /* 水平置中 */
+            background-color: #ffffffee; /* 淡白底（透明一點） */
         }
 
-        /* ✅ 左邊文字 */
+        /* ✅ 卡片左側文字區塊 */
         .word-left {
             display: flex;
             flex-direction: column;
+            min-width: 100%; /* 撐滿父層 */
+            box-sizing: border-box;
         }
 
+            /* ✅ 單字文字（左側） */
             .word-left .word {
                 font-size: 20px;
-                color: #6b4226;
+                color: #6b4226; /* 咖啡色 */
                 font-weight: bold;
             }
 
+            /* ✅ 詞性 / 翻譯資訊 */
             .word-left .info {
                 margin-top: 5px;
                 font-size: 16px;
             }
 
-        /* ✅ 右上角愛心 */
+        /* ✅ 右上角愛心（收藏用） */
         .word-fav {
             position: absolute;
             top: 10px;
@@ -551,13 +589,14 @@
             width: 26px;
             height: auto;
             cursor: pointer;
-            transition: transform 0.3s ease-in-out; /* ✅ 加這行 */
+            transition: transform 0.3s ease-in-out;
         }
 
             .word-fav:hover {
-                transform: scale(1.1); /* ✅ 滑鼠懸停時放大 */
+                transform: scale(1.1);
             }
 
+        /* ✅ 飛心動畫（收藏動畫） */
         @keyframes fly-heart {
             0% {
                 opacity: 1;
@@ -570,17 +609,47 @@
             }
         }
 
+        /* ✅ 飛心動畫圖示（從卡片飛起來） */
         .fly-heart {
-            position: fixed; /* ✅ 改這裡！用 fixed 才是以整個視窗為基準 */
+            position: fixed; /* 整個畫面定位 */
             width: 26px;
             height: 26px;
-            pointer-events: none;
-            animation: fly-heart 0.8s ease-out forwards;
-            z-index: 10010; /* ✅ 超過 .scroll-overlay（10003） */
+            pointer-events: none; /* 不影響滑鼠事件 */
+            animation: fly-heart 0.8s ease-out forwards; /* 執行動畫 */
+            z-index: 88888; /* 超高層級 */
         }
 
+        /* ✅ 單字與語音 ICON 的容器（左右對齊） */
+        .word-audio-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
 
-        /* ✅ 右下角圖示列 */
+        /* ✅ 單字文字區域（會被縮略） */
+        .word-text-wrapper {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ✅ 單字語音圖示 */
+        .word-audio-icon {
+            width: 28px;
+            height: auto;
+            flex-shrink: 0; /* 不縮小 */
+            margin-left: 10px;
+        }
+
+        /* ✅ 字體本體（加粗） */
+        .word-text {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* ✅ 卡片右下角圖示列（愛心、語音、詳細資訊） */
         .word-icons {
             position: absolute;
             right: 10px;
@@ -599,6 +668,75 @@
                 .word-icons img:hover {
                     transform: scale(1.1);
                 }
+
+        /* ✅ 詳細面板中卡片排版：垂直顯示內容 */
+        #pnlWordDetail .scroll-word-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            width: 450px;
+            margin: 0 auto;
+            background-color: #ffffffee;
+            box-sizing: border-box;
+            gap: 8px;
+        }
+
+        /* ✅ 詳細面板內的愛心 icon */
+        #pnlWordDetail .word-fav {
+            height: auto;
+            width: 32px;
+            top: 10px;
+            right: 18.25px; /* 自訂偏移量 */
+        }
+
+        /* ✅ 詳細面板內的語音 icon（固定右上角） */
+        #pnlWordDetail .word-audio-icon {
+            width: 32px;
+            height: auto;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            #pnlWordDetail .word-audio-icon:hover {
+                transform: scale(1.1);
+            }
+
+        /* ✅ 詳細面板內的單字文字區塊（右側預留 icon 空間） */
+        #pnlWordDetail .word-text-wrapper {
+            width: 100%;
+            padding-right: 36px;
+            box-sizing: border-box;
+        }
+
+        /* ✅ 英文例句區容器（句子 + 語音） */
+        .example-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            min-height: 30px;
+            min-width: 200px;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        /* ✅ 例句語音圖示（靠右） */
+        .sentence-audio-icon {
+            width: 32px;
+            height: auto;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            .sentence-audio-icon:hover {
+                transform: scale(1.1);
+            }
     </style>
     <script>
         function showAltarOptions(altarId) {
@@ -772,9 +910,11 @@
         <div id="pnlWordDetail" class="scroll-overlay" style="display: none;">
             <!-- 小卡浮出中央 -->
             <div class="word-detail-panel">
-                <!-- 上方叉叉 -->
+
+                <!-- 上方叉叉與愛心收藏 -->
                 <div class="scroll-header">
                     <span class="scroll-close" onclick="closeWordDetailPanel()">&times;</span>
+                    <img id="favIcon" class="word-fav" src="images/heartwithnocolor.svg" title="加入收藏" />
                 </div>
 
                 <!-- 詳細內容 -->
@@ -1108,8 +1248,11 @@
                         favImg.className = "word-fav";
                         favImg.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                         favImg.onclick = () => {
-                            toggleFavorite(w.scroll_id, favImg);
-                            w.is_favorite = !w.is_favorite; // ✅ 同步更新全域陣列
+                            const newFav = !w.is_favorite;
+                            w.is_favorite = newFav;
+                            favImg.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                            toggleFavorite(w.scroll_id, newFav);
+                            if (newFav) showFlyingHeart(favImg);
                         };
                         card.appendChild(favImg);
 
@@ -1163,15 +1306,7 @@
         }
 
         // ✅ 收藏切換邏輯（動畫 + 傳送後端 + 切換圖片）
-        function toggleFavorite(scrollId, icon) {
-            const isFav = icon.src.includes("red");
-
-            if (!isFav) {
-                showFlyingHeart(icon);
-            }
-
-            icon.src = isFav ? "images/heartwithnocolor.svg" : "images/heartwithredcolor.svg";
-
+        function toggleFavorite(scrollId, isNowFav) {
             fetch("ScrollService.asmx/UpdateFavorite", {
                 method: "POST",
                 headers: {
@@ -1179,30 +1314,33 @@
                 },
                 body: JSON.stringify({
                     scrollId: scrollId,
-                    isFavorite: !isFav
+                    isFavorite: isNowFav
                 })
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("後端回傳：", data.d);
+                    console.log("✅ 收藏更新成功：", data.d);
                 })
                 .catch(err => {
-                    console.error("更新收藏失敗：", err);
+                    console.error("❌ 收藏更新失敗：", err);
                 });
         }
 
-        // ✅ 飛紅心動畫
+        //飛心動畫功能
         function showFlyingHeart(targetIcon) {
             const heart = document.createElement("img");
             heart.src = "images/heartwithredcolor.svg";
             heart.className = "fly-heart";
 
             const rect = targetIcon.getBoundingClientRect();
-            heart.style.left = `${rect.left + rect.width / 2 - 12}px`;
-            heart.style.top = `${rect.top + rect.height / 2 - 12}px`;
+            heart.style.left = `${window.scrollX + rect.left + rect.width / 2 - 12}px`;
+            heart.style.top = `${window.scrollY + rect.top + rect.height / 2 - 12}px`;
 
-            document.body.appendChild(heart);
-            void heart.offsetWidth; // ✅ 觸發動畫
+            // 🔁 不是 document.body，而是專用區域！
+            const zone = document.getElementById("flyingEffectsZone");
+            zone.appendChild(heart);
+
+            void heart.offsetWidth;
             heart.style.animation = "fly-heart 0.8s ease-out forwards";
 
             setTimeout(() => {
@@ -1220,105 +1358,150 @@
             const locLabel = document.getElementById("wordLocation");
             let currentIndex = index;
 
-            // 建立卡片 DOM 結構，只做一次
-            if (container.children.length === 0) {
-                const card = document.createElement("div");
-                card.className = "scroll-word-card";
+            // ✅ 每次都清空容器（不只第一次）
+            container.innerHTML = "";
 
-                const favImg = document.createElement("img");
-                favImg.className = "word-fav";
-                favImg.id = "favIcon";
-                card.appendChild(favImg);
+            const card = document.createElement("div");
+            card.className = "scroll-word-card";
 
-                const left = document.createElement("div");
-                left.className = "word-left";
-                left.innerHTML = `
-            <span id="wordText" class="word"></span>
-            <span id="pronunciationText" class="info"></span>
-            <span id="posMeaningText" class="info"></span>
-            <span id="tenseText" class="info"></span>
-            <span id="exampleText" class="info"></span>
-            <span id="translationText" class="info text-muted"></span>
-        `;
-                card.appendChild(left);
+            const left = document.createElement("div");
+            left.className = "word-left";
+            left.innerHTML = `
+<div class="word-text-wrapper">
+    <span id="wordText" class="word-text"></span>
+</div>
 
-                const icons = document.createElement("div");
-                icons.className = "word-icons";
-                const volIcon = document.createElement("img");
-                volIcon.id = "wordAudioIcon";
-                volIcon.src = "images/volumewithnocolor.svg";
-                volIcon.title = "播放單字";
-                icons.appendChild(volIcon);
-                card.appendChild(icons);
+<span id="pronunciationText" class="info"></span>
+<span id="posMeaningText" class="info"></span>
+<span id="tenseText" class="info"></span>
 
-                container.appendChild(card);
-            }
+<div class="example-container">
+    <span id="exampleText"></span>
+</div>
 
-            // 只更新卡片資料
+<span id="translationText" class="info text-muted"></span>
+`;
+
+            card.appendChild(left);
+            container.appendChild(card);
+
+            // 插入單字發音 icon（右上角）
+            const iconAudio = document.createElement("img");
+            iconAudio.id = "iconWordAudio";
+            iconAudio.className = "word-audio-icon";
+            iconAudio.src = "images/volumewithnocolor.svg";
+            card.appendChild(iconAudio);
+
+            // 插入例句發音 icon（例句右側）
+            const exampleContainer = left.querySelector(".example-container");
+            const sentenceAudio = document.createElement("img");
+            sentenceAudio.id = "iconSentenceAudio";
+            sentenceAudio.className = "sentence-audio-icon";
+            sentenceAudio.src = "images/volumewithnocolor.svg";
+            exampleContainer.appendChild(sentenceAudio);
+
+            // 更新卡片資料
             function updateCard(w) {
                 fetch("ScrollService.asmx/GetWordDetail", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     credentials: "include",
                     body: JSON.stringify({ scrollId: w.scroll_id })
                 })
                     .then(res => res.json())
                     .then(result => {
-                        const data = result.d;
-                        if (data.error) {
+                        const items = result.d;
+                        if (!Array.isArray(items) || items.length === 0) {
                             container.innerHTML = "<p>❌ 無法載入資料</p>";
                             return;
                         }
 
-                        // 更新文字
-                        document.getElementById("wordText").innerText = data.word;
-                        document.getElementById("pronunciationText").innerHTML = `<strong>${data.pronunciation}</strong>`;
-                        document.getElementById("posMeaningText").innerHTML =
-                            `<span class="badge badge-secondary">${data.part_of_speech}</span> ${data.meaning}`;
-                        document.getElementById("tenseText").innerHTML =
-                            `過去式：${data.past_tense}<br/>過去分詞：${data.past_participle}`;
-                        document.getElementById("exampleText").innerText = data.example_sentence;
-                        document.getElementById("translationText").innerText = data.example_translation;
-                        locLabel.textContent = data.location_text;
+                        // 🔍 找到動詞那筆，抓 past_tense / past_participle
+                        const verbEntry = items.find(i => i.part_of_speech.startsWith("v")) || {};
+                        const base = items[0];
+
+                        document.getElementById("wordText").innerText = base.word;
+                        document.getElementById("pronunciationText").innerHTML = `<strong>${base.pronunciation}</strong>`;
+                        const tenseElem = document.getElementById("tenseText");
+                        const past1 = verbEntry.past_tense || "—";
+                        const past2 = verbEntry.past_participle || "—";
+                        if (past1 === "—" && past2 === "—") {
+                            tenseElem.style.display = "none"; // 🔥 都沒有的話隱藏整塊
+                        } else {
+                            tenseElem.style.display = "block"; // ✅ 有的話顯示並寫入內容
+                            tenseElem.innerHTML = `過去式：${past1}<br/>過去分詞：${past2}`;
+                        }
+                        document.getElementById("exampleText").innerText = base.example_sentence;
+                        document.getElementById("translationText").innerText = base.example_translation;
+                        locLabel.textContent = base.location_text;
                         posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
 
-                        // 更新愛心圖示
+                        // ✅ 列出所有詞性與意思
+                        const meanings = items.map(item => {
+                            return `<span class="badge badge-secondary">${item.part_of_speech}</span> ${item.meaning}`;
+                        }).join("<br/>");
+                        document.getElementById("posMeaningText").innerHTML = meanings;
+
+                        // ❤️ 收藏按鈕邏輯
                         const favIcon = document.getElementById("favIcon");
                         favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                         favIcon.onclick = () => {
                             const newFav = !w.is_favorite;
                             w.is_favorite = newFav;
                             favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                            toggleFavorite(w.scroll_id, favIcon);
-
-                            const found = scrollWords.find(item => item.scroll_id === w.scroll_id);
-                            if (found) found.is_favorite = newFav;
-
+                            toggleFavorite(w.scroll_id, newFav);
                             const scrollCards = document.querySelectorAll(".scroll-word-card");
                             scrollCards.forEach(c => {
                                 const icon = c.querySelector(".word-fav");
                                 const word = c.querySelector(".word-left .word");
-                                if (word && word.textContent === w.word) {
+                                if (word && word.textContent === w.word && icon) {
                                     icon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                                 }
                             });
-
                             if (newFav) showFlyingHeart(favIcon);
                         };
 
-                        // 更新發音圖示
-                        const volIcon = document.getElementById("wordAudioIcon");
-                        volIcon.onclick = () => {
-                            volIcon.src = "images/volumewithlightcolor.svg";
-                            const utter = new SpeechSynthesisUtterance(data.word);
+                        // 🔊 音效設定
+                        const wordAudio = document.getElementById("iconWordAudio");
+                        const sentenceAudio = document.getElementById("iconSentenceAudio");
+
+                        wordAudio.onclick = () => {
+                            speechSynthesis.cancel();
+                            wordAudio.src = "images/volumewithnocolor.svg";
+                            sentenceAudio.src = "images/volumewithnocolor.svg";
+                            wordAudio.src = "images/volumewithlightcolor.svg";
+                            const utter = new SpeechSynthesisUtterance(base.word);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
                             utter.onend = () => {
-                                volIcon.src = "images/volumewithnocolor.svg";
+                                wordAudio.src = "images/volumewithnocolor.svg";
                             };
+                        };
+
+                        sentenceAudio.onclick = () => {
+                            speechSynthesis.cancel();
+                            wordAudio.src = "images/volumewithnocolor.svg";
+                            sentenceAudio.src = "images/volumewithnocolor.svg";
+                            sentenceAudio.src = "images/volumewithlightcolor.svg";
+                            const utter = new SpeechSynthesisUtterance(base.example_sentence);
+                            utter.lang = "en-US";
+                            utter.volume = soundEffectVolume;
+                            speechSynthesis.speak(utter);
+                            utter.onend = () => {
+                                sentenceAudio.src = "images/volumewithnocolor.svg";
+                            };
+                        };
+
+                        // ✅ 自動播放單字音效（切換單字時）
+                        speechSynthesis.cancel();
+                        wordAudio.src = "images/volumewithlightcolor.svg";
+                        const autoUtter = new SpeechSynthesisUtterance(base.word);
+                        autoUtter.lang = "en-US";
+                        autoUtter.volume = soundEffectVolume;
+                        speechSynthesis.speak(autoUtter);
+                        autoUtter.onend = () => {
+                            wordAudio.src = "images/volumewithnocolor.svg";
                         };
                     });
             }
@@ -1327,7 +1510,7 @@
             updateCard(words[currentIndex]);
             panel.style.display = "flex";
 
-            // 切換按鈕
+            // 上下切換
             document.getElementById("btnPrevWord").onclick = () => {
                 if (currentIndex > 0) {
                     currentIndex--;
@@ -1345,6 +1528,7 @@
         function closeWordDetailPanel() {
             document.getElementById("pnlWordDetail").style.display = "none";
         }
-</script>
+    </script>
+    <div id="flyingEffectsZone" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999;"></div>
 </body>
 </html>

@@ -74,40 +74,65 @@ public class ScrollService : System.Web.Services.WebService
 
     // ✅ 取得單字詳細資訊（點選單字後才查詢）
     [WebMethod(EnableSession = true)]
-    public object GetWordDetail(int scrollId)
+    public List<object> GetWordDetail(int scrollId)
     {
         if (HttpContext.Current.Session["UserID"] == null)
-            return new { error = "NOT_LOGGED_IN" };
+            return new List<object> { new { error = "NOT_LOGGED_IN" } };
 
         string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
         using (SqlConnection conn = new SqlConnection(connStr))
         {
             conn.Open();
-            string query = @"
-    SELECT 
-        s.scroll_id,
-        s.word,
-        s.pronunciation,
-        s.part_of_speech,
-        s.meaning,
-        s.example_sentence,
-        s.example_translation,
-        s.past_tense,
-        s.past_participle,
-        s.word_audio_url,
-        mf.forest_name_zh + N' ' + N'地塊' + CAST(ma.altar_id AS NVARCHAR) AS location_text
-    FROM ancient_scrolls s
-    INNER JOIN magic_altar ma ON s.altar_id = ma.altar_id
-    INNER JOIN magic_forest mf ON ma.forest_id = mf.forest_id
-    WHERE s.scroll_id = @ScrollID";
 
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@ScrollID", scrollId);
+            // 先取得該 scrollId 的 word 與 altar_id
+            string baseQuery = "SELECT word, altar_id FROM ancient_scrolls WHERE scroll_id = @ScrollID";
+            SqlCommand baseCmd = new SqlCommand(baseQuery, conn);
+            baseCmd.Parameters.AddWithValue("@ScrollID", scrollId);
+            SqlDataReader baseReader = baseCmd.ExecuteReader();
+
+            if (!baseReader.Read())
+                return new List<object> { new { error = "NOT_FOUND" } };
+
+            string word = baseReader["word"].ToString();
+            int altarId = (int)baseReader["altar_id"];
+            baseReader.Close();
+
+            // 再查詢這個單字在同祭壇下所有詞性的資料
+            string detailQuery = @"
+SELECT 
+    s.scroll_id,
+    s.word,
+    s.pronunciation,
+    s.part_of_speech,
+    s.meaning,
+    s.example_sentence,
+    s.example_translation,
+    s.past_tense,
+    s.past_participle,
+    s.word_audio_url,
+    mf.forest_name_zh + N' 地塊' + CAST(ma.altar_id AS NVARCHAR) AS location_text
+FROM ancient_scrolls s
+JOIN magic_altar ma ON s.altar_id = ma.altar_id
+JOIN magic_forest mf ON ma.forest_id = mf.forest_id
+WHERE s.word = @Word AND s.altar_id = @AltarID
+ORDER BY 
+    CASE s.part_of_speech
+        WHEN 'adj.' THEN 1
+        WHEN 'n.' THEN 2
+        WHEN 'v.' THEN 3
+        WHEN 'adv.' THEN 4
+        ELSE 5
+    END";
+
+            SqlCommand cmd = new SqlCommand(detailQuery, conn);
+            cmd.Parameters.AddWithValue("@Word", word);
+            cmd.Parameters.AddWithValue("@AltarID", altarId);
+
+            var results = new List<object>();
             SqlDataReader reader = cmd.ExecuteReader();
-
-            if (reader.Read())
+            while (reader.Read())
             {
-                return new
+                results.Add(new
                 {
                     scroll_id = (int)reader["scroll_id"],
                     word = reader["word"].ToString(),
@@ -120,15 +145,12 @@ public class ScrollService : System.Web.Services.WebService
                     past_participle = string.IsNullOrEmpty(reader["past_participle"].ToString()) ? "—" : reader["past_participle"].ToString(),
                     word_audio_url = reader["word_audio_url"]?.ToString(),
                     location_text = reader["location_text"].ToString()
-                };
+                });
             }
-            else
-            {
-                return new { error = "NOT_FOUND" };
-            }
+
+            return results;
         }
     }
-
     // ✅ 新增或移除收藏
     [WebMethod(EnableSession = true)]
     public string UpdateFavorite(int scrollId, bool isFavorite)
