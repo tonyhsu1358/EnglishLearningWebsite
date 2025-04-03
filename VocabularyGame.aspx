@@ -541,7 +541,7 @@
         .scroll-words-container {
             display: flex; /* 彈性排版 */
             flex-direction: column; /* 垂直排列 */
-            height:355px;
+            height: 355px;
             gap: 15px; /* 卡片間距 */
             margin-top: 20px; /* 距離標題列的間距 */
         }
@@ -647,6 +647,7 @@
         .word-text {
             font-weight: bold;
             font-size: 20px;
+            color: #6b4226;
         }
 
         /* ✅ 卡片右下角圖示列（愛心、語音、詳細資訊） */
@@ -714,6 +715,20 @@
             box-sizing: border-box;
         }
 
+        .part-of-speech-badge {
+            display: inline-flex; /* ✅ 改用 inline-flex 讓內部內容能對齊 */
+            justify-content: center; /* 水平置中 */
+            align-items: center; /* 垂直置中 */
+            width: 45px; /* 固定寬度 */
+            height: 21px; /* ✅ 統一高度，避免因為內容長短而高低不一 */
+            background-color: #6b4226;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            margin: -2px 6px -2px 0; /* 上右下左，壓縮上下空間 */
+        }
+
         /* ✅ 英文例句區容器（句子 + 語音） */
         .example-container {
             display: flex;
@@ -737,6 +752,26 @@
             .sentence-audio-icon:hover {
                 transform: scale(1.1);
             }
+
+        .scroll-arrow {
+            width: 32px;
+            height: auto;
+            cursor: pointer;
+            transition: filter 0.3s ease-in-out, transform 0.1s ease-in-out;
+        }
+
+            .scroll-arrow:hover {
+                filter: brightness(1.4); /* 懸停時變亮 */
+            }
+
+            .scroll-arrow:active {
+                transform: scale(0.95); /* 按下時微微縮小 */
+            }
+
+        .word-position {
+            font-weight: bold;
+            font-size: 16px;
+        }
     </style>
     <script>
         function showAltarOptions(altarId) {
@@ -791,7 +826,7 @@
                         <asp:Label ID="lblDiamonds" runat="server"></asp:Label>
                     </span>
                     <span class="resource">
-                        <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" data-toggle="tooltip" title="背景音樂音量控制" style="width: 24px; height: 24px; vertical-align: middle;" />
+                        <img id="volumeIcon" src="images/volume.svg" alt="背景音樂" data-toggle="tooltip" title="調整背景音樂(BGM)" style="width: 24px; height: 24px; vertical-align: middle;" />
                         <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" title="調整音量" />
                     </span>
                     <!-- 音效音量控制 -->
@@ -924,17 +959,27 @@
 
                 <!-- 導覽列與地點 -->
                 <div class="word-detail-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
-                    <div>
-                        <img id="btnPrevWord" src="images/arrow-pointing-Upward.svg" style="width: 32px; height: auto; cursor: pointer;" title="上一個" />
-                        <span id="wordPosition" style="font-weight: bold; font-size: 16px;">1 / 1</span>
-                        <img id="btnNextWord" src="images/arrow-pointing-Downward.svg" style="width: 32px; height: auto; cursor: pointer;" title="下一個" />
+
+                    <!-- 🔁 上下切換 + 頁碼區（橫向排列 + 分開一點） -->
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                        <img id="btnPrevWord" src="images/arrow-pointing-Upward.svg"
+                            class="scroll-arrow" title="上一個" />
+
+                        <span id="wordPosition" class="word-position">1 / 1</span>
+
+                        <img id="btnNextWord" src="images/arrow-pointing-Downward.svg"
+                            class="scroll-arrow" title="下一個" />
                     </div>
-                    <div style="text-align: center; font-size: 14px; color: #555;">
-                        <span id="wordLocation">位於：森林？ 地塊？</span>
-                    </div>
+
                 </div>
 
+                <!-- 📍 顯示單字位置的說明 -->
+                <div style="text-align: center; font-size: 14px; color: #555;">
+                    <span id="wordLocation">位於：森林？ 祭壇？</span>
+                </div>
             </div>
+
+        </div>
         </div>
 
     </form>
@@ -1271,7 +1316,8 @@
                         infoIcon.src = "images/list-bullet.svg?v=" + new Date().getTime();
                         infoIcon.title = "查看詳情";
                         infoIcon.onclick = () => {
-                            showWordDetailPanel(scrollWords, i); // ✅ 傳 index 與原陣列
+                            const forestId = parseInt('<%= Request.QueryString["level"] %>'); // ✅ 從 URL 抓 forestId
+                            loadFullScrollWords(forestId, w.scroll_id); // ✅ 改用查整個森林
                         };
                         icons.appendChild(infoIcon);
 
@@ -1350,6 +1396,27 @@
     </script>
 
     <script>
+        // ✅ 從整座森林中載入所有單字，並打開詳細資訊儀表板（可用上下箭頭切換 1000 字）
+        function loadFullScrollWords(forestId, clickedScrollId) {
+            // 🔁 發送 POST 請求給 ScrollService.asmx/GetAllScrollWordsByForest，取得該森林全部單字
+            fetch("ScrollService.asmx/GetAllScrollWordsByForest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ forestId: forestId }) // 傳入森林 ID 作為查詢條件
+            })
+                .then(res => res.json()) // 轉成 JSON 格式
+                .then(result => {
+                    const allWords = result.d; // 🟢 所有單字資料陣列（可能有 1000 個）
+                    const startIndex = allWords.findIndex(w => w.scroll_id === clickedScrollId);// 🔍 找到你點到的那個單字在陣列中的 index（位置）
+
+                    // ✅ 如果找到了該單字的位置，就打開儀表板，並從那個位置開始顯示
+                    if (startIndex !== -1) {
+                        showWordDetailPanel(allWords, startIndex); // ✅ 呼叫你原本的函式（支援上下切換）
+                    } else {
+                        alert("❌ 找不到該單字位置");// ⚠ 如果找不到該單字，就提示錯誤（理論上不太會發生）
+                    }
+                });
+        }
         //此為顯示詳細單字資訊的方法
         function showWordDetailPanel(words, index) {
             const panel = document.getElementById("pnlWordDetail");
@@ -1402,6 +1469,16 @@
 
             // 更新卡片資料
             function updateCard(w) {
+                // 🔊 每次更新卡片時，先重置音效 ICON
+                const wordAudio = document.getElementById("iconWordAudio");
+                const sentenceAudio = document.getElementById("iconSentenceAudio");
+
+                if (wordAudio) wordAudio.src = "images/volumewithnocolor.svg";
+                if (sentenceAudio) sentenceAudio.src = "images/volumewithnocolor.svg";
+
+                // 🔇 確保正在播放的語音中止
+                speechSynthesis.cancel();
+
                 fetch("ScrollService.asmx/GetWordDetail", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1438,7 +1515,7 @@
 
                         // ✅ 列出所有詞性與意思
                         const meanings = items.map(item => {
-                            return `<span class="badge badge-secondary">${item.part_of_speech}</span> ${item.meaning}`;
+                            return `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`;
                         }).join("<br/>");
                         document.getElementById("posMeaningText").innerHTML = meanings;
 
@@ -1509,6 +1586,25 @@
             // 初始載入
             updateCard(words[currentIndex]);
             panel.style.display = "flex";
+
+            // ✅ 滾輪切換單字功能（滑鼠向上＝上一個，向下＝下一個）
+            panel.addEventListener("wheel", function (e) {
+                if (e.deltaY > 0) {
+                    // 滾輪往下（下一個）
+                    if (currentIndex < words.length - 1) {
+                        currentIndex++;
+                        updateCard(words[currentIndex]);
+                    }
+                } else {
+                    // 滾輪往上（上一個）
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        updateCard(words[currentIndex]);
+                    }
+                }
+
+                e.preventDefault(); // ✅ 防止整頁一起滾動
+            }, { passive: false });
 
             // 上下切換
             document.getElementById("btnPrevWord").onclick = () => {

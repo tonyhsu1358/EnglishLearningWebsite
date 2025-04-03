@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Web;
 using System.Web.Services;
 
@@ -29,28 +30,23 @@ public class ScrollService : System.Web.Services.WebService
         {
             conn.Open();
             string query = @"
-    WITH FirstMeaning AS (
-        SELECT *,
-               ROW_NUMBER() OVER (PARTITION BY word ORDER BY scroll_id) AS rn
-        FROM ancient_scrolls
-        WHERE altar_id = @AltarID
-    )
-    SELECT 
-        fm.scroll_id,
-        fm.word,
-        fm.part_of_speech,
-        fm.meaning,
-        fm.word_audio_url,
-        CASE 
-            WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 
-        END AS is_favorite
-    FROM FirstMeaning fm
-    LEFT JOIN user_favorite_words f
-        ON fm.scroll_id = f.scroll_id AND f.user_id = @UserID
-    WHERE fm.rn = 1
-    ORDER BY fm.word";
+SELECT 
+    s.scroll_id,
+    s.word,
+    s.part_of_speech,
+    s.meaning,
+    s.word_audio_url,
+    CASE 
+        WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 
+    END AS is_favorite
+FROM ancient_scrolls s
+LEFT JOIN user_favorite_words f
+    ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
+WHERE s.altar_id = @AltarID AND s.priority_level = 1
+ORDER BY s.scroll_id"; 
 
-            SqlCommand cmd = new SqlCommand(query, conn);
+
+        SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@UserID", userId);
             cmd.Parameters.AddWithValue("@AltarID", altarId);
 
@@ -97,7 +93,7 @@ public class ScrollService : System.Web.Services.WebService
             int altarId = (int)baseReader["altar_id"];
             baseReader.Close();
 
-            // 再查詢這個單字在同祭壇下所有詞性的資料
+            // 查詢該單字在同個祭壇下的所有詞性資料，依 priority_level 升冪排序
             string detailQuery = @"
 SELECT 
     s.scroll_id,
@@ -110,19 +106,12 @@ SELECT
     s.past_tense,
     s.past_participle,
     s.word_audio_url,
-    mf.forest_name_zh + N' 地塊' + CAST(ma.altar_id AS NVARCHAR) AS location_text
+    mf.forest_name_zh + N' 祭壇' + CAST(ma.altar_id AS NVARCHAR) AS location_text
 FROM ancient_scrolls s
 JOIN magic_altar ma ON s.altar_id = ma.altar_id
 JOIN magic_forest mf ON ma.forest_id = mf.forest_id
 WHERE s.word = @Word AND s.altar_id = @AltarID
-ORDER BY 
-    CASE s.part_of_speech
-        WHEN 'adj.' THEN 1
-        WHEN 'n.' THEN 2
-        WHEN 'v.' THEN 3
-        WHEN 'adv.' THEN 4
-        ELSE 5
-    END";
+ORDER BY s.priority_level ASC"; // ✅ 按照 priority_level 小到大排序
 
             SqlCommand cmd = new SqlCommand(detailQuery, conn);
             cmd.Parameters.AddWithValue("@Word", word);
@@ -130,6 +119,7 @@ ORDER BY
 
             var results = new List<object>();
             SqlDataReader reader = cmd.ExecuteReader();
+
             while (reader.Read())
             {
                 results.Add(new
@@ -150,6 +140,61 @@ ORDER BY
 
             return results;
         }
+    }
+    [WebMethod(EnableSession = true)]
+    public List<object> GetAllScrollWordsByForest(int forestId)
+    {
+        var results = new List<object>();
+
+        if (HttpContext.Current.Session["UserID"] == null)
+            return results;
+
+        int userId = (int)HttpContext.Current.Session["UserID"];
+        string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
+
+        using (SqlConnection conn = new SqlConnection(connStr))
+        {
+            conn.Open();
+            string query = @"
+SELECT 
+    s.scroll_id,
+    s.word,
+    s.part_of_speech,
+    s.meaning,
+    s.word_audio_url,
+    CASE 
+        WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 
+    END AS is_favorite,
+    mf.forest_name_zh + N' 祭壇' + CAST(ma.altar_id AS NVARCHAR) AS location_text
+FROM ancient_scrolls s
+JOIN magic_altar ma ON s.altar_id = ma.altar_id
+JOIN magic_forest mf ON ma.forest_id = mf.forest_id
+LEFT JOIN user_favorite_words f
+    ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
+WHERE mf.forest_id = @ForestID AND s.priority_level = 1
+ORDER BY ma.altar_id, s.scroll_id";  // ✅ 按照祭壇與單字順序排列
+
+            SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@UserID", userId);
+            cmd.Parameters.AddWithValue("@ForestID", forestId);
+
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                results.Add(new
+                {
+                    scroll_id = (int)reader["scroll_id"],
+                    word = reader["word"].ToString(),
+                    part_of_speech = reader["part_of_speech"].ToString(),
+                    meaning = reader["meaning"].ToString(),
+                    word_audio_url = reader["word_audio_url"]?.ToString(),
+                    is_favorite = Convert.ToBoolean(reader["is_favorite"]),
+                    location_text = reader["location_text"].ToString()
+                });
+            }
+        }
+
+        return results;
     }
     // ✅ 新增或移除收藏
     [WebMethod(EnableSession = true)]
