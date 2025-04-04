@@ -43,7 +43,7 @@ FROM ancient_scrolls s
 LEFT JOIN user_favorite_words f
     ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
 WHERE s.altar_id = @AltarID AND s.priority_level = 1
-ORDER BY s.scroll_id"; 
+ORDER BY s.word ASC"; 
 
 
         SqlCommand cmd = new SqlCommand(query, conn);
@@ -172,7 +172,7 @@ JOIN magic_forest mf ON ma.forest_id = mf.forest_id
 LEFT JOIN user_favorite_words f
     ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
 WHERE mf.forest_id = @ForestID AND s.priority_level = 1
-ORDER BY ma.altar_id, s.scroll_id";  // ✅ 按照祭壇與單字順序排列
+ORDER BY ma.altar_id, s.word ASC";  // ✅ 按照祭壇與單字順序排列
 
             SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@UserID", userId);

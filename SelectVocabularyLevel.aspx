@@ -196,7 +196,7 @@
 
         /* ✅ 只有回首頁這顆按鈕 hover 會放大 */
         .home-button:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
         }
 
