@@ -1467,16 +1467,17 @@
             sentenceAudio.src = "images/volumewithnocolor.svg";
             exampleContainer.appendChild(sentenceAudio);
 
+            // 🔐 加在最上面，全域控制播放狀態
+            let isSpeaking = false;
+
             // 更新卡片資料
             function updateCard(w) {
-                // 🔊 每次更新卡片時，先重置音效 ICON
                 const wordAudio = document.getElementById("iconWordAudio");
                 const sentenceAudio = document.getElementById("iconSentenceAudio");
 
                 if (wordAudio) wordAudio.src = "images/volumewithnocolor.svg";
                 if (sentenceAudio) sentenceAudio.src = "images/volumewithnocolor.svg";
 
-                // 🔇 確保正在播放的語音中止
                 speechSynthesis.cancel();
 
                 fetch("ScrollService.asmx/GetWordDetail", {
@@ -1493,7 +1494,6 @@
                             return;
                         }
 
-                        // 🔍 找到動詞那筆，抓 past_tense / past_participle
                         const verbEntry = items.find(i => i.part_of_speech.startsWith("v")) || {};
                         const base = items[0];
 
@@ -1503,23 +1503,22 @@
                         const past1 = verbEntry.past_tense || "—";
                         const past2 = verbEntry.past_participle || "—";
                         if (past1 === "—" && past2 === "—") {
-                            tenseElem.style.display = "none"; // 🔥 都沒有的話隱藏整塊
+                            tenseElem.style.display = "none";
                         } else {
-                            tenseElem.style.display = "block"; // ✅ 有的話顯示並寫入內容
+                            tenseElem.style.display = "block";
                             tenseElem.innerHTML = `過去式：${past1}<br/>過去分詞：${past2}`;
                         }
+
                         document.getElementById("exampleText").innerText = base.example_sentence;
                         document.getElementById("translationText").innerText = base.example_translation;
                         locLabel.textContent = base.location_text;
                         posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
 
-                        // ✅ 列出所有詞性與意思
                         const meanings = items.map(item => {
                             return `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`;
                         }).join("<br/>");
                         document.getElementById("posMeaningText").innerHTML = meanings;
 
-                        // ❤️ 收藏按鈕邏輯
                         const favIcon = document.getElementById("favIcon");
                         favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                         favIcon.onclick = () => {
@@ -1538,7 +1537,6 @@
                             if (newFav) showFlyingHeart(favIcon);
                         };
 
-                        // 🔊 音效設定
                         const wordAudio = document.getElementById("iconWordAudio");
                         const sentenceAudio = document.getElementById("iconSentenceAudio");
 
@@ -1570,16 +1568,26 @@
                             };
                         };
 
-                        // ✅ 自動播放單字音效（切換單字時）
-                        speechSynthesis.cancel();
-                        wordAudio.src = "images/volumewithlightcolor.svg";
-                        const autoUtter = new SpeechSynthesisUtterance(base.word);
-                        autoUtter.lang = "en-US";
-                        autoUtter.volume = soundEffectVolume;
-                        speechSynthesis.speak(autoUtter);
-                        autoUtter.onend = () => {
-                            wordAudio.src = "images/volumewithnocolor.svg";
-                        };
+                        // ✅ ✅ ✅ 自動播放單字音效，並防止重複播放
+                        if (!isSpeaking) {
+                            isSpeaking = true;
+                            speechSynthesis.cancel();
+                            wordAudio.src = "images/volumewithlightcolor.svg";
+                            const autoUtter = new SpeechSynthesisUtterance(base.word);
+                            autoUtter.lang = "en-US";
+                            autoUtter.volume = soundEffectVolume;
+
+                            autoUtter.onend = () => {
+                                wordAudio.src = "images/volumewithnocolor.svg";
+                                isSpeaking = false;
+                            };
+
+                            autoUtter.onerror = () => {
+                                isSpeaking = false;
+                            };
+
+                            speechSynthesis.speak(autoUtter);
+                        }
                     });
             }
 
@@ -1587,8 +1595,15 @@
             updateCard(words[currentIndex]);
             panel.style.display = "flex";
 
+            let lastScrollTime = 0; // 🕒 上一次觸發時間（全域變數 or local 皆可）
+
             // ✅ 滾輪切換單字功能（滑鼠向上＝上一個，向下＝下一個）
             panel.addEventListener("wheel", function (e) {
+                const now = Date.now();
+                if (now - lastScrollTime < 200) return; // ❌ 冷卻中，忽略滾輪
+
+                lastScrollTime = now; // ✅ 更新上次滾動時間
+
                 if (e.deltaY > 0) {
                     // 滾輪往下（下一個）
                     if (currentIndex < words.length - 1) {
