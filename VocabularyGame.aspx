@@ -541,7 +541,7 @@
         .scroll-words-container {
             display: flex; /* 彈性排版 */
             flex-direction: column; /* 垂直排列 */
-            height: 355px;
+            height: 420px;
             gap: 15px; /* 卡片間距 */
             margin-top: 20px; /* 距離標題列的間距 */
         }
@@ -728,6 +728,43 @@
             border-radius: 6px;
             margin: -2px 6px -2px 0; /* 上右下左，壓縮上下空間 */
         }
+
+        .word-detail-footer {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 預設箭頭朝右 */
+        img[src*='arrow-right'] {
+            transform: rotate(0deg);
+            transition: transform 0.3s ease;
+        }
+
+        /* 點擊後箭頭向下 */
+        img[src*='arrow-down'] {
+            transform: rotate(90deg);
+            transition: transform 0.3s ease;
+        }
+
+        /* 預設動畫 */
+        .expand-toggle {
+            transition: transform 0.3s ease-in-out;
+        }
+
+            /* 展開狀態（箭頭朝下） */
+            .expand-toggle.expanded {
+                transform: rotate(90deg);
+            }
+
+                /* hover 狀態下：如果是展開的，放大＋保持向下 */
+                .expand-toggle.expanded:hover {
+                    transform: scale(1.1) rotate(90deg);
+                }
+
+            /* hover 狀態下：如果是收起的，放大＋保持向右 */
+            .expand-toggle:hover:not(.expanded) {
+                transform: scale(1.1) rotate(0deg);
+            }
 
         /* ✅ 英文例句區容器（句子 + 語音） */
         .example-container {
@@ -1417,13 +1454,13 @@
                     }
                 });
         }
+
         //此為顯示詳細單字資訊的方法
         function showWordDetailPanel(words, index) {
             const panel = document.getElementById("pnlWordDetail");
             const container = document.getElementById("pnlWordDetailContent");
             const posLabel = document.getElementById("wordPosition");
             const locLabel = document.getElementById("wordLocation");
-            let currentIndex = index;
 
             // ✅ 每次都清空容器（不只第一次）
             container.innerHTML = "";
@@ -1440,7 +1477,10 @@
 
 <span id="pronunciationText" class="info"></span>
 <span id="posMeaningText" class="info"></span>
-<span id="tenseText" class="info"></span>
+
+<div id="tenseWrapper">
+    <span id="tenseText" class="info"></span>
+</div>
 
 <div class="example-container">
     <span id="exampleText"></span>
@@ -1467,18 +1507,26 @@
             sentenceAudio.src = "images/volumewithnocolor.svg";
             exampleContainer.appendChild(sentenceAudio);
 
-            // 🔐 加在最上面，全域控制播放狀態
+            let currentIndex = index;
+            let lastScrollTime = 0; // 放這裡就好
             let isSpeaking = false;
+            let hasWheelListener = false;
 
-            // 更新卡片資料
+            // 💡 用來記住展開狀態的變數（true = 展開中，false = 收起）
+            let isExpandedGlobally = false;
+
+            // ✅ 更新單字卡片內容
             function updateCard(w) {
+                currentIndex = words.findIndex(word => word.scroll_id === w.scroll_id);
+
                 const wordAudio = document.getElementById("iconWordAudio");
                 const sentenceAudio = document.getElementById("iconSentenceAudio");
 
+                // 還原音效圖示狀態
                 if (wordAudio) wordAudio.src = "images/volumewithnocolor.svg";
                 if (sentenceAudio) sentenceAudio.src = "images/volumewithnocolor.svg";
 
-                speechSynthesis.cancel();
+                speechSynthesis.cancel(); // 取消先前語音播放
 
                 fetch("ScrollService.asmx/GetWordDetail", {
                     method: "POST",
@@ -1497,11 +1545,14 @@
                         const verbEntry = items.find(i => i.part_of_speech.startsWith("v")) || {};
                         const base = items[0];
 
+                        // 填入基本資訊
                         document.getElementById("wordText").innerText = base.word;
                         document.getElementById("pronunciationText").innerHTML = `<strong>${base.pronunciation}</strong>`;
+
                         const tenseElem = document.getElementById("tenseText");
                         const past1 = verbEntry.past_tense || "—";
                         const past2 = verbEntry.past_participle || "—";
+
                         if (past1 === "—" && past2 === "—") {
                             tenseElem.style.display = "none";
                         } else {
@@ -1514,11 +1565,74 @@
                         locLabel.textContent = base.location_text;
                         posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
 
-                        const meanings = items.map(item => {
-                            return `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`;
-                        }).join("<br/>");
+                        const meanings = items.map(item =>
+                            `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`
+                        ).join("<br/>");
                         document.getElementById("posMeaningText").innerHTML = meanings;
 
+                        // 移除舊的展開區塊
+                        const oldExpand = document.getElementById("expandWrapper");
+                        if (oldExpand) oldExpand.remove();
+
+                        // 🧡 建立展開區塊（同反衍）
+                        const tenseWrapper = document.getElementById("tenseWrapper");
+                        const expandWrapper = document.createElement("div");
+                        expandWrapper.id = "expandWrapper";
+                        expandWrapper.style.marginTop = "6px";
+
+                        // 建立展開 icon 圖示
+                        const toggleIcon = document.createElement("img");
+                        toggleIcon.src = "images/more-svgrepo-com.svg";
+                        toggleIcon.className = "expand-toggle";
+                        toggleIcon.style.width = "24px";
+                        toggleIcon.style.cursor = "pointer";
+
+                        // 根據展開狀態加上 `.expanded` class（旋轉 90 度）
+                        if (isExpandedGlobally) {
+                            toggleIcon.classList.add("expanded");
+                        } else {
+                            toggleIcon.classList.remove("expanded");
+                        }
+
+                        // 建立展開內容區塊
+                        const wordInfoDiv = document.createElement("div");
+                        wordInfoDiv.style.marginTop = "8px";
+                        wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
+
+                        // 建立單行項目（同/反/衍）
+                        const createRow = (labelText, content) => {
+                            const row = document.createElement("div");
+                            const badge = document.createElement("span");
+                            badge.className = "part-of-speech-badge";
+                            badge.textContent = labelText;
+
+                            const contentSpan = document.createElement("span");
+                            contentSpan.textContent = content || "—";
+                            contentSpan.style.marginLeft = "6px";
+
+                            row.appendChild(badge);
+                            row.appendChild(contentSpan);
+                            return row;
+                        };
+
+                        // 加入內容區塊
+                        wordInfoDiv.appendChild(createRow("同", base.synonym_words));
+                        wordInfoDiv.appendChild(createRow("反", base.antonym_words));
+                        wordInfoDiv.appendChild(createRow("衍", base.related_info));
+
+                        // 點擊 toggle 展開 / 收合
+                        toggleIcon.onclick = () => {
+                            isExpandedGlobally = !isExpandedGlobally;
+                            wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
+                            toggleIcon.classList.toggle("expanded", isExpandedGlobally);
+                        };
+
+                        // 最後插入 DOM
+                        expandWrapper.appendChild(toggleIcon);
+                        expandWrapper.appendChild(wordInfoDiv);
+                        tenseWrapper.appendChild(expandWrapper);
+
+                        // 收藏圖示邏輯
                         const favIcon = document.getElementById("favIcon");
                         favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                         favIcon.onclick = () => {
@@ -1526,100 +1640,79 @@
                             w.is_favorite = newFav;
                             favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                             toggleFavorite(w.scroll_id, newFav);
-                            const scrollCards = document.querySelectorAll(".scroll-word-card");
-                            scrollCards.forEach(c => {
-                                const icon = c.querySelector(".word-fav");
-                                const word = c.querySelector(".word-left .word");
-                                if (word && word.textContent === w.word && icon) {
-                                    icon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                                }
-                            });
                             if (newFav) showFlyingHeart(favIcon);
                         };
 
-                        const wordAudio = document.getElementById("iconWordAudio");
-                        const sentenceAudio = document.getElementById("iconSentenceAudio");
-
+                        // 語音：單字
                         wordAudio.onclick = () => {
                             speechSynthesis.cancel();
-                            wordAudio.src = "images/volumewithnocolor.svg";
-                            sentenceAudio.src = "images/volumewithnocolor.svg";
                             wordAudio.src = "images/volumewithlightcolor.svg";
                             const utter = new SpeechSynthesisUtterance(base.word);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
-                            utter.onend = () => {
-                                wordAudio.src = "images/volumewithnocolor.svg";
-                            };
+                            utter.onend = () => wordAudio.src = "images/volumewithnocolor.svg";
                         };
 
+                        // 語音：例句
                         sentenceAudio.onclick = () => {
                             speechSynthesis.cancel();
-                            wordAudio.src = "images/volumewithnocolor.svg";
-                            sentenceAudio.src = "images/volumewithnocolor.svg";
                             sentenceAudio.src = "images/volumewithlightcolor.svg";
                             const utter = new SpeechSynthesisUtterance(base.example_sentence);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
-                            utter.onend = () => {
-                                sentenceAudio.src = "images/volumewithnocolor.svg";
-                            };
+                            utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
                         };
 
-                        // ✅ ✅ ✅ 自動播放單字音效，並防止重複播放
+                        // ✅ 自動播放語音（進入卡片後延遲播放）
                         if (!isSpeaking) {
                             isSpeaking = true;
-                            speechSynthesis.cancel();
                             wordAudio.src = "images/volumewithlightcolor.svg";
-                            const autoUtter = new SpeechSynthesisUtterance(base.word);
-                            autoUtter.lang = "en-US";
-                            autoUtter.volume = soundEffectVolume;
 
-                            autoUtter.onend = () => {
-                                wordAudio.src = "images/volumewithnocolor.svg";
-                                isSpeaking = false;
-                            };
-
-                            autoUtter.onerror = () => {
-                                isSpeaking = false;
-                            };
-
-                            speechSynthesis.speak(autoUtter);
+                            setTimeout(() => {
+                                const autoUtter = new SpeechSynthesisUtterance(base.word);
+                                autoUtter.lang = "en-US";
+                                autoUtter.volume = soundEffectVolume;
+                                autoUtter.onend = () => {
+                                    wordAudio.src = "images/volumewithnocolor.svg";
+                                    isSpeaking = false;
+                                };
+                                autoUtter.onerror = () => { isSpeaking = false; };
+                                speechSynthesis.speak(autoUtter);
+                            }, 100);
                         }
                     });
+            }
+
+            // ✅ 確保滾輪事件只加一次
+            function setupWheelScroll(panel, words, updateCardFunc) {
+                if (panel.dataset.hasWheelListener === "true") return;
+
+                panel.addEventListener("wheel", function (e) {
+                    const now = Date.now();
+                    if (now - lastScrollTime < 250) return;
+                    lastScrollTime = now;
+                    speechSynthesis.cancel();
+
+                    if (e.deltaY > 0 && currentIndex < words.length - 1) {
+                        currentIndex++;
+                        updateCardFunc(words[currentIndex]);
+                    } else if (e.deltaY < 0 && currentIndex > 0) {
+                        currentIndex--;
+                        updateCardFunc(words[currentIndex]);
+                    }
+
+                    e.preventDefault();
+                }, { passive: false });
+
+                panel.dataset.hasWheelListener = "true"; // 標記已加過滾輪事件
             }
 
             // 初始載入
             updateCard(words[currentIndex]);
             panel.style.display = "flex";
-
-            let lastScrollTime = 0; // 🕒 上一次觸發時間（全域變數 or local 皆可）
-
-            // ✅ 滾輪切換單字功能（滑鼠向上＝上一個，向下＝下一個）
-            panel.addEventListener("wheel", function (e) {
-                const now = Date.now();
-                if (now - lastScrollTime < 200) return; // ❌ 冷卻中，忽略滾輪
-
-                lastScrollTime = now; // ✅ 更新上次滾動時間
-
-                if (e.deltaY > 0) {
-                    // 滾輪往下（下一個）
-                    if (currentIndex < words.length - 1) {
-                        currentIndex++;
-                        updateCard(words[currentIndex]);
-                    }
-                } else {
-                    // 滾輪往上（上一個）
-                    if (currentIndex > 0) {
-                        currentIndex--;
-                        updateCard(words[currentIndex]);
-                    }
-                }
-
-                e.preventDefault(); // ✅ 防止整頁一起滾動
-            }, { passive: false });
+            setupWheelScroll(panel, words, updateCard);
 
             // 上下切換
             document.getElementById("btnPrevWord").onclick = () => {

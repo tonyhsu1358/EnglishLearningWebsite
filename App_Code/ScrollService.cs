@@ -106,12 +106,15 @@ SELECT
     s.past_tense,
     s.past_participle,
     s.word_audio_url,
+    s.synonym_words,
+    s.antonym_words,
+    s.related_info,
     mf.forest_name_zh + N' 祭壇' + CAST(ma.altar_id AS NVARCHAR) AS location_text
 FROM ancient_scrolls s
 JOIN magic_altar ma ON s.altar_id = ma.altar_id
 JOIN magic_forest mf ON ma.forest_id = mf.forest_id
 WHERE s.word = @Word AND s.altar_id = @AltarID
-ORDER BY s.priority_level ASC"; // ✅ 按照 priority_level 小到大排序
+ORDER BY s.priority_level ASC";
 
             SqlCommand cmd = new SqlCommand(detailQuery, conn);
             cmd.Parameters.AddWithValue("@Word", word);
@@ -134,6 +137,9 @@ ORDER BY s.priority_level ASC"; // ✅ 按照 priority_level 小到大排序
                     past_tense = string.IsNullOrEmpty(reader["past_tense"].ToString()) ? "—" : reader["past_tense"].ToString(),
                     past_participle = string.IsNullOrEmpty(reader["past_participle"].ToString()) ? "—" : reader["past_participle"].ToString(),
                     word_audio_url = reader["word_audio_url"]?.ToString(),
+                    synonym_words = reader["synonym_words"]?.ToString(),
+                    antonym_words = reader["antonym_words"]?.ToString(),
+                    related_info = reader["related_info"]?.ToString(),
                     location_text = reader["location_text"].ToString()
                 });
             }
@@ -141,6 +147,7 @@ ORDER BY s.priority_level ASC"; // ✅ 按照 priority_level 小到大排序
             return results;
         }
     }
+
     [WebMethod(EnableSession = true)]
     public List<object> GetAllScrollWordsByForest(int forestId)
     {
