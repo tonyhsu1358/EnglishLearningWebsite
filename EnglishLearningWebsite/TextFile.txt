@@ -1,0 +1,40 @@
+﻿// 🌲 森林選擇區
+// pnlMagicForest() // 選擇森林，頁面載入時顯示
+// LoadMagicForests() // 載入魔法森林列表，更新 ddlMagicForest 下拉選單
+// pnlMagicAltar() // 顯示 100 個祭壇，選擇森林時更新
+// LoadMagicAltars(int forestId, int userId) // 根據選擇的森林載入祭壇，並標記學習進度
+
+// ⚡ 祭壇選擇框
+// pnlAltarOptions() // 祭壇選擇框，點擊祭壇時顯示
+// ShowAltarOptions(int altarId, int userId) // 顯示選擇框，讓使用者決定要進入學習還是開始測驗
+
+// 📜 單字列表
+// pnlAncientScroll() // 單字列表，選擇「查看單字」時顯示
+// LoadAncientScrolls(int altarId) // 載入該祭壇的單字列表
+
+// 🔎 單字詳情
+// pnlWordDetail() // 單字詳情，點選單字時顯示
+// ShowWordDetail(int scrollId) // 顯示單字詳情，包括詞性、音標、發音按鈕、例句
+
+// 🎓 首次學習（單字詳情）
+// pnlFirstLearningDetail() // 首次學習，進入學習時顯示
+// StartFirstLearning(int altarId, int userId) // 進入首次學習模式，逐個顯示單字
+
+// 📝 首次學習（測驗）
+// pnlFirstLearningQuiz() // 首次學習，單字詳情學習完畢後顯示
+// NextFirstLearningWord(int altarId, int currentWordIndex) // 按「下一個」時顯示下一個單字
+// CompleteFirstLearning(int altarId, int userId) // 使用者學完整個祭壇的單字，標記學習完成
+
+// 🔁 第 2~7 次複習
+// pnlReviewLearning() // 第 2~7 次複習，祭壇學習進度 1~6 時顯示
+// StartReviewLearning(int altarId, int userId) // 進入測驗模式，顯示測驗題目
+// SubmitReviewAnswer(int altarId, int userId, string answer) // 判斷測驗答案是否正確，更新進度
+// CompleteReviewSession(int altarId, int userId) // 測驗完成後更新進度
+
+// 🔄 第 8 次及以後額外複習
+// pnlExtraReview() // 第 8 次及以後額外複習，祭壇學習進度 7 時顯示
+// EnterExtraReview(int altarId, int userId) // 進入第 8 次以上的額外複習
+
+// 🎯 學習 / 測驗結果
+// pnlResultSummary() // 顯示學習 / 測驗結果（答對答錯單字、獎勵）
+// ShowResultSummary(int altarId, int userId) // 顯示作答結果（答對/答錯單字、獎勵、下次複習時間）
