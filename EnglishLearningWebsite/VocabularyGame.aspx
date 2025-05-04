@@ -1448,14 +1448,22 @@
             })
                 .then(res => res.json()) // 轉成 JSON 格式
                 .then(result => {
-                    scrollWords = result.d; // ✅ 這是關鍵！讓詳細面板也用 scrollWords 共用陣列
+                    speechSynthesis.cancel(); // 取消播放語音
+
+                    // 🔥 把所有亮著的小喇叭 ICON 還原成灰色
+                    document.querySelectorAll(".word-icons img[src*='volumewithlightcolor']").forEach(icon => {
+                        icon.src = "images/volumewithnocolor.svg";
+                    });
+
+                    scrollWords = result.d;
                     const startIndex = scrollWords.findIndex(w => w.scroll_id === clickedScrollId);
                     if (startIndex !== -1) {
-                        showWordDetailPanel(scrollWords, startIndex); // ✅ 傳入共用 scrollWords
+                        showWordDetailPanel(scrollWords, startIndex);
                     } else {
                         alert("❌ 找不到該單字位置");
                     }
                 });
+
         }
 
         //此為顯示詳細單字資訊的方法
