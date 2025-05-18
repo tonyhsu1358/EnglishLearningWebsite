@@ -1676,6 +1676,10 @@
                         wordAudio.onclick = () => {
                             speechSynthesis.cancel();
                             wordAudio.src = "images/volumewithlightcolor.svg";
+
+                            // ❗️補上這一行，修復例句語音亮著的殘留 BUG
+                            sentenceAudio.src = "images/volumewithnocolor.svg";
+
                             const utter = new SpeechSynthesisUtterance(base.word);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
@@ -1687,12 +1691,17 @@
                         sentenceAudio.onclick = () => {
                             speechSynthesis.cancel();
                             sentenceAudio.src = "images/volumewithlightcolor.svg";
+
+                            // ❗️補上這一行，修復單字語音亮著的殘留 BUG
+                            wordAudio.src = "images/volumewithnocolor.svg";
+
                             const utter = new SpeechSynthesisUtterance(base.example_sentence);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
                             utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
                         };
+
 
                         // ✅ 自動播放語音（進入卡片後延遲播放）
                         if (!isSpeaking) {
