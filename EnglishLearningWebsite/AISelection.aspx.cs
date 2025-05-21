@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using static AISelection;
+using System.Data.SqlTypes;
 
 public partial class AISelection : System.Web.UI.Page
 {
@@ -256,7 +257,9 @@ The difficulty level is: {difficulty}, and the topic is: {topic}.
 
     private async Task<string> GetAIResponse(string userInput, string apiKey)
     {
-        string apiUrl = $"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={apiKey}";
+        string modelName = ConfigurationManager.AppSettings["GeminiModelName"];
+        string apiUrl = $"https://generativelanguage.googleapis.com/v1/models/{modelName}:generateContent?key={apiKey}";
+
 
         using (HttpClient client = new HttpClient())
         {
