@@ -441,7 +441,7 @@
                         <ul class="category-list">
                             <li><i class="fa-solid fa-language"></i><a href="#">中英翻譯</a></li>
                             <li><i class="fa-solid fa-newspaper"></i><a href="#">精選新聞</a></li>
-                            <li><i class="fa-solid fa-play-circle"></i><a href="#">優質頻道</a></li>
+                            <li><i class="fa-solid fa-play-circle"></i><a href="EliteChannels.aspx">優質頻道</a></li>
                         </ul>
                     </div>
                 </div>
