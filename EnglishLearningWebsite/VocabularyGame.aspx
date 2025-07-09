@@ -188,6 +188,15 @@
         <!-- ✅ 首次學習單字詳細資訊儀表板（複用 scroll-overlay 與 word-detail-panel 風格） -->
         <div id="pnlFirstLearningDetail" class="scroll-overlay" style="display: none;">
             <div class="word-detail-panel">
+
+                <!--插入進度條-->
+                <div id="firstLearningProgressBarContainer">
+                    <div id="firstLearningProgressBarBg">
+                        <div id="firstLearningProgressBarFill"></div>
+                    </div>
+                    <img id="firstLearningProgressTick" src="images/tick-circle.svg" alt="完成" />
+                </div>
+
                 <!-- 上方叉叉與愛心收藏 -->
                 <div class="scroll-header">
                     <span class="scroll-close" onclick="closeFirstLearningPanel()">&times;</span>
@@ -1008,7 +1017,7 @@
             document.getElementById("pnlWordDetail").style.display = "none";
         }
     </script>
-  
+
     <script>
         //===========================================================
         // 第五章：首次學習 - 單字詳細資訊卡片渲染函式
@@ -1037,6 +1046,17 @@
                     }
 
                     firstLearningWords = result.d || [];
+
+                    // ======== ✅ 新增 DEBUG 區塊 ========
+                    if (firstLearningWords.length > 0) {
+                        // 只秀主要單字（可加上其他欄位）
+                        const debugList = firstLearningWords
+                            .map((w, idx) => `${idx + 1}. ${w.word}（${w.part_of_speech || "無詞性"}：${w.meaning || "無釋義"}）`)
+                            .join('\n');
+                        console.log(`【本次攻略亂數單字（共 ${firstLearningWords.length} 筆）】\n` + debugList);
+                    }
+                    // ======== ✅ DEBUG 區塊結束 ========
+
                     if (firstLearningWords.length === 0) {
                         document.getElementById("pnlFirstLearningDetail").style.display = "none";
                         alert("此祭壇沒有單字可學習！");

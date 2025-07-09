@@ -938,3 +938,39 @@ img[src*='arrow-down'] {
     #pnlFirstLearningDetail .expand-toggle.expanded:hover {
         transform: scale(1.1) rotate(90deg);
     }
+
+/* ◆ 進度條 + 打勾容器（橫向排列，進度條填滿，打勾在右） */
+#firstLearningProgressBarContainer {
+    width: 450px; /* 與面板一致的固定寬度 */
+    margin: 10px auto 0; /* 上方間距 10px，左右自動置中 */
+    display: flex; /* 使用 flexbox 讓子元素橫向排列 */
+    align-items: center; /* 垂直置中進度條與圖示 */
+}
+
+/* ◆ 進度條背景（灰底、圓角，無邊框） */
+#firstLearningProgressBarBg {
+    flex: 1; /* 填滿可用空間（右邊圖示不會被擠壓） */
+    height: 10px; /* 進度條高度 */
+    background: #ededed; /* 淺灰色背景 */
+    border-radius: 6px; /* 圓角外觀 */
+    overflow: hidden; /* 內部超出時裁切 */
+    position: relative; /* 方便日後內部相對定位 */
+}
+
+/* ◆ 進度條填充（進度值，由 JS 控制寬度） */
+#firstLearningProgressBarFill {
+    width: 50%; /* 進度百分比，預設 50%（由 JS 控制） */
+    height: 100%; /* 填滿背景高度 */
+    background: #a9a9a9; /* 進度條深灰色 */
+    transition: width 0.5s cubic-bezier(0.6,0,0.2,1); /* 寬度動畫柔和流暢 */
+}
+
+/* ◆ 打勾圖示（右側，固定大小，微調垂直對齊） */
+#firstLearningProgressTick {
+    width: 25px; /* 寬度固定為 20px */
+    height: auto; /* 高度自動等比例 */
+    margin-left: 12px; /* 與進度條間距 */
+    position: relative; /* 相對定位（可做微調） */
+    top: 2px; /* 微幅下移，對齊進度條中線 */
+    display: block; /* 讓圖片不會因文字空隙而下沉 */
+}
