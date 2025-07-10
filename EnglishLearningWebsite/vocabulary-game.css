@@ -19,6 +19,7 @@ body {
     padding: 5px 15px;
 }
 
+/*資源區樣式*/
 .resource {
     margin: 0 10px;
     font-weight: bold;
@@ -32,8 +33,7 @@ body {
     gap: 5px;
 }
 
-
-/* 🎯 森林選擇按鈕容器 (可自由移動) */
+/* 🎯 森林選擇按鈕容器 */
 .forest-select-container {
     position: absolute; /* 讓容器能夠自由放置在頁面上的特定位置 */
     top: 300px; /* 距離頁面頂部 300px */
@@ -56,15 +56,15 @@ body {
 
 /* ===== 魔法祭壇 (主框架，可自由調整位置) ===== */
 .altar-container {
-    position: absolute; /* ✅ 位置不變 */
+    position: absolute; /* 位置不變 */
     top: 290px;
     left: 200px;
     width: 1300px;
     height: 400px;
     background: radial-gradient(circle at top left, #fdf6e3, #f0dab1); /* ✨ 柔和奶油色漸層背景 */
-    border: 3px solid #a07c4c; /* 🪄 更有魔法感的邊框 */
+    border: 3px solid #a07c4c; /* 更有魔法感的邊框 */
     border-radius: 20px;
-    box-shadow: 0 0 20px rgba(160, 124, 76, 0.4); /* 🪄 柔和外陰影 */
+    box-shadow: 0 0 20px rgba(160, 124, 76, 0.4); /* 柔和外陰影 */
     padding: 10px;
     display: grid;
     place-items: center;
@@ -93,7 +93,7 @@ body {
         transform: scale(1.03);
     }
 
-    /* 🪨 初始狀態（未學習）*/
+    /* 初始狀態（未學習）*/
     .altar-button.locked {
         width: 100%;
         height: 100%;
@@ -804,6 +804,106 @@ img[src*='arrow-down'] {
 /*========================================*/
 /* ====== 首次學習詳細面板專屬樣式 ====== */
 /*========================================*/
+/* 🚩 Modal 遮罩 */
+#firstLearnExitModal.modal-overlay {
+    position: fixed;
+    z-index: 12000 !important; /* 保證蓋過所有內容 */
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 🚩 Modal 內容面板 */
+#firstLearnExitModal .modal-panel {
+    background: #fff;
+    z-index: 12000 !important; /* 保證蓋過所有內容 */
+    border-radius: 22px;
+    padding: 36px 30px 26px 30px;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.13);
+    min-width: 330px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    animation: fadeIn 0.18s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#firstLearnExitModal .modal-title {
+    font-size: 23px;
+    color: #1a1a1a;
+    font-weight: 500;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+#firstLearnExitModal .modal-subtitle {
+    font-size: 16px;
+    color: #929292;
+    margin-bottom: 24px;
+}
+
+#firstLearnExitModal .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    align-items: center;
+}
+
+#firstLearnExitModal .exit-yes {
+    width: 230px;
+    padding: 12px 0;
+    background: #fa2e50;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 3px;
+    transition: background 0.18s;
+}
+
+    #firstLearnExitModal .exit-yes:hover {
+        background: #d0203b;
+    }
+
+#firstLearnExitModal .exit-no {
+    width: 230px;
+    padding: 12px 0;
+    background: #f5f5f5;
+    color: #b7b7b7;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+}
+
+    #firstLearnExitModal .exit-no:hover {
+        background: #ececec;
+        color: #7a7a7a;
+    }
+
 #pnlFirstLearningDetail.scroll-overlay {
     background: rgba(252, 244, 228) !important; /* 米色遮罩，務必加 !important */
 }
@@ -826,6 +926,20 @@ img[src*='arrow-down'] {
     box-shadow: none !important;
     border: 4.5px solid #6b4226; /* 深棕色外框 */
 }
+
+    /* ◆ 首次學習專用 NEW ICON（左上角絕對定位，疊在 panel 內側） */
+    #pnlFirstLearningDetail .word-detail-panel .first-learn-new-icon {
+        position: absolute; /* 絕對定位，參考 .word-detail-panel */
+        top: 0px; /* 距 panel 內部頂端，微調可見度 */
+        left: 0px; /* 距 panel 內部左側，微調可見度 */
+        width: 51px; /* 建議 icon 寬度 50~54px 視美觀調整 */
+        height: auto; /* 高度自動 */
+        z-index: 20; /* 疊在 panel 內容之上 */
+
+        pointer-events: none; /* 圖示不會干擾滑鼠事件 */
+        user-select: none; /* 禁止選取 */
+    }
+
 
 #pnlFirstLearningDetail .word-fav {
     height: auto;
@@ -912,7 +1026,6 @@ img[src*='arrow-down'] {
 }
 
 /* ========== 首次學習面板：展開箭頭 icon ========== */
-
 /* 預設箭頭寬度（與詳細面板同步） */
 #pnlFirstLearningDetail .expand-toggle {
     width: 24px;
@@ -939,6 +1052,7 @@ img[src*='arrow-down'] {
         transform: scale(1.1) rotate(90deg);
     }
 
+/*========首次學習專屬信度條=========*/
 /* ◆ 進度條 + 打勾容器（橫向排列，進度條填滿，打勾在右） */
 #firstLearningProgressBarContainer {
     width: 450px; /* 與面板一致的固定寬度 */
@@ -959,7 +1073,7 @@ img[src*='arrow-down'] {
 
 /* ◆ 進度條填充（進度值，由 JS 控制寬度） */
 #firstLearningProgressBarFill {
-    width: 50%; /* 進度百分比，預設 50%（由 JS 控制） */
+    width: 5%; /* 進度百分比，預設 50%（由 JS 控制） */
     height: 100%; /* 填滿背景高度 */
     background: #a9a9a9; /* 進度條深灰色 */
     transition: width 0.5s cubic-bezier(0.6,0,0.2,1); /* 寬度動畫柔和流暢 */
@@ -967,10 +1081,49 @@ img[src*='arrow-down'] {
 
 /* ◆ 打勾圖示（右側，固定大小，微調垂直對齊） */
 #firstLearningProgressTick {
-    width: 25px; /* 寬度固定為 20px */
+    width: 23px; /* 寬度固定為 20px */
     height: auto; /* 高度自動等比例 */
     margin-left: 12px; /* 與進度條間距 */
     position: relative; /* 相對定位（可做微調） */
-    top: 2px; /* 微幅下移，對齊進度條中線 */
+    /*top: 2px; /* 微幅下移，對齊進度條中線 */
     display: block; /* 讓圖片不會因文字空隙而下沉 */
 }
+
+/* ◆ 首次學習 NEXT 按鈕外層（置中顯示） */
+#pnlFirstLearningDetail .first-learn-next-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px; /* 上方留空間，可依需求微調 */
+}
+
+/* ◆ NEXT 按鈕本體樣式 */
+#firstLearnNextBtn {
+    padding: 8px 32px;
+    border-radius: 5px;
+    border: 2px solid #6b4226;
+    background: #eeb691;
+    color: #6b4226;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.1s cubic-bezier(0.4, 1.4, 0.6, 1.0); /* 加入縮放過渡 */
+    outline: none;
+    box-shadow: 0 2px 8px #eeb69144;
+}
+
+    /* ◆ 按鈕 hover/active 狀態（美觀提升UX） */
+    #firstLearnNextBtn:hover,
+    #firstLearnNextBtn:focus {
+        background: #f7ca98;
+        color: #4c2d11;
+        border-color: #a77242;
+        transform: scale(1.05); /* 懸停微幅放大 */
+    }
+
+    #firstLearnNextBtn:active {
+        background: #e6a56a;
+        color: #4c2d11;
+        border-color: #6b4226;
+        transform: scale(1.1); /* 點擊時放大 1.1 倍 */
+    }

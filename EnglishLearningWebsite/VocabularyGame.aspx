@@ -189,6 +189,9 @@
         <div id="pnlFirstLearningDetail" class="scroll-overlay" style="display: none;">
             <div class="word-detail-panel">
 
+                <!-- 首次學習 NEW ICON（左上角絕對定位） -->
+                <img class="first-learn-new-icon" src="images/new-button.svg" alt="NEW" />
+
                 <!--插入進度條-->
                 <div id="firstLearningProgressBarContainer">
                     <div id="firstLearningProgressBarBg">
@@ -199,24 +202,37 @@
 
                 <!-- 上方叉叉與愛心收藏 -->
                 <div class="scroll-header">
-                    <span class="scroll-close" onclick="closeFirstLearningPanel()">&times;</span>
+                    <!-- 將 onclick 拿掉，交給 JS 綁定 -->
+                    <span id="firstLearnClose" class="scroll-close">&times;</span>
                     <img id="firstLearnFavIcon" class="word-fav" src="images/heartwithnocolor.svg" title="加入收藏" />
                 </div>
 
                 <!-- 單字內容（動態插入，結構與舊詳細一致，ID有 firstlearn 前綴）-->
                 <div id="pnlFirstLearningWordContent" class="scroll-words-container"></div>
 
-                <!-- 📍 顯示單字位置（可不顯示）-->
-                <div style="text-align: center; font-size: 14px; color: #555;">
-                    <span id="firstLearningWordLocation"></span>
+                <!-- 📍 NEXT 長方形按鈕 -->
+                <div class="first-learn-next-btn-wrapper">
+                    <button id="firstLearnNextBtn" type="button">NEXT</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 🚩 確認離開提示框直接加 body 最底下即可 -->
+        <div id="firstLearnExitModal" class="modal-overlay" style="display: none;">
+            <div class="modal-panel">
+                <div class="modal-title">你是否確定離開？</div>
+                <div class="modal-subtitle">(下次需重新攻略/充能喔)</div>
+                <div class="modal-actions">
+                    <!-- 🚩 加上 type="button"！ -->
+                    <button id="btnFirstLearnExitYes" class="exit-yes" type="button">是，離開課程</button>
+                    <button id="btnFirstLearnExitNo" class="exit-no" type="button">否，繼續課程</button>
                 </div>
             </div>
         </div>
 
-        </div>
-
     </form>
-    <!-- ✅ 遊戲介紹提示框 -->
+    <!-- 🚩 遊戲介紹提示框 -->
     <div id="infoModal" class="info-modal d-none">
         <div class="info-modal-content">
             <span class="info-modal-close" onclick="closeInfoModal()">&times;</span>
@@ -232,6 +248,8 @@
             </p>
         </div>
     </div>
+    </div>
+
     <!-- jQuery（Bootstrap 4 相依） -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <!-- Popper.js（Tooltip 需要） -->
@@ -1030,7 +1048,6 @@
         function startFirstLearning(altarId) {
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
             document.getElementById("pnlFirstLearningWordContent").innerHTML = "";
-            document.getElementById("firstLearningWordLocation").innerText = "";
 
             fetch("FirstLearningService.asmx/GetFirstLearningWords", {
                 method: "POST",
@@ -1197,9 +1214,6 @@
                 utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
             };
 
-            // ====== 顯示單字位置、頁碼 ======
-            document.getElementById("firstLearningWordLocation").innerText = `第 ${index + 1} / ${words.length} 顆祭壇單字`;
-
             // ====== 上下頁箭頭（如有請補id） ======
             if (document.getElementById("btnPrevFirstWord")) {
                 document.getElementById("btnPrevFirstWord").onclick = function () {
@@ -1211,14 +1225,58 @@
                     if (firstLearningCurrentIndex < words.length - 1) showFirstLearningPanel(firstLearningCurrentIndex + 1);
                 };
             }
-        }
 
-        // =================== 關閉面板 ===================
-        function closeFirstLearningPanel() {
-            document.getElementById("pnlFirstLearningDetail").style.display = "none";
+            // ====== 新增：自動播放單字語音 ======
+            setTimeout(() => {
+                iconAudio.src = "images/volumewithlightcolor.svg";
+                const utter = new SpeechSynthesisUtterance(w.word);
+                utter.lang = "en-US";
+                utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                speechSynthesis.speak(utter);
+                utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+            }, 100);
+
         }
 
     </script>
+
+    <script>
+        // 🚩 專屬首次學習關閉 Modal 綁定（含 DEBUG 訊息）
+        // 1. 叉叉按鈕點擊 → 開啟離開確認 Modal
+        document.getElementById('firstLearnClose').onclick = function () {
+            showFirstLearnExitModal();
+        };
+
+        // 2. Modal 遮罩點擊 → 關閉 Modal
+        document.getElementById('firstLearnExitModal').onclick = function (e) {
+            if (e.target === this) this.style.display = "none";
+        };
+
+        // 3. 否 → 關閉 Modal
+        document.getElementById('btnFirstLearnExitNo').onclick = function () {
+            document.getElementById('firstLearnExitModal').style.display = "none";
+        };
+
+        // 4. 是 → 關閉 Modal ＋ 關閉首次學習面板（回到主畫面）
+        // 必須 type="button"，**永不觸發 form submit**
+        document.getElementById('btnFirstLearnExitYes').onclick = function (e) {
+            if (e) e.preventDefault();
+            // 非同步閉合，保證不卡畫面、不刷新
+            setTimeout(function () {
+                document.getElementById('firstLearnExitModal').style.display = "none";
+                document.getElementById('pnlFirstLearningDetail').style.display = "none";
+                // 如需顯示祭壇主畫面請補：
+                // document.getElementById('pnlMagicAltar').style.display = "block";
+            }, 0);
+        };
+
+        // 5. 專屬函式，呼叫即彈出 Modal
+        function showFirstLearnExitModal() {
+            document.getElementById('firstLearnExitModal').style.display = "flex";
+        }
+    </script>
+
+
     <div id="flyingEffectsZone" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999;"></div>
 </body>
 </html>
