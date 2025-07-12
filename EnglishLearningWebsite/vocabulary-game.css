@@ -1164,3 +1164,71 @@ img[src*='arrow-down'] {
         border-color: #6b4226;
         transform: scale(1.1); /* 點擊時放大 1.1 倍 */
     }
+
+/* ========== 首次學習四選一測驗專用樣式 ========== */
+.quiz-panel {
+    background: #f8f6ef;
+    border: 2.5px solid #b5b5b5;
+    border-radius: 14px;
+    box-shadow: 0 2px 18px #dbceb34d;
+    width: 420px;
+    margin: 32px auto 0 auto;
+    padding: 35px 30px 38px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.3s;
+}
+
+.quiz-word {
+    font-size: 25px;
+    font-weight: bold;
+    color: #6b4226;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+}
+
+.quiz-options {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+}
+
+.quiz-option {
+    padding: 13px 0;
+    font-size: 19px;
+    background: #f7e9ce;
+    border: 2px solid #d4bb97;
+    border-radius: 8px;
+    color: #7a5636;
+    font-weight: bold;
+    transition: background 0.13s, color 0.13s, border-color 0.13s, transform 0.08s;
+    cursor: pointer;
+    outline: none;
+}
+
+    .quiz-option:hover:not(:disabled) {
+        background: #ffe4ba;
+        color: #a77242;
+        border-color: #a77242;
+        transform: scale(1.04);
+    }
+
+    .quiz-option:active:not(:disabled) {
+        background: #eeb691;
+        color: #6b4226;
+        transform: scale(0.97);
+    }
+
+    .quiz-option.correct {
+        background: #d6f4c7;
+        color: #327117;
+        border-color: #43b945;
+    }
+
+    .quiz-option.wrong {
+        background: #ffe0e0;
+        color: #b23321;
+        border-color: #ef8580;
+    }

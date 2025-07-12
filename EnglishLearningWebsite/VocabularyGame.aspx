@@ -1042,8 +1042,151 @@
         //===========================================================
         // ◆ 全域狀態變數
         let firstLearningWords = [];             // 儲存本次祭壇10個單字
-        let firstLearningCurrentIndex = 0;       // 當前單字索引
+        let firstLearningCurrentIndex = 0;       // 當前組的起始索引（0,2,4,...）
+        let firstLearningStep = 0;               // 控制流程的步驟：0=展示1, 1=展示2, 2=quiz1, 3=quiz2
         let currentProgressPercent = 0;          // 進度條目前百分比
+        let firstLearningIsExpandedGlobally = false; // 控制首次學習卡片的展開狀態
+
+        // ================ 主控流程函式 ================
+        function handleFirstLearningStep() {
+            const n = firstLearningWords.length;
+            const groupStart = firstLearningCurrentIndex;
+
+            // 0: 展示本組第1個單字
+            if (firstLearningStep === 0) {
+                showFirstLearningPanel(groupStart, true);
+                document.getElementById("firstLearnNextBtn").style.display = ""; // 出現 NEXT
+                firstLearningStep = 1;
+                return;
+            }
+            // 1: 展示本組第2個單字（如有）
+            if (firstLearningStep === 1) {
+                if ((groupStart + 1) < n) {
+                    showFirstLearningPanel(groupStart + 1, true);
+                }
+                document.getElementById("firstLearnNextBtn").style.display = ""; // 出現 NEXT
+                firstLearningStep = 2;
+                return;
+            }
+            // 2: quiz 第1題
+            if (firstLearningStep === 2) {
+                renderQuizForWord(firstLearningWords[groupStart], function (isCorrect) {
+                    // 答對直接進入 quiz2，答錯顯示 NEXT 按鈕，必須點下才繼續
+                    if (isCorrect) {
+                        firstLearningStep = 3;
+                        handleFirstLearningStep();
+                    } else {
+                        // 答錯，顯示 NEXT 按鈕，按下再進入 quiz2
+                        let btn = document.getElementById("firstLearnNextBtn");
+                        btn.style.display = "";
+                        btn.onclick = function () {
+                            playSoundEffect('/sounds/click-sound.wav');
+                            btn.style.display = "none";
+                            btn.onclick = null;
+                            firstLearningStep = 3;
+                            handleFirstLearningStep();
+                        };
+                    }
+                });
+                document.getElementById("firstLearnNextBtn").style.display = "none";
+                return;
+            }
+            // 3: quiz 第2題（如有）
+            if (firstLearningStep === 3) {
+                if ((groupStart + 1) < n) {
+                    renderQuizForWord(firstLearningWords[groupStart + 1], function (isCorrect) {
+                        // 完成 quiz2
+                        if (isCorrect) {
+                            nextLearningGroup();
+                        } else {
+                            let btn = document.getElementById("firstLearnNextBtn");
+                            btn.style.display = "";
+                            btn.onclick = function () {
+                                playSoundEffect('/sounds/click-sound.wav');
+                                btn.style.display = "none";
+                                btn.onclick = null;
+                                nextLearningGroup();
+                            };
+                        }
+                    });
+                } else {
+                    // 無 quiz2，直接進入下一組
+                    nextLearningGroup();
+                }
+                document.getElementById("firstLearnNextBtn").style.display = "none";
+                return;
+            }
+        }
+
+        // ================ 進入下一組單字學習 ================
+        function nextLearningGroup() {
+            const n = firstLearningWords.length;
+            firstLearningCurrentIndex += 2; // 下一組
+            updateProgressBar();
+            if (firstLearningCurrentIndex < n) {
+                firstLearningStep = 0;
+                handleFirstLearningStep();
+            } else {
+                alert("恭喜完成所有單字學習！");
+            }
+        }
+
+        // ================ 四選一 quiz 控制 ================
+        function renderQuizForWord(wordObj, onFinish) {
+            const container = document.getElementById("pnlFirstLearningWordContent");
+            container.innerHTML = ""; // 清空內容
+
+            // 產生三個不重複且不與正確答案重複的選項
+            const correct = wordObj.meaning;
+            let pool = firstLearningWords
+                .map(w => w.meaning)
+                .filter(m => m && m !== correct);
+
+            let distractors = [];
+            while (distractors.length < 3 && pool.length > 0) {
+                const idx = Math.floor(Math.random() * pool.length);
+                distractors.push(pool[idx]);
+                pool.splice(idx, 1);
+            }
+            // 補足三個選項
+            while (distractors.length < 3) {
+                distractors.push("（無）");
+            }
+
+            // 洗牌
+            const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
+
+            // HTML 結構
+            let html = `<div class="quiz-panel">
+        <div class="quiz-word">${wordObj.word}</div>
+        <div class="quiz-options">`;
+            options.forEach(opt => {
+                html += `<button type="button" class="quiz-option">${opt}</button>`;
+            });
+            html += `</div></div>`;
+            container.innerHTML = html;
+
+            // 隱藏 NEXT 按鈕
+            document.getElementById("firstLearnNextBtn").style.display = "none";
+
+            // 綁定選項點擊
+            const btns = container.querySelectorAll('.quiz-option');
+            btns.forEach(btn => {
+                btn.onclick = function () {
+                    btns.forEach(b => b.disabled = true);
+                    let isCorrect = false;
+                    if (btn.innerText === correct) {
+                        btn.classList.add('correct');
+                        isCorrect = true;
+                    } else {
+                        btn.classList.add('wrong');
+                    }
+                    setTimeout(() => {
+                        if (typeof onFinish === "function") onFinish(isCorrect);
+                    }, 400);
+                };
+            });
+        }
 
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
@@ -1080,7 +1223,10 @@
                         return;
                     }
                     firstLearningCurrentIndex = 0;
-                    showFirstLearningPanel(firstLearningCurrentIndex, true); // 初次進入，立即出現
+                    firstLearningStep = 0;
+                    currentProgressPercent = 0;
+                    updateProgressBar();
+                    handleFirstLearningStep(); // 進入流程主控
                 })
                 .catch(() => {
                     alert("讀取單字發生錯誤！");
@@ -1142,7 +1288,8 @@
             slideCardSwitch(container, () => {
                 const words = firstLearningWords;
                 const w = words[index];
-                firstLearningCurrentIndex = index;
+                // 無需再設 firstLearningCurrentIndex，流程已於 handleFirstLearningStep 控管
+
                 container.innerHTML = ""; // 保險
 
                 // 主卡片
@@ -1194,15 +1341,20 @@
                 const toggleIcon = document.createElement("img");
                 toggleIcon.src = "images/more-svgrepo-com.svg";
                 toggleIcon.className = "expand-toggle";
-                toggleIcon.width = 24;   // ← 補上寬高
+                toggleIcon.width = 24;
                 toggleIcon.height = 24;
 
-                let isExpandedGlobally = false;
-
+                // 1. 先建立 wordInfoDiv（不可省略！）
                 const wordInfoDiv = document.createElement("div");
                 wordInfoDiv.style.marginTop = "8px";
-                wordInfoDiv.style.display = "none";
+                wordInfoDiv.style.display = firstLearningIsExpandedGlobally ? "block" : "none";
+                if (firstLearningIsExpandedGlobally) {
+                    toggleIcon.classList.add("expanded");
+                } else {
+                    toggleIcon.classList.remove("expanded");
+                }
 
+                // 2. 補上三個 row
                 const createRow = (labelText, content) => {
                     const row = document.createElement("div");
                     const badge = document.createElement("span");
@@ -1215,15 +1367,15 @@
                     row.appendChild(contentSpan);
                     return row;
                 };
-
                 wordInfoDiv.appendChild(createRow("同", w.synonym_words));
                 wordInfoDiv.appendChild(createRow("反", w.antonym_words));
                 wordInfoDiv.appendChild(createRow("衍", w.related_info));
 
+                // 3. 切換展開狀態
                 toggleIcon.onclick = () => {
-                    isExpandedGlobally = !isExpandedGlobally;
-                    wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
-                    toggleIcon.classList.toggle("expanded", isExpandedGlobally);
+                    firstLearningIsExpandedGlobally = !firstLearningIsExpandedGlobally;
+                    wordInfoDiv.style.display = firstLearningIsExpandedGlobally ? "block" : "none";
+                    toggleIcon.classList.toggle("expanded", firstLearningIsExpandedGlobally);
                 };
 
                 expandWrapper.appendChild(toggleIcon);
@@ -1294,21 +1446,11 @@
             document.getElementById("firstLearningProgressBarFill").style.width = currentProgressPercent + "%";
         }
 
-        // =================== NEXT 按鈕功能 ===================
+        // ================ 綁定 NEXT 按鈕 ================
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("firstLearnNextBtn").onclick = function () {
-                // 1. 播放點擊音效（完全與音效滑桿同步音量！）
                 playSoundEffect('/sounds/click-sound.wav');
-
-                // 2. 執行切換單字與進度條邏輯
-                if (firstLearningCurrentIndex < firstLearningWords.length - 1) {
-                    showFirstLearningPanel(firstLearningCurrentIndex + 1); // 切換下一單字（滑動動畫）
-                    updateProgressBar(); // 進度+5%
-                } else {
-                    alert("恭喜完成所有單字學習！");
-                    // 如有需要，可在此補充結束後的 UI 行為
-                    // document.getElementById("pnlFirstLearningDetail").style.display = "none";
-                }
+                handleFirstLearningStep();
             };
         });
 
@@ -1320,9 +1462,7 @@
             var bar = document.getElementById('firstLearningProgressBarFill');
             if (bar) bar.style.width = '0%';
         });
-
     </script>
-
 
     <script>
         // 🚩 專屬首次學習關閉 Modal 綁定（含 DEBUG 訊息）
