@@ -1038,7 +1038,7 @@
 
     <script>
         //===========================================================
-        // 第五章：首次學習 - 單字詳細資訊卡片渲染函式
+        // 第五章：首次學習 - 單字詳細資訊卡片渲染函式（含滑動特效）
         //===========================================================
         // ◆ 全域狀態變數
         let firstLearningWords = [];             // 儲存本次祭壇10個單字
@@ -1067,7 +1067,6 @@
 
                     // ======== ✅ 新增 DEBUG 區塊 ========
                     if (firstLearningWords.length > 0) {
-                        // 只秀主要單字（可加上其他欄位）
                         const debugList = firstLearningWords
                             .map((w, idx) => `${idx + 1}. ${w.word}（${w.part_of_speech || "無詞性"}：${w.meaning || "無釋義"}）`)
                             .join('\n');
@@ -1081,7 +1080,7 @@
                         return;
                     }
                     firstLearningCurrentIndex = 0;
-                    showFirstLearningPanel(firstLearningCurrentIndex);
+                    showFirstLearningPanel(firstLearningCurrentIndex, true); // 初次進入，立即出現
                 })
                 .catch(() => {
                     alert("讀取單字發生錯誤！");
@@ -1089,22 +1088,71 @@
                 });
         }
 
-        // =================== 單字內容渲染 ===================
-        function showFirstLearningPanel(index) {
-            const words = firstLearningWords;
-            const w = words[index];
-            firstLearningCurrentIndex = index;
+        // =================== 滑動切換動畫公用函式 ===================
+        function slideCardSwitch(container, renderContent, isFirst = false) {
+            // 1. 取得 NEXT 按鈕
+            const nextBtn = document.getElementById("firstLearnNextBtn");
+            if (nextBtn) nextBtn.style.visibility = "hidden"; // 切換動畫前先隱藏
+
+            const oldCard = container.firstElementChild;
+            if (isFirst || !oldCard) {
+                renderContent();
+                // 新卡片進場動畫
+                const newCard = container.firstElementChild;
+                if (newCard) {
+                    newCard.classList.add('slide-in-right');
+                    newCard.addEventListener('animationend', function handler() {
+                        newCard.classList.remove('slide-in-right');
+                        newCard.removeEventListener('animationend', handler);
+
+                        // ✅ 動畫結束再顯示 NEXT
+                        if (nextBtn) nextBtn.style.visibility = "visible";
+                    });
+                } else {
+                    if (nextBtn) nextBtn.style.visibility = "visible";
+                }
+                return;
+            }
+            // 先滑出舊卡片
+            oldCard.classList.add('slide-out-left');
+            oldCard.addEventListener('animationend', function handler() {
+                oldCard.removeEventListener('animationend', handler);
+                container.innerHTML = '';
+                renderContent();
+                // 滑入新卡片
+                const newCard = container.firstElementChild;
+                if (newCard) {
+                    newCard.classList.add('slide-in-right');
+                    newCard.addEventListener('animationend', function animClear() {
+                        newCard.classList.remove('slide-in-right');
+                        newCard.removeEventListener('animationend', animClear);
+
+                        // ✅ 動畫結束再顯示 NEXT
+                        if (nextBtn) nextBtn.style.visibility = "visible";
+                    });
+                } else {
+                    if (nextBtn) nextBtn.style.visibility = "visible";
+                }
+            });
+        }
+
+        // =================== 單字內容渲染（核心函式） ===================
+        function showFirstLearningPanel(index, isFirst = false) {
             const container = document.getElementById("pnlFirstLearningWordContent");
-            container.innerHTML = "";
+            slideCardSwitch(container, () => {
+                const words = firstLearningWords;
+                const w = words[index];
+                firstLearningCurrentIndex = index;
+                container.innerHTML = ""; // 保險
 
-            // 主卡片
-            const card = document.createElement("div");
-            card.className = "scroll-word-card";
+                // 主卡片
+                const card = document.createElement("div");
+                card.className = "scroll-word-card";
 
-            // 左側內容
-            const left = document.createElement("div");
-            left.className = "word-left";
-            left.innerHTML = `
+                // 左側內容
+                const left = document.createElement("div");
+                left.className = "word-left";
+                left.innerHTML = `
 <div class="word-text-wrapper">
     <span class="word-text">${w.word}</span>
 </div>
@@ -1114,129 +1162,129 @@
 </span>
 <div id="tenseWrapper">
     ${(w.past_tense || w.past_participle) ?
-                    `<span class="info">過去式：${w.past_tense || "—"}<br/>過去分詞：${w.past_participle || "—"}</span>` : ""}
+                        `<span class="info">過去式：${w.past_tense || "—"}<br/>過去分詞：${w.past_participle || "—"}</span>` : ""}
 </div>
 <div class="example-container">
     <span>${w.example_sentence || ""}</span>
 </div>
 <span class="info text-muted">${w.example_translation || ""}</span>
 `;
-            card.appendChild(left);
-            container.appendChild(card);
+                card.appendChild(left);
+                container.appendChild(card);
 
-            // 右上角語音 ICON
-            const iconAudio = document.createElement("img");
-            iconAudio.className = "word-audio-icon";
-            iconAudio.src = "images/volumewithnocolor.svg";
-            iconAudio.title = "播放單字";
-            card.appendChild(iconAudio);
-
-            // 例句語音 ICON
-            const exampleContainer = left.querySelector(".example-container");
-            const sentenceAudio = document.createElement("img");
-            sentenceAudio.className = "sentence-audio-icon";
-            sentenceAudio.src = "images/volumewithnocolor.svg";
-            sentenceAudio.title = "播放例句";
-            exampleContainer.appendChild(sentenceAudio);
-
-            // ===== 展開（同/反/衍） =====
-            const tenseWrapper = left.querySelector("#tenseWrapper");
-            const expandWrapper = document.createElement("div");
-            expandWrapper.style.marginTop = "6px";
-            const toggleIcon = document.createElement("img");
-            toggleIcon.src = "images/more-svgrepo-com.svg";
-            toggleIcon.className = "expand-toggle";
-            toggleIcon.width = 24;   // ← 補上寬高，避免破圖
-            toggleIcon.height = 24;
-
-            let isExpandedGlobally = false;
-
-            const wordInfoDiv = document.createElement("div");
-            wordInfoDiv.style.marginTop = "8px";
-            wordInfoDiv.style.display = "none";
-
-            const createRow = (labelText, content) => {
-                const row = document.createElement("div");
-                const badge = document.createElement("span");
-                badge.className = "part-of-speech-badge";
-                badge.textContent = labelText;
-                const contentSpan = document.createElement("span");
-                contentSpan.textContent = content || "—";
-                contentSpan.style.marginLeft = "6px";
-                row.appendChild(badge);
-                row.appendChild(contentSpan);
-                return row;
-            };
-
-            wordInfoDiv.appendChild(createRow("同", w.synonym_words));
-            wordInfoDiv.appendChild(createRow("反", w.antonym_words));
-            wordInfoDiv.appendChild(createRow("衍", w.related_info));
-
-            toggleIcon.onclick = () => {
-                isExpandedGlobally = !isExpandedGlobally;
-                wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
-                toggleIcon.classList.toggle("expanded", isExpandedGlobally);
-            };
-
-            expandWrapper.appendChild(toggleIcon);
-            expandWrapper.appendChild(wordInfoDiv);
-            tenseWrapper.appendChild(expandWrapper);
-
-            // ===== 收藏愛心邏輯 =====
-            const favIcon = document.getElementById("firstLearnFavIcon");
-            favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-            favIcon.onclick = function () {
-                const newFav = !w.is_favorite;
-                w.is_favorite = newFav;
-                favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                toggleFavorite(w.scroll_id, newFav);
-                if (newFav) showFlyingHeart(favIcon);
-            };
-
-            // ===== 語音播放邏輯 =====
-            iconAudio.onclick = () => {
-                speechSynthesis.cancel();
-                iconAudio.src = "images/volumewithlightcolor.svg";
-                sentenceAudio.src = "images/volumewithnocolor.svg";
-                const utter = new SpeechSynthesisUtterance(w.word);
-                utter.lang = "en-US";
-                utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                speechSynthesis.speak(utter);
-                utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-            };
-            sentenceAudio.onclick = () => {
-                speechSynthesis.cancel();
-                sentenceAudio.src = "images/volumewithlightcolor.svg";
+                // 右上角語音 ICON
+                const iconAudio = document.createElement("img");
+                iconAudio.className = "word-audio-icon";
                 iconAudio.src = "images/volumewithnocolor.svg";
-                const utter = new SpeechSynthesisUtterance(w.example_sentence);
-                utter.lang = "en-US";
-                utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                speechSynthesis.speak(utter);
-                utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
-            };
+                iconAudio.title = "播放單字";
+                card.appendChild(iconAudio);
 
-            // ====== 上下頁箭頭（如有請補id） ======
-            if (document.getElementById("btnPrevFirstWord")) {
-                document.getElementById("btnPrevFirstWord").onclick = function () {
-                    if (firstLearningCurrentIndex > 0) showFirstLearningPanel(firstLearningCurrentIndex - 1);
+                // 例句語音 ICON
+                const exampleContainer = left.querySelector(".example-container");
+                const sentenceAudio = document.createElement("img");
+                sentenceAudio.className = "sentence-audio-icon";
+                sentenceAudio.src = "images/volumewithnocolor.svg";
+                sentenceAudio.title = "播放例句";
+                exampleContainer.appendChild(sentenceAudio);
+
+                // ===== 展開（同/反/衍） =====
+                const tenseWrapper = left.querySelector("#tenseWrapper");
+                const expandWrapper = document.createElement("div");
+                expandWrapper.style.marginTop = "6px";
+                const toggleIcon = document.createElement("img");
+                toggleIcon.src = "images/more-svgrepo-com.svg";
+                toggleIcon.className = "expand-toggle";
+                toggleIcon.width = 24;   // ← 補上寬高
+                toggleIcon.height = 24;
+
+                let isExpandedGlobally = false;
+
+                const wordInfoDiv = document.createElement("div");
+                wordInfoDiv.style.marginTop = "8px";
+                wordInfoDiv.style.display = "none";
+
+                const createRow = (labelText, content) => {
+                    const row = document.createElement("div");
+                    const badge = document.createElement("span");
+                    badge.className = "part-of-speech-badge";
+                    badge.textContent = labelText;
+                    const contentSpan = document.createElement("span");
+                    contentSpan.textContent = content || "—";
+                    contentSpan.style.marginLeft = "6px";
+                    row.appendChild(badge);
+                    row.appendChild(contentSpan);
+                    return row;
                 };
-            }
-            if (document.getElementById("btnNextFirstWord")) {
-                document.getElementById("btnNextFirstWord").onclick = function () {
-                    if (firstLearningCurrentIndex < words.length - 1) showFirstLearningPanel(firstLearningCurrentIndex + 1);
+
+                wordInfoDiv.appendChild(createRow("同", w.synonym_words));
+                wordInfoDiv.appendChild(createRow("反", w.antonym_words));
+                wordInfoDiv.appendChild(createRow("衍", w.related_info));
+
+                toggleIcon.onclick = () => {
+                    isExpandedGlobally = !isExpandedGlobally;
+                    wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
+                    toggleIcon.classList.toggle("expanded", isExpandedGlobally);
                 };
-            }
 
-            // ====== 新增：自動播放單字語音 ======
-            setTimeout(() => {
-                iconAudio.src = "images/volumewithlightcolor.svg";
-                const utter = new SpeechSynthesisUtterance(w.word);
-                utter.lang = "en-US";
-                utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                speechSynthesis.speak(utter);
-                utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-            }, 100);
+                expandWrapper.appendChild(toggleIcon);
+                expandWrapper.appendChild(wordInfoDiv);
+                tenseWrapper.appendChild(expandWrapper);
 
+                // ===== 收藏愛心邏輯 =====
+                const favIcon = document.getElementById("firstLearnFavIcon");
+                favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                favIcon.onclick = function () {
+                    const newFav = !w.is_favorite;
+                    w.is_favorite = newFav;
+                    favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                    toggleFavorite(w.scroll_id, newFav);
+                    if (newFav) showFlyingHeart(favIcon);
+                };
+
+                // ===== 語音播放邏輯 =====
+                iconAudio.onclick = () => {
+                    speechSynthesis.cancel();
+                    iconAudio.src = "images/volumewithlightcolor.svg";
+                    sentenceAudio.src = "images/volumewithnocolor.svg";
+                    const utter = new SpeechSynthesisUtterance(w.word);
+                    utter.lang = "en-US";
+                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                    speechSynthesis.speak(utter);
+                    utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                };
+                sentenceAudio.onclick = () => {
+                    speechSynthesis.cancel();
+                    sentenceAudio.src = "images/volumewithlightcolor.svg";
+                    iconAudio.src = "images/volumewithnocolor.svg";
+                    const utter = new SpeechSynthesisUtterance(w.example_sentence);
+                    utter.lang = "en-US";
+                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                    speechSynthesis.speak(utter);
+                    utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
+                };
+
+                // ====== 上下頁箭頭（如有請補id） ======
+                if (document.getElementById("btnPrevFirstWord")) {
+                    document.getElementById("btnPrevFirstWord").onclick = function () {
+                        if (firstLearningCurrentIndex > 0) showFirstLearningPanel(firstLearningCurrentIndex - 1);
+                    };
+                }
+                if (document.getElementById("btnNextFirstWord")) {
+                    document.getElementById("btnNextFirstWord").onclick = function () {
+                        if (firstLearningCurrentIndex < words.length - 1) showFirstLearningPanel(firstLearningCurrentIndex + 1);
+                    };
+                }
+
+                // ====== 新增：自動播放單字語音 ======
+                setTimeout(() => {
+                    iconAudio.src = "images/volumewithlightcolor.svg";
+                    const utter = new SpeechSynthesisUtterance(w.word);
+                    utter.lang = "en-US";
+                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                    speechSynthesis.speak(utter);
+                    utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                }, 100);
+            }, isFirst);
         }
 
         // =================== 進度條更新（固定 +5%） ===================
@@ -1254,7 +1302,7 @@
 
                 // 2. 執行切換單字與進度條邏輯
                 if (firstLearningCurrentIndex < firstLearningWords.length - 1) {
-                    showFirstLearningPanel(firstLearningCurrentIndex + 1); // 切換下一單字
+                    showFirstLearningPanel(firstLearningCurrentIndex + 1); // 切換下一單字（滑動動畫）
                     updateProgressBar(); // 進度+5%
                 } else {
                     alert("恭喜完成所有單字學習！");
@@ -1274,6 +1322,7 @@
         });
 
     </script>
+
 
     <script>
         // 🚩 專屬首次學習關閉 Modal 綁定（含 DEBUG 訊息）
