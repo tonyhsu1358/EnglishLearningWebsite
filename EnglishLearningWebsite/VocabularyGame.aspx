@@ -1040,9 +1040,10 @@
         //===========================================================
         // 第五章：首次學習 - 單字詳細資訊卡片渲染函式
         //===========================================================
-        // =================== 全域狀態 ===================
-        let firstLearningWords = [];
-        let firstLearningCurrentIndex = 0;
+        // ◆ 全域狀態變數
+        let firstLearningWords = [];             // 儲存本次祭壇10個單字
+        let firstLearningCurrentIndex = 0;       // 當前單字索引
+        let currentProgressPercent = 0;          // 進度條目前百分比
 
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
@@ -1238,6 +1239,40 @@
 
         }
 
+        // =================== 進度條更新（固定 +5%） ===================
+        function updateProgressBar() {
+            // 每次呼叫進度條就 +5%，但最大不得超過100%
+            currentProgressPercent = Math.min(currentProgressPercent + 5, 100);
+            document.getElementById("firstLearningProgressBarFill").style.width = currentProgressPercent + "%";
+        }
+
+        // =================== NEXT 按鈕功能 ===================
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("firstLearnNextBtn").onclick = function () {
+                // 1. 播放點擊音效（完全與音效滑桿同步音量！）
+                playSoundEffect('/sounds/click-sound.wav');
+
+                // 2. 執行切換單字與進度條邏輯
+                if (firstLearningCurrentIndex < firstLearningWords.length - 1) {
+                    showFirstLearningPanel(firstLearningCurrentIndex + 1); // 切換下一單字
+                    updateProgressBar(); // 進度+5%
+                } else {
+                    alert("恭喜完成所有單字學習！");
+                    // 如有需要，可在此補充結束後的 UI 行為
+                    // document.getElementById("pnlFirstLearningDetail").style.display = "none";
+                }
+            };
+        });
+
+        //===================若重整或關閉網頁進度條強制歸0===================
+        window.addEventListener('beforeunload', function () {
+            // 歸零變數
+            currentProgressPercent = 0;
+            // 歸零畫面
+            var bar = document.getElementById('firstLearningProgressBarFill');
+            if (bar) bar.style.width = '0%';
+        });
+
     </script>
 
     <script>
@@ -1263,10 +1298,14 @@
             if (e) e.preventDefault();
             // 非同步閉合，保證不卡畫面、不刷新
             setTimeout(function () {
+                // 關閉各面板與遮罩
                 document.getElementById('firstLearnExitModal').style.display = "none";
                 document.getElementById('pnlFirstLearningDetail').style.display = "none";
-                // 如需顯示祭壇主畫面請補：
-                // document.getElementById('pnlMagicAltar').style.display = "block";
+                document.getElementById('pnlAltarOptions').style.display = "none";
+                document.getElementById('altarOptionsOverlay').style.display = "none";
+                // 進度條歸零
+                currentProgressPercent = 0;
+                document.getElementById('firstLearningProgressBarFill').style.width = "0%";
             }, 0);
         };
 
@@ -1275,7 +1314,6 @@
             document.getElementById('firstLearnExitModal').style.display = "flex";
         }
     </script>
-
 
     <div id="flyingEffectsZone" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999;"></div>
 </body>

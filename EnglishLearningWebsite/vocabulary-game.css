@@ -1052,7 +1052,7 @@ img[src*='arrow-down'] {
         transform: scale(1.1) rotate(90deg);
     }
 
-/*========首次學習專屬信度條=========*/
+/*========首次學習專屬進度條=========*/
 /* ◆ 進度條 + 打勾容器（橫向排列，進度條填滿，打勾在右） */
 #firstLearningProgressBarContainer {
     width: 450px; /* 與面板一致的固定寬度 */
@@ -1073,7 +1073,7 @@ img[src*='arrow-down'] {
 
 /* ◆ 進度條填充（進度值，由 JS 控制寬度） */
 #firstLearningProgressBarFill {
-    width: 5%; /* 進度百分比，預設 50%（由 JS 控制） */
+    width: 0%; /* 進度百分比，預設 50%（由 JS 控制） */
     height: 100%; /* 填滿背景高度 */
     background: #a9a9a9; /* 進度條深灰色 */
     transition: width 0.5s cubic-bezier(0.6,0,0.2,1); /* 寬度動畫柔和流暢 */
