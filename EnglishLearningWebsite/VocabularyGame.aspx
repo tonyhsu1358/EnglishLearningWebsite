@@ -1085,6 +1085,7 @@
                     if (isCorrect) {
                         // 答對直接進入 quiz2
                         firstLearningStep = 3;
+                        updateProgressBar(); // ★ quiz1答對才+5%
                         handleFirstLearningStep();
                     } else {
                         // 答錯：記錄索引，不重複測驗，顯示 NEXT
@@ -1110,8 +1111,8 @@
                 if ((groupStart + 1) < n) {
                     renderQuizForWord(firstLearningWords[groupStart + 1], function (isCorrect) {
                         if (isCorrect) {
-                            // 答對：直接進入下一組
-                            nextLearningGroup();
+                            updateProgressBar(); // ★ quiz2答對才+5%
+                            nextLearningGroup();// 答對：直接進入下一組
                         } else {
                             // 答錯：記錄索引，不重複測驗，顯示 NEXT
                             if (!firstLearningWrongIndexes.includes(groupStart + 1)) {
@@ -1147,7 +1148,6 @@
         function nextLearningGroup() {
             const n = firstLearningWords.length;
             firstLearningCurrentIndex += 2; // 每次兩個一組
-            updateProgressBar();
             if (firstLearningCurrentIndex < n) {
                 firstLearningStep = 0; // 歸零狀態，進入下一組的第一個單字展示
                 handleFirstLearningStep();
@@ -1214,6 +1214,35 @@
             });
         }
 
+        // =================== 進度條更新（固定 +5%） ===================
+        function updateProgressBar() {
+            // 每次呼叫進度條就 +5%，但最大不得超過100%
+            currentProgressPercent = Math.min(currentProgressPercent + 5, 100);
+            document.getElementById("firstLearningProgressBarFill").style.width = currentProgressPercent + "%";
+        }
+
+        // ================ 綁定 NEXT 按鈕 ================
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("firstLearnNextBtn").onclick = function () {
+                playSoundEffect('/sounds/click-sound.wav');
+                // 只要是單字展示階段（step==1或2）按下 NEXT 就+5%
+                if (firstLearningStep === 1 || firstLearningStep === 2) {
+                    updateProgressBar();
+                }
+                handleFirstLearningStep();
+            };
+        });
+
+
+        //===================若重整或關閉網頁進度條強制歸0===================
+        window.addEventListener('beforeunload', function () {
+            // 歸零變數
+            currentProgressPercent = 0;
+            // 歸零畫面
+            var bar = document.getElementById('firstLearningProgressBarFill');
+            if (bar) bar.style.width = '0%';
+        });
+
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {         
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
@@ -1252,7 +1281,6 @@
                     firstLearningWrongIndexes = [];//新增這個以便清空錯誤單字索引
                     firstLearningStep = 0;
                     currentProgressPercent = 0;
-                    updateProgressBar();
                     handleFirstLearningStep(); // 進入流程主控
                 })
                 .catch(() => {
@@ -1466,29 +1494,6 @@
             }, isFirst);
         }
 
-        // =================== 進度條更新（固定 +5%） ===================
-        function updateProgressBar() {
-            // 每次呼叫進度條就 +5%，但最大不得超過100%
-            currentProgressPercent = Math.min(currentProgressPercent + 5, 100);
-            document.getElementById("firstLearningProgressBarFill").style.width = currentProgressPercent + "%";
-        }
-
-        // ================ 綁定 NEXT 按鈕 ================
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("firstLearnNextBtn").onclick = function () {
-                playSoundEffect('/sounds/click-sound.wav');
-                handleFirstLearningStep();
-            };
-        });
-
-        //===================若重整或關閉網頁進度條強制歸0===================
-        window.addEventListener('beforeunload', function () {
-            // 歸零變數
-            currentProgressPercent = 0;
-            // 歸零畫面
-            var bar = document.getElementById('firstLearningProgressBarFill');
-            if (bar) bar.style.width = '0%';
-        });
     </script>
 
     <script>
