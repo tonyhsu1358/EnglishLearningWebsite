@@ -1045,10 +1045,18 @@
         let firstLearningCurrentIndex = 0;       // 當前組的起始索引（0,2,4,...）
         let firstLearningStep = 0;               // 控制流程的步驟：0=展示1, 1=展示2, 2=quiz1, 3=quiz2
         let currentProgressPercent = 0;          // 進度條目前百分比
+        let firstLearningPaused = false;         // 若答錯 quiz，暫停流程，等用戶點 NEXT
         let firstLearningIsExpandedGlobally = false; // 控制首次學習卡片的展開狀態
 
-        // ================ 主控流程函式 ================
+        // =================== 主控流程函式 ===================
         function handleFirstLearningStep() {
+            // 若目前處於 quiz 答錯的暫停狀態，點 NEXT 後只是解除暫停，繼續原本流程
+            if (firstLearningPaused) {
+                firstLearningPaused = false;
+                document.getElementById("firstLearnNextBtn").style.display = "none";
+                // 千萬別 return，要繼續往下走
+            }
+
             const n = firstLearningWords.length;
             const groupStart = firstLearningCurrentIndex;
 
@@ -1071,21 +1079,14 @@
             // 2: quiz 第1題
             if (firstLearningStep === 2) {
                 renderQuizForWord(firstLearningWords[groupStart], function (isCorrect) {
-                    // 答對直接進入 quiz2，答錯顯示 NEXT 按鈕，必須點下才繼續
                     if (isCorrect) {
                         firstLearningStep = 3;
-                        handleFirstLearningStep();
+                        handleFirstLearningStep(); // 答對自動往下走
                     } else {
-                        // 答錯，顯示 NEXT 按鈕，按下再進入 quiz2
-                        let btn = document.getElementById("firstLearnNextBtn");
-                        btn.style.display = "";
-                        btn.onclick = function () {
-                            playSoundEffect('/sounds/click-sound.wav');
-                            btn.style.display = "none";
-                            btn.onclick = null;
-                            firstLearningStep = 3;
-                            handleFirstLearningStep();
-                        };
+                        // 答錯：暫停流程，顯示 NEXT
+                        firstLearningPaused = true;
+                        document.getElementById("firstLearnNextBtn").style.display = "";
+                        // 不執行後續流程，必須等用戶點 NEXT，再由流程主控繼續
                     }
                 });
                 document.getElementById("firstLearnNextBtn").style.display = "none";
@@ -1095,18 +1096,13 @@
             if (firstLearningStep === 3) {
                 if ((groupStart + 1) < n) {
                     renderQuizForWord(firstLearningWords[groupStart + 1], function (isCorrect) {
-                        // 完成 quiz2
                         if (isCorrect) {
-                            nextLearningGroup();
+                            nextLearningGroup(); // 答對直接進入下一組
                         } else {
-                            let btn = document.getElementById("firstLearnNextBtn");
-                            btn.style.display = "";
-                            btn.onclick = function () {
-                                playSoundEffect('/sounds/click-sound.wav');
-                                btn.style.display = "none";
-                                btn.onclick = null;
-                                nextLearningGroup();
-                            };
+                            // 答錯，暫停流程，顯示 NEXT
+                            firstLearningPaused = true;
+                            document.getElementById("firstLearnNextBtn").style.display = "";
+                            // 等用戶點 NEXT 後才進入下一組
                         }
                     });
                 } else {
