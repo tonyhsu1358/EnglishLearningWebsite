@@ -1043,31 +1043,33 @@
         // ◆ 全域狀態變數
         let firstLearningWords = [];             // 儲存本次祭壇10個單字
         let firstLearningCurrentIndex = 0;       // 當前組的起始索引（0,2,4,...）
+        let firstLearningWrongIndexes = [];      // 新增：記錄答錯的索引
         let firstLearningStep = 0;               // 控制流程的步驟：0=展示1, 1=展示2, 2=quiz1, 3=quiz2
         let currentProgressPercent = 0;          // 進度條目前百分比
         let firstLearningPaused = false;         // 若答錯 quiz，暫停流程，等用戶點 NEXT
         let firstLearningIsExpandedGlobally = false; // 控制首次學習卡片的展開狀態
 
-        // =================== 主控流程函式 ===================
+        // =================== 主控流程函式（狀態機） ===================
         function handleFirstLearningStep() {
-            // 若目前處於 quiz 答錯的暫停狀態，點 NEXT 後只是解除暫停，繼續原本流程
+            // 若因答錯 quiz 暫停，則 NEXT 按下時僅解除暫停並繼續原本流程
             if (firstLearningPaused) {
                 firstLearningPaused = false;
                 document.getElementById("firstLearnNextBtn").style.display = "none";
-                // 千萬別 return，要繼續往下走
+                // 直接繼續走流程（不 return）
             }
 
             const n = firstLearningWords.length;
             const groupStart = firstLearningCurrentIndex;
 
-            // 0: 展示本組第1個單字
+            // 狀態 0：展示本組第 1 個單字
             if (firstLearningStep === 0) {
                 showFirstLearningPanel(groupStart, true);
                 document.getElementById("firstLearnNextBtn").style.display = ""; // 出現 NEXT
                 firstLearningStep = 1;
                 return;
             }
-            // 1: 展示本組第2個單字（如有）
+
+            // 狀態 1：展示本組第 2 個單字（如有）
             if (firstLearningStep === 1) {
                 if ((groupStart + 1) < n) {
                     showFirstLearningPanel(groupStart + 1, true);
@@ -1076,54 +1078,82 @@
                 firstLearningStep = 2;
                 return;
             }
-            // 2: quiz 第1題
+
+            // 狀態 2：quiz 第 1 題（第 1 個單字）
             if (firstLearningStep === 2) {
                 renderQuizForWord(firstLearningWords[groupStart], function (isCorrect) {
                     if (isCorrect) {
+                        // 答對直接進入 quiz2
                         firstLearningStep = 3;
-                        handleFirstLearningStep(); // 答對自動往下走
+                        handleFirstLearningStep();
                     } else {
-                        // 答錯：暫停流程，顯示 NEXT
+                        // 答錯：記錄索引，不重複測驗，顯示 NEXT
+                        if (!firstLearningWrongIndexes.includes(groupStart)) {
+                            firstLearningWrongIndexes.push(groupStart);
+                        }
+                        console.log("目前錯誤單字索引：", firstLearningWrongIndexes);
+
+                        // -------- 這裡加上這行 --------
+                        firstLearningStep = 3; // ★★★ 答錯時一樣 step 推進！下次就是 quiz2
+
+                        // 啟用暫停，NEXT 只解除暫停（不直接切換步驟，由主控接管）
                         firstLearningPaused = true;
                         document.getElementById("firstLearnNextBtn").style.display = "";
-                        // 不執行後續流程，必須等用戶點 NEXT，再由流程主控繼續
                     }
                 });
                 document.getElementById("firstLearnNextBtn").style.display = "none";
                 return;
             }
-            // 3: quiz 第2題（如有）
+
+            // 狀態 3：quiz 第 2 題（第 2 個單字，如有）
             if (firstLearningStep === 3) {
                 if ((groupStart + 1) < n) {
                     renderQuizForWord(firstLearningWords[groupStart + 1], function (isCorrect) {
                         if (isCorrect) {
-                            nextLearningGroup(); // 答對直接進入下一組
+                            // 答對：直接進入下一組
+                            nextLearningGroup();
                         } else {
-                            // 答錯，暫停流程，顯示 NEXT
+                            // 答錯：記錄索引，不重複測驗，顯示 NEXT
+                            if (!firstLearningWrongIndexes.includes(groupStart + 1)) {
+                                firstLearningWrongIndexes.push(groupStart + 1);
+                            }
+                            console.log("目前錯誤單字索引：", firstLearningWrongIndexes);
+
+                            // 這裡不要直接呼叫 nextLearningGroup()
+                            // 啟用暫停，讓 NEXT 按下時流程往下走（由 handleFirstLearningStep 接管）
                             firstLearningPaused = true;
                             document.getElementById("firstLearnNextBtn").style.display = "";
-                            // 等用戶點 NEXT 後才進入下一組
+                            // ※ 關鍵：設定 step 狀態為「要進下組」，但不再 quiz2！
+                            firstLearningStep = 100; // 任意一個不屬於 0~3 的值，方便判斷「進入下組」
                         }
                     });
                 } else {
-                    // 無 quiz2，直接進入下一組
+                    // 若無第 2 題，直接進入下一組
                     nextLearningGroup();
                 }
                 document.getElementById("firstLearnNextBtn").style.display = "none";
                 return;
             }
+
+            // 【新增】專為 quiz2 答錯後 NEXT 按下時觸發：「直接進入下一組」
+            if (firstLearningStep === 100) {
+                nextLearningGroup();
+                return;
+            }
+
         }
 
-        // ================ 進入下一組單字學習 ================
+        // =================== 進入下一組單字學習 ===================
         function nextLearningGroup() {
             const n = firstLearningWords.length;
-            firstLearningCurrentIndex += 2; // 下一組
+            firstLearningCurrentIndex += 2; // 每次兩個一組
             updateProgressBar();
             if (firstLearningCurrentIndex < n) {
-                firstLearningStep = 0;
+                firstLearningStep = 0; // 歸零狀態，進入下一組的第一個單字展示
                 handleFirstLearningStep();
             } else {
                 alert("恭喜完成所有單字學習！");
+                // 您可以在此加入「結束動畫」等 UX 強化
             }
         }
 
@@ -1185,7 +1215,7 @@
         }
 
         // =================== 進入首次學習 ===================
-        function startFirstLearning(altarId) {
+        function startFirstLearning(altarId) {         
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
             document.getElementById("pnlFirstLearningWordContent").innerHTML = "";
 
@@ -1219,6 +1249,7 @@
                         return;
                     }
                     firstLearningCurrentIndex = 0;
+                    firstLearningWrongIndexes = [];//新增這個以便清空錯誤單字索引
                     firstLearningStep = 0;
                     currentProgressPercent = 0;
                     updateProgressBar();
