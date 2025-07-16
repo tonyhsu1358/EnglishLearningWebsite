@@ -21,7 +21,7 @@ public class FirstLearningService : WebService
         string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
         var results = new List<object>();
 
-        // 2. 撈出所有 priority_level = 1 的單字
+        // 2. 撈出所有 priority_level = 1 的單字，並 JOIN magic_altar、magic_forest 得到 location_text
         using (SqlConnection conn = new SqlConnection(connStr))
         {
             conn.Open();
@@ -42,10 +42,13 @@ public class FirstLearningService : WebService
                     s.related_info,
                     CASE 
                         WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 
-                    END AS is_favorite
+                    END AS is_favorite,
+                    mf.forest_name_zh + N' 祭壇' + CAST(ma.altar_id AS NVARCHAR) AS location_text
                 FROM ancient_scrolls s
                 LEFT JOIN user_favorite_words f
                     ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
+                JOIN magic_altar ma ON s.altar_id = ma.altar_id
+                JOIN magic_forest mf ON ma.forest_id = mf.forest_id
                 WHERE s.altar_id = @AltarID AND s.priority_level = 1
             ";
             SqlCommand cmd = new SqlCommand(query, conn);
@@ -70,7 +73,8 @@ public class FirstLearningService : WebService
                     synonym_words = reader["synonym_words"]?.ToString(),
                     antonym_words = reader["antonym_words"]?.ToString(),
                     related_info = reader["related_info"]?.ToString(),
-                    is_favorite = Convert.ToBoolean(reader["is_favorite"])
+                    is_favorite = Convert.ToBoolean(reader["is_favorite"]),
+                    location_text = reader["location_text"].ToString()
                 });
             }
         }

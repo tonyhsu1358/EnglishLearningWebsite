@@ -162,7 +162,7 @@
                 </div>
 
                 <!-- 導覽列與地點 -->
-                <div class="word-detail-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                <div class="word-detail-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; margin-top: 50px;">
 
                     <!-- 🔁 上下切換 + 頁碼區（橫向排列 + 分開一點） -->
                     <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
@@ -188,6 +188,8 @@
         <!-- ✅ 首次學習單字詳細資訊儀表板（複用 scroll-overlay 與 word-detail-panel 風格） -->
         <div id="pnlFirstLearningDetail" class="scroll-overlay" style="display: none;">
             <div class="word-detail-panel">
+                                <!-- ✅ 純文字地點資訊區塊 -->
+                <div id="firstLearningLocation" class="first-learning-location"></div>
 
                 <!-- 首次學習 NEW ICON（左上角絕對定位） -->
                 <img class="first-learn-new-icon" src="images/new-button.svg" alt="NEW" />
@@ -1244,7 +1246,7 @@
         });
 
         // =================== 進入首次學習 ===================
-        function startFirstLearning(altarId) {         
+        function startFirstLearning(altarId) {
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
             document.getElementById("pnlFirstLearningWordContent").innerHTML = "";
 
@@ -1491,7 +1493,17 @@
                     speechSynthesis.speak(utter);
                     utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
                 }, 100);
+
+                console.log(w);
+                // ====== 地點資訊純文字顯示 ======
+                const locationDiv = document.getElementById("firstLearningLocation");
+                if (locationDiv) {
+                    // location_text 例：晨曦林地 祭壇3
+                    locationDiv.textContent = w.location_text ? w.location_text : "";
+                }
+
             }, isFirst);
+
         }
 
     </script>

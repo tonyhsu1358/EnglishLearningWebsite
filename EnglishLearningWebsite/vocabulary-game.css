@@ -450,6 +450,7 @@ body {
     box-shadow: 0 0 15px rgba(0,0,0,0.3); /* 外陰影 */
     padding: 20px 30px; /* 內距 */
     width: 600px; /* 固定寬度 */
+    height: 633.2px;
     max-height: 90vh; /* 最多高度 */
     overflow-y: auto; /* 垂直捲動 */
     position: relative; /* 內部定位基準 */
@@ -532,7 +533,7 @@ body {
 .scroll-words-container {
     display: flex; /* 彈性排版 */
     flex-direction: column; /* 垂直排列 */
-    height: 420px;
+    height: 390px;
     gap: 15px; /* 卡片間距 */
     margin-top: 20px; /* 距離標題列的間距 */
 }
@@ -1026,11 +1027,12 @@ img[src*='arrow-down'] {
 }
 
 /* ========== 首次學習面板：展開箭頭 icon ========== */
-/* 預設箭頭寬度（與詳細面板同步） */
+/* 預設箭頭尺寸與旋轉動畫 */
 #pnlFirstLearningDetail .expand-toggle {
     width: 24px;
     height: 24px;
     transition: transform 0.3s ease-in-out;
+    cursor: pointer; /* 加入手指游標，提升互動性 */
 }
 
 /* 預設朝右 */
@@ -1043,13 +1045,15 @@ img[src*='arrow-down'] {
         transform: rotate(90deg);
     }
 
-    /* 懸停時放大動畫 */
+    /* 懸停時放大動畫並維持手指游標 */
     #pnlFirstLearningDetail .expand-toggle:hover {
         transform: scale(1.1) rotate(0deg);
+        cursor: pointer;
     }
 
     #pnlFirstLearningDetail .expand-toggle.expanded:hover {
         transform: scale(1.1) rotate(90deg);
+        cursor: pointer;
     }
 
 /*========首次學習專屬進度條=========*/
@@ -1094,6 +1098,7 @@ img[src*='arrow-down'] {
 #pnlFirstLearningWordContent {
     overflow-x: hidden !important;
 }
+
 .slide-in-right {
     animation: slideInRight 0.5s forwards cubic-bezier(0.6,0,0.2,1);
 }
@@ -1165,15 +1170,25 @@ img[src*='arrow-down'] {
         transform: scale(1.1); /* 點擊時放大 1.1 倍 */
     }
 
+.first-learning-location {
+    text-align: center;
+    /*margin: 14px 0 0 0;*/
+    font-size: 16px;
+    color: #4c5365;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    user-select: none;
+}
+
 /* ========== 首次學習四選一測驗專用樣式 ========== */
 .quiz-panel {
     background: #f8f6ef;
     border: 2.5px solid #b5b5b5;
     border-radius: 14px;
-    box-shadow: 0 2px 18px #dbceb34d;
-    width: 420px;
-    margin: 32px auto 0 auto;
-    padding: 35px 30px 38px 30px;
+    box-shadow: 0 2px 14px #dbceb34d;
+    width: 390px; /* 原420px → 390px 更緊湊 */
+    margin: 0 auto 18px auto; /* 底部加大留白 */
+    padding: 25px 18px 24px 18px; /* 上下左右 padding 均縮減 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1181,10 +1196,10 @@ img[src*='arrow-down'] {
 }
 
 .quiz-word {
-    font-size: 25px;
+    font-size: 25px; /* 字號略小，空間更美觀 */
     font-weight: bold;
     color: #6b4226;
-    margin-bottom: 25px;
+    margin-bottom: 20px; /* 下方間距略減 */
     letter-spacing: 2px;
 }
 
@@ -1192,12 +1207,12 @@ img[src*='arrow-down'] {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 17px;
+    gap: 14px; /* 選項間距原本17px→14px */
 }
 
 .quiz-option {
-    padding: 13px 0;
-    font-size: 19px;
+    padding: 10px 0; /* 上下 padding 原本13px→10px */
+    font-size: 20px; /* 字號略減 */
     background: #f7e9ce;
     border: 2px solid #d4bb97;
     border-radius: 8px;
