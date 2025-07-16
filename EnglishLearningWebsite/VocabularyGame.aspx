@@ -1164,10 +1164,12 @@
             const container = document.getElementById("pnlFirstLearningWordContent");
             container.innerHTML = ""; // 清空內容
 
-            // 產生三個不重複且不與正確答案重複的選項
-            const correct = wordObj.meaning;
+            // 正確答案：只取第一組詞性的 meaning
+            const correct = wordObj.positions[0]?.meaning || "（無）";
+
+            // 產生選項池，只挑其他單字的主詞義，且不重複
             let pool = firstLearningWords
-                .map(w => w.meaning)
+                .map(w => w.positions[0]?.meaning)
                 .filter(m => m && m !== correct);
 
             let distractors = [];
@@ -1176,7 +1178,6 @@
                 distractors.push(pool[idx]);
                 pool.splice(idx, 1);
             }
-            // 補足三個選項
             while (distractors.length < 3) {
                 distractors.push("（無）");
             }
@@ -1184,9 +1185,12 @@
             // 洗牌
             const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
 
-            // HTML 結構
+            // HTML 結構：quiz-word-row 負責橫向排列
             let html = `<div class="quiz-panel">
-        <div class="quiz-word">${wordObj.word}</div>
+        <div class="quiz-word-row">
+            <span class="quiz-word">${wordObj.word}</span>
+            <img id="quizWordAudioIcon" class="word-audio-icon" src="images/volumewithnocolor.svg" title="播放單字">
+        </div>
         <div class="quiz-options">`;
             options.forEach(opt => {
                 html += `<button type="button" class="quiz-option">${opt}</button>`;
@@ -1194,10 +1198,30 @@
             html += `</div></div>`;
             container.innerHTML = html;
 
+            // 取得語音 ICON 實體
+            const icon = document.getElementById("quizWordAudioIcon");
+
+            // 封裝撥放語音邏輯（可自動或手動呼叫）
+            function playWordAudio() {
+                speechSynthesis.cancel(); // 中斷先前語音
+                icon.src = "images/volumewithlightcolor.svg";
+                const utter = new SpeechSynthesisUtterance(wordObj.word);
+                utter.lang = "en-US";
+                utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                speechSynthesis.speak(utter);
+                utter.onend = () => icon.src = "images/volumewithnocolor.svg";
+            }
+
+            // 綁定 ICON 點擊事件（隨時可反覆播放）
+            icon.onclick = playWordAudio;
+
+            // ✨ 頁面載入時自動撥放一次
+            setTimeout(playWordAudio, 100);
+
             // 隱藏 NEXT 按鈕
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // 綁定選項點擊
+            // 選項點擊事件
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
                 btn.onclick = function () {
@@ -1339,171 +1363,232 @@
             });
         }
 
-        // =================== 單字內容渲染（核心函式） ===================
+        // =================== 單字內容渲染（多詞性完整支援，邊距優化） ===================
+        // ========================
+        // 首次學習面板：單字內容渲染（多詞性完整支援、所有互動與圖示行為優化）
+        // ========================
         function showFirstLearningPanel(index, isFirst = false) {
             const container = document.getElementById("pnlFirstLearningWordContent");
             slideCardSwitch(container, () => {
-                const words = firstLearningWords;
-                const w = words[index];
-                // 無需再設 firstLearningCurrentIndex，流程已於 handleFirstLearningStep 控管
+                const w = firstLearningWords[index];
+                container.innerHTML = ""; // 先清空
 
-                container.innerHTML = ""; // 保險
-
-                // 主卡片
+                // === 主卡片外層 ===
                 const card = document.createElement("div");
                 card.className = "scroll-word-card";
 
-                // 左側內容
-                const left = document.createElement("div");
-                left.className = "word-left";
-                left.innerHTML = `
-<div class="word-text-wrapper">
-    <span class="word-text">${w.word}</span>
-</div>
-<span class="info"><strong>${w.pronunciation || ""}</strong></span>
-<span class="info">
-    ${w.part_of_speech ? `<span class="part-of-speech-badge">${w.part_of_speech}</span> ${w.meaning}` : ""}
-</span>
-<div id="tenseWrapper">
-    ${(w.past_tense || w.past_participle) ?
-                        `<span class="info">過去式：${w.past_tense || "—"}<br/>過去分詞：${w.past_participle || "—"}</span>` : ""}
-</div>
-<div class="example-container">
-    <span>${w.example_sentence || ""}</span>
-</div>
-<span class="info text-muted">${w.example_translation || ""}</span>
-`;
-                card.appendChild(left);
-                container.appendChild(card);
+                // === 單字標題區 ===
+                const wordTitleDiv = document.createElement("div");
+                wordTitleDiv.className = "word-text-wrapper";
+                wordTitleDiv.innerHTML = `<span class="word-text">${w.word}</span>`;
+                card.appendChild(wordTitleDiv);
 
-                // 右上角語音 ICON
-                const iconAudio = document.createElement("img");
-                iconAudio.className = "word-audio-icon";
-                iconAudio.src = "images/volumewithnocolor.svg";
-                iconAudio.title = "播放單字";
-                card.appendChild(iconAudio);
+                // === 音標區（僅顯示第一組） ===
+                if (w.positions[0]?.pronunciation) {
+                    const pronDiv = document.createElement("div");
+                    pronDiv.className = "info pronunciation";
+                    pronDiv.innerHTML = `<strong>${w.positions[0].pronunciation}</strong>`;
+                    card.appendChild(pronDiv);
+                }
 
-                // 例句語音 ICON
-                const exampleContainer = left.querySelector(".example-container");
-                const sentenceAudio = document.createElement("img");
-                sentenceAudio.className = "sentence-audio-icon";
-                sentenceAudio.src = "images/volumewithnocolor.svg";
-                sentenceAudio.title = "播放例句";
-                exampleContainer.appendChild(sentenceAudio);
+                // === 詞性群組（多詞性支援） ===
+                const posBlock = document.createElement("div");
+                posBlock.className = "pos-blocks";
+                w.positions.forEach(pos => {
+                    const row = document.createElement("div");
+                    row.className = "info pos-row";
+                    row.innerHTML = `
+                <span class="part-of-speech-badge">${pos.part_of_speech || ""}</span>
+                <span class="pos-meaning">${pos.meaning || ""}</span>
+            `;
+                    posBlock.appendChild(row);
+                });
+                card.appendChild(posBlock);
 
-                // ===== 展開（同/反/衍） =====
-                const tenseWrapper = left.querySelector("#tenseWrapper");
+                // === 過去式與過去分詞（僅顯示一組） ===
+                let pastEntry = w.positions.find(p => p.part_of_speech && p.part_of_speech.startsWith('v')) ||
+                    w.positions.find(p => p.past_tense || p.past_participle);
+                if (pastEntry && (pastEntry.past_tense || pastEntry.past_participle)) {
+                    const tenseDiv = document.createElement("div");
+                    tenseDiv.className = "info tense-block";
+                    tenseDiv.innerHTML = `過去式：${pastEntry.past_tense || "—"}<br/>過去分詞：${pastEntry.past_participle || "—"}`;
+                    card.appendChild(tenseDiv);
+                }
+
+                // === 展開（同/反/衍）區塊 ===
                 const expandWrapper = document.createElement("div");
-                expandWrapper.style.marginTop = "6px";
+                expandWrapper.className = "expand-wrapper";
+
                 const toggleIcon = document.createElement("img");
                 toggleIcon.src = "images/more-svgrepo-com.svg";
                 toggleIcon.className = "expand-toggle";
-                toggleIcon.width = 24;
-                toggleIcon.height = 24;
+                toggleIcon.style.marginBottom = "8px";
 
-                // 1. 先建立 wordInfoDiv（不可省略！）
-                const wordInfoDiv = document.createElement("div");
-                wordInfoDiv.style.marginTop = "8px";
+                let wordInfoDiv = document.createElement("div");
+                wordInfoDiv.className = "expand-info";
                 wordInfoDiv.style.display = firstLearningIsExpandedGlobally ? "block" : "none";
-                if (firstLearningIsExpandedGlobally) {
-                    toggleIcon.classList.add("expanded");
-                } else {
-                    toggleIcon.classList.remove("expanded");
-                }
+                if (firstLearningIsExpandedGlobally) toggleIcon.classList.add("expanded");
 
-                // 2. 補上三個 row
+                // 展開內容（同義、反義、衍生，僅用第一組詞性）
                 const createRow = (labelText, content) => {
                     const row = document.createElement("div");
+                    row.className = "expand-row";
                     const badge = document.createElement("span");
                     badge.className = "part-of-speech-badge";
                     badge.textContent = labelText;
                     const contentSpan = document.createElement("span");
+                    contentSpan.className = "expand-content";
                     contentSpan.textContent = content || "—";
-                    contentSpan.style.marginLeft = "6px";
                     row.appendChild(badge);
                     row.appendChild(contentSpan);
                     return row;
                 };
-                wordInfoDiv.appendChild(createRow("同", w.synonym_words));
-                wordInfoDiv.appendChild(createRow("反", w.antonym_words));
-                wordInfoDiv.appendChild(createRow("衍", w.related_info));
+                let pos0 = w.positions[0];
+                wordInfoDiv.appendChild(createRow("同", pos0.synonym_words));
+                wordInfoDiv.appendChild(createRow("反", pos0.antonym_words));
+                wordInfoDiv.appendChild(createRow("衍", pos0.related_info));
 
-                // 3. 切換展開狀態
+                // 展開按鈕互動
                 toggleIcon.onclick = () => {
                     firstLearningIsExpandedGlobally = !firstLearningIsExpandedGlobally;
                     wordInfoDiv.style.display = firstLearningIsExpandedGlobally ? "block" : "none";
                     toggleIcon.classList.toggle("expanded", firstLearningIsExpandedGlobally);
                 };
-
                 expandWrapper.appendChild(toggleIcon);
                 expandWrapper.appendChild(wordInfoDiv);
-                tenseWrapper.appendChild(expandWrapper);
+                card.appendChild(expandWrapper);
 
-                // ===== 收藏愛心邏輯 =====
+                // === 例句區塊（橫向左右，支援語音ICON，只能高亮一個） ===
+                if (pos0.example_sentence) {
+                    const exampleDiv = document.createElement("div");
+                    exampleDiv.className = "example-container";
+
+                    // 句子本體
+                    const exampleSpan = document.createElement('span');
+                    exampleSpan.className = "example-text";
+                    exampleSpan.textContent = pos0.example_sentence;
+                    exampleDiv.appendChild(exampleSpan);
+
+                    // 右側語音ICON
+                    const sentenceAudio = document.createElement("img");
+                    sentenceAudio.className = "sentence-audio-icon";
+                    sentenceAudio.src = "images/volumewithnocolor.svg";
+                    sentenceAudio.title = "播放例句";
+                    exampleDiv.appendChild(sentenceAudio);
+
+                    card.appendChild(exampleDiv);
+
+                    // === 單字語音ICON（右上角，絕對定位於卡片內） ===
+                    const iconAudio = document.createElement("img");
+                    iconAudio.className = "word-audio-icon";
+                    iconAudio.src = "images/volumewithnocolor.svg";
+                    iconAudio.title = "播放單字";
+                    card.appendChild(iconAudio);
+
+                    // 【✨ 修正亮燈殘留 BUG：只能亮一個】--------------------
+                    function resetAllAudioIcons() {
+                        // 限制於本卡片作用範圍，不影響其它卡
+                        card.querySelectorAll('.sentence-audio-icon, .word-audio-icon').forEach(img =>
+                            img.src = "images/volumewithnocolor.svg"
+                        );
+                    }
+
+                    // 例句語音
+                    sentenceAudio.onclick = () => {
+                        speechSynthesis.cancel();
+                        resetAllAudioIcons();
+                        sentenceAudio.src = "images/volumewithlightcolor.svg";
+                        const utter = new SpeechSynthesisUtterance(pos0.example_sentence);
+                        utter.lang = "en-US";
+                        utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                        speechSynthesis.speak(utter);
+                        utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
+                    };
+
+                    // 單字語音
+                    iconAudio.onclick = () => {
+                        speechSynthesis.cancel();
+                        resetAllAudioIcons();
+                        iconAudio.src = "images/volumewithlightcolor.svg";
+                        const utter = new SpeechSynthesisUtterance(w.word);
+                        utter.lang = "en-US";
+                        utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                        speechSynthesis.speak(utter);
+                        utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                    };
+
+                    // ====== 自動播放單字語音也先歸位 ======
+                    setTimeout(() => {
+                        resetAllAudioIcons();
+                        iconAudio.src = "images/volumewithlightcolor.svg";
+                        const utter = new SpeechSynthesisUtterance(w.word);
+                        utter.lang = "en-US";
+                        utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                        speechSynthesis.speak(utter);
+                        utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                    }, 100);
+
+                } else {
+                    // 若無例句則仍需插入單字語音 ICON
+                    const iconAudio = document.createElement("img");
+                    iconAudio.className = "word-audio-icon";
+                    iconAudio.src = "images/volumewithnocolor.svg";
+                    iconAudio.title = "播放單字";
+                    card.appendChild(iconAudio);
+
+                    function resetAllAudioIcons() {
+                        card.querySelectorAll('.word-audio-icon').forEach(img =>
+                            img.src = "images/volumewithnocolor.svg"
+                        );
+                    }
+                    iconAudio.onclick = () => {
+                        speechSynthesis.cancel();
+                        resetAllAudioIcons();
+                        iconAudio.src = "images/volumewithlightcolor.svg";
+                        const utter = new SpeechSynthesisUtterance(w.word);
+                        utter.lang = "en-US";
+                        utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                        speechSynthesis.speak(utter);
+                        utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                    };
+                    setTimeout(() => {
+                        resetAllAudioIcons();
+                        iconAudio.src = "images/volumewithlightcolor.svg";
+                        const utter = new SpeechSynthesisUtterance(w.word);
+                        utter.lang = "en-US";
+                        utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                        speechSynthesis.speak(utter);
+                        utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
+                    }, 100);
+                }
+
+                // === 中文翻譯（下方，若有） ===
+                if (pos0.example_translation) {
+                    const transDiv = document.createElement("span");
+                    transDiv.className = "info text-muted translation-text";
+                    transDiv.textContent = pos0.example_translation;
+                    card.appendChild(transDiv);
+                }
+
+                // === 收藏愛心 ICON（由外部獨立存在，這裡只處理邏輯） ===
                 const favIcon = document.getElementById("firstLearnFavIcon");
-                favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                favIcon.src = w.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                 favIcon.onclick = function () {
-                    const newFav = !w.is_favorite;
-                    w.is_favorite = newFav;
+                    const newFav = !w.positions[0]?.is_favorite;
+                    w.positions.forEach(p => p.is_favorite = newFav);
                     favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                    toggleFavorite(w.scroll_id, newFav);
+                    toggleFavorite(w.positions[0]?.scroll_id, newFav);
                     if (newFav) showFlyingHeart(favIcon);
                 };
 
-                // ===== 語音播放邏輯 =====
-                iconAudio.onclick = () => {
-                    speechSynthesis.cancel();
-                    iconAudio.src = "images/volumewithlightcolor.svg";
-                    sentenceAudio.src = "images/volumewithnocolor.svg";
-                    const utter = new SpeechSynthesisUtterance(w.word);
-                    utter.lang = "en-US";
-                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                    speechSynthesis.speak(utter);
-                    utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-                };
-                sentenceAudio.onclick = () => {
-                    speechSynthesis.cancel();
-                    sentenceAudio.src = "images/volumewithlightcolor.svg";
-                    iconAudio.src = "images/volumewithnocolor.svg";
-                    const utter = new SpeechSynthesisUtterance(w.example_sentence);
-                    utter.lang = "en-US";
-                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                    speechSynthesis.speak(utter);
-                    utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
-                };
-
-                // ====== 上下頁箭頭（如有請補id） ======
-                if (document.getElementById("btnPrevFirstWord")) {
-                    document.getElementById("btnPrevFirstWord").onclick = function () {
-                        if (firstLearningCurrentIndex > 0) showFirstLearningPanel(firstLearningCurrentIndex - 1);
-                    };
-                }
-                if (document.getElementById("btnNextFirstWord")) {
-                    document.getElementById("btnNextFirstWord").onclick = function () {
-                        if (firstLearningCurrentIndex < words.length - 1) showFirstLearningPanel(firstLearningCurrentIndex + 1);
-                    };
-                }
-
-                // ====== 新增：自動播放單字語音 ======
-                setTimeout(() => {
-                    iconAudio.src = "images/volumewithlightcolor.svg";
-                    const utter = new SpeechSynthesisUtterance(w.word);
-                    utter.lang = "en-US";
-                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
-                    speechSynthesis.speak(utter);
-                    utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-                }, 100);
-
-                console.log(w);
-                // ====== 地點資訊純文字顯示 ======
+                // === 地點資訊（下方） ===
                 const locationDiv = document.getElementById("firstLearningLocation");
-                if (locationDiv) {
-                    // location_text 例：晨曦林地 祭壇3
-                    locationDiv.textContent = w.location_text ? w.location_text : "";
-                }
+                if (locationDiv) locationDiv.textContent = w.location_text || "";
 
+                // === 注入卡片 ===
+                container.appendChild(card);
+                console.log(w);
             }, isFirst);
-
         }
 
     </script>
