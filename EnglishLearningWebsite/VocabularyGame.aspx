@@ -1159,38 +1159,29 @@
             }
         }
 
-        // ================ 四選一 quiz 控制（分號隨機抽一義） ================
+        // ================ 四選一 quiz 控制（分號隨機抽一義 & 答錯時全部展開完整釋義） ================
         function renderQuizForWord(wordObj, onFinish) {
             const container = document.getElementById("pnlFirstLearningWordContent");
             container.innerHTML = ""; // 清空內容
 
-            // ========== 1. 正確答案處理 ==========
-            // 取該單字 positions[0].meaning（可能為"隊伍；團隊"），分割成陣列
+            // ========== 1. 正確答案義項分割處理 ==========
             let correctMeanings = [];
             if (wordObj.positions[0]?.meaning) {
                 correctMeanings = wordObj.positions[0].meaning.split("；").map(m => m.trim()).filter(m => m);
             }
-            // 從正確單字義中隨機抽出一個
             let correct = correctMeanings.length > 0 ?
                 correctMeanings[Math.floor(Math.random() * correctMeanings.length)] : "（無）";
 
-            // ========== 2. 產生三個隨機誤選選項 ==========
-            // pool 來源僅限本次祭壇單字的主釋義全部以分號拆分後，去除正確答案及重複
+            // ========== 2. 干擾選項池準備 ==========
             let distractorPool = [];
             firstLearningWords.forEach(w => {
-                // 排除本題單字本身
                 if (w.word !== wordObj.word && w.positions[0]?.meaning) {
-                    // 拆分所有釋義，去除空字串
                     let meanings = w.positions[0].meaning.split("；").map(m => m.trim()).filter(m => m);
                     distractorPool.push(...meanings);
                 }
             });
-
-            // 移除正確答案、重複義項
             distractorPool = distractorPool.filter(m => m && m !== correct);
-            distractorPool = [...new Set(distractorPool)]; // 移除重複
-
-            // 隨機抽取三個作為誤選選項
+            distractorPool = [...new Set(distractorPool)];
             let distractors = [];
             let poolCopy = distractorPool.slice();
             while (distractors.length < 3 && poolCopy.length > 0) {
@@ -1199,15 +1190,26 @@
                 distractors.push(opt);
                 poolCopy.splice(idx, 1);
             }
-            // 補足三個
             while (distractors.length < 3) {
                 distractors.push("（無）");
             }
 
-            // ========== 3. 洗牌（正確答案+干擾項隨機排列） ==========
+            // ========== 3. 洗牌並記錄所有選項的完整釋義 ==========
             const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
 
-            // ========== 4. HTML 結構 ========== 
+            // 建立「option => 完整釋義」對應表
+            // 所有選項都要對應（不僅正確選項）
+            const fullMeaningsMap = {};
+            // 先建立全部主義項的對應
+            firstLearningWords.forEach(w => {
+                if (w.positions[0]?.meaning) {
+                    w.positions[0].meaning.split("；").map(m => m.trim()).forEach(m => {
+                        if (m) fullMeaningsMap[m] = w.positions[0].meaning;
+                    });
+                }
+            });
+
+            // ========== 4. 組建 HTML ==========
             let html = `<div class="quiz-panel">
         <div class="quiz-word-row">
             <span class="quiz-word">${wordObj.word}</span>
@@ -1220,10 +1222,10 @@
             html += `</div></div>`;
             container.innerHTML = html;
 
-            // ========== 5. 語音播放邏輯 ==========
+            // ========== 5. 播放語音邏輯 ==========
             const icon = document.getElementById("quizWordAudioIcon");
             function playWordAudio() {
-                speechSynthesis.cancel(); // 終止舊語音
+                speechSynthesis.cancel();
                 icon.src = "images/volumewithlightcolor.svg";
                 const utter = new SpeechSynthesisUtterance(wordObj.word);
                 utter.lang = "en-US";
@@ -1232,26 +1234,38 @@
                 utter.onend = () => icon.src = "images/volumewithnocolor.svg";
             }
             icon.onclick = playWordAudio;
-            setTimeout(playWordAudio, 100); // 載入自動播一次
+            setTimeout(playWordAudio, 100);
 
-            // ========== 6. 隱藏 NEXT 按鈕 ==========
+            // ========== 6. NEXT 按鈕隱藏 ==========
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // ========== 7. 綁定選項點擊、標色 ==========
+            // ========== 7. 選項點擊處理 ==========
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
+                // 記錄原始短義（之後還原、比對用途）
+                btn._originText = btn.innerText.trim();
+            });
+
+            btns.forEach(btn => {
                 btn.onclick = function () {
-                    btns.forEach(b => b.disabled = true); // 禁止二次作答
+                    btns.forEach(b => b.disabled = true); // 禁用全部選項
                     let isCorrect = false;
-                    if (btn.innerText === correct) {
+                    if (btn.innerText.trim() === correct) {
                         btn.classList.add('correct');
                         isCorrect = true;
                     } else {
                         btn.classList.add('wrong');
-                        // 答錯時，正確選項一起標綠
+                        // 正確答案標綠
                         btns.forEach(b => {
-                            if (b.innerText === correct) {
+                            if (b.innerText.trim() === correct) {
                                 b.classList.add('correct');
+                            }
+                        });
+                        // ======= ✨【關鍵】全部選項展開完整義項 ✨=======
+                        btns.forEach(b => {
+                            let original = b._originText;
+                            if (fullMeaningsMap[original]) {
+                                b.innerText = fullMeaningsMap[original];
                             }
                         });
                     }
@@ -1314,12 +1328,15 @@
                     // ======== ✅ 新增 DEBUG 區塊 ========
                     if (firstLearningWords.length > 0) {
                         const debugList = firstLearningWords
-                            .map((w, idx) => `${idx + 1}. ${w.word}（${w.part_of_speech || "無詞性"}：${w.meaning || "無釋義"}）`)
+                            .map((w, idx) => {
+                                const pos = w.positions && w.positions[0];
+                                return `${idx + 1}. ${w.word}（${pos?.part_of_speech || "無詞性"}：${pos?.meaning || "無釋義"}）`;
+                            })
                             .join('\n');
                         console.log(`【本次攻略亂數單字（共 ${firstLearningWords.length} 筆）】\n` + debugList);
                     }
-                    // ======== ✅ DEBUG 區塊結束 ========
-
+                   
+                    //若無單字則首次測驗將無法進行
                     if (firstLearningWords.length === 0) {
                         document.getElementById("pnlFirstLearningDetail").style.display = "none";
                         alert("此祭壇沒有單字可學習！");
