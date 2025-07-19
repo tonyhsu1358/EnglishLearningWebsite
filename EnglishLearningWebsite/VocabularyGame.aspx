@@ -1221,7 +1221,7 @@
             // 隱藏 NEXT 按鈕
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // 選項點擊事件
+            // 選項點擊事件，由程式控制答對答錯選項顏色之變化
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
                 btn.onclick = function () {
@@ -1232,6 +1232,12 @@
                         isCorrect = true;
                     } else {
                         btn.classList.add('wrong');
+                        // 新增：讓正確答案同時標記綠色
+                        btns.forEach(b => {
+                            if (b.innerText === correct) {
+                                b.classList.add('correct');
+                            }
+                        });
                     }
                     setTimeout(() => {
                         if (typeof onFinish === "function") onFinish(isCorrect);
