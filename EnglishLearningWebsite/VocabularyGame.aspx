@@ -1159,33 +1159,55 @@
             }
         }
 
-        // ================ 四選一 quiz 控制 ================
+        // ================ 四選一 quiz 控制（分號隨機抽一義） ================
         function renderQuizForWord(wordObj, onFinish) {
             const container = document.getElementById("pnlFirstLearningWordContent");
             container.innerHTML = ""; // 清空內容
 
-            // 正確答案：只取第一組詞性的 meaning
-            const correct = wordObj.positions[0]?.meaning || "（無）";
-
-            // 產生選項池，只挑其他單字的主詞義，且不重複
-            let pool = firstLearningWords
-                .map(w => w.positions[0]?.meaning)
-                .filter(m => m && m !== correct);
-
-            let distractors = [];
-            while (distractors.length < 3 && pool.length > 0) {
-                const idx = Math.floor(Math.random() * pool.length);
-                distractors.push(pool[idx]);
-                pool.splice(idx, 1);
+            // ========== 1. 正確答案處理 ==========
+            // 取該單字 positions[0].meaning（可能為"隊伍；團隊"），分割成陣列
+            let correctMeanings = [];
+            if (wordObj.positions[0]?.meaning) {
+                correctMeanings = wordObj.positions[0].meaning.split("；").map(m => m.trim()).filter(m => m);
             }
+            // 從正確單字義中隨機抽出一個
+            let correct = correctMeanings.length > 0 ?
+                correctMeanings[Math.floor(Math.random() * correctMeanings.length)] : "（無）";
+
+            // ========== 2. 產生三個隨機誤選選項 ==========
+            // pool 來源僅限本次祭壇單字的主釋義全部以分號拆分後，去除正確答案及重複
+            let distractorPool = [];
+            firstLearningWords.forEach(w => {
+                // 排除本題單字本身
+                if (w.word !== wordObj.word && w.positions[0]?.meaning) {
+                    // 拆分所有釋義，去除空字串
+                    let meanings = w.positions[0].meaning.split("；").map(m => m.trim()).filter(m => m);
+                    distractorPool.push(...meanings);
+                }
+            });
+
+            // 移除正確答案、重複義項
+            distractorPool = distractorPool.filter(m => m && m !== correct);
+            distractorPool = [...new Set(distractorPool)]; // 移除重複
+
+            // 隨機抽取三個作為誤選選項
+            let distractors = [];
+            let poolCopy = distractorPool.slice();
+            while (distractors.length < 3 && poolCopy.length > 0) {
+                let idx = Math.floor(Math.random() * poolCopy.length);
+                let opt = poolCopy[idx];
+                distractors.push(opt);
+                poolCopy.splice(idx, 1);
+            }
+            // 補足三個
             while (distractors.length < 3) {
                 distractors.push("（無）");
             }
 
-            // 洗牌
+            // ========== 3. 洗牌（正確答案+干擾項隨機排列） ==========
             const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
 
-            // HTML 結構：quiz-word-row 負責橫向排列
+            // ========== 4. HTML 結構 ========== 
             let html = `<div class="quiz-panel">
         <div class="quiz-word-row">
             <span class="quiz-word">${wordObj.word}</span>
@@ -1198,12 +1220,10 @@
             html += `</div></div>`;
             container.innerHTML = html;
 
-            // 取得語音 ICON 實體
+            // ========== 5. 語音播放邏輯 ==========
             const icon = document.getElementById("quizWordAudioIcon");
-
-            // 封裝撥放語音邏輯（可自動或手動呼叫）
             function playWordAudio() {
-                speechSynthesis.cancel(); // 中斷先前語音
+                speechSynthesis.cancel(); // 終止舊語音
                 icon.src = "images/volumewithlightcolor.svg";
                 const utter = new SpeechSynthesisUtterance(wordObj.word);
                 utter.lang = "en-US";
@@ -1211,28 +1231,24 @@
                 speechSynthesis.speak(utter);
                 utter.onend = () => icon.src = "images/volumewithnocolor.svg";
             }
-
-            // 綁定 ICON 點擊事件（隨時可反覆播放）
             icon.onclick = playWordAudio;
+            setTimeout(playWordAudio, 100); // 載入自動播一次
 
-            // ✨ 頁面載入時自動撥放一次
-            setTimeout(playWordAudio, 100);
-
-            // 隱藏 NEXT 按鈕
+            // ========== 6. 隱藏 NEXT 按鈕 ==========
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // 選項點擊事件，由程式控制答對答錯選項顏色之變化
+            // ========== 7. 綁定選項點擊、標色 ==========
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
                 btn.onclick = function () {
-                    btns.forEach(b => b.disabled = true);
+                    btns.forEach(b => b.disabled = true); // 禁止二次作答
                     let isCorrect = false;
                     if (btn.innerText === correct) {
                         btn.classList.add('correct');
                         isCorrect = true;
                     } else {
                         btn.classList.add('wrong');
-                        // 新增：讓正確答案同時標記綠色
+                        // 答錯時，正確選項一起標綠
                         btns.forEach(b => {
                             if (b.innerText === correct) {
                                 b.classList.add('correct');
