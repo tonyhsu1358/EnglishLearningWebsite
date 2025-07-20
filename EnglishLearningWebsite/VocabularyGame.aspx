@@ -1049,6 +1049,9 @@
         let firstLearningStep = 0;               // 控制流程的步驟：0=展示1, 1=展示2, 2=quiz1, 3=quiz2
         let currentProgressPercent = 0;          // 進度條目前百分比
         let firstLearningPaused = false;         // 若答錯 quiz，暫停流程，等用戶點 NEXT
+        let firstLearningReviewMode = false;        // 是否進入錯題複習模式
+        let firstLearningReviewQueue = [];          // 錯題待複習的索引佇列
+        let firstLearningReviewCurrent = null;      // 目前複習中單字索引
         let firstLearningIsExpandedGlobally = false; // 控制首次學習卡片的展開狀態
 
         // =================== 主控流程函式（狀態機） ===================
@@ -1149,13 +1152,31 @@
         // =================== 進入下一組單字學習 ===================
         function nextLearningGroup() {
             const n = firstLearningWords.length;
-            firstLearningCurrentIndex += 2; // 每次兩個一組
-            if (firstLearningCurrentIndex < n) {
-                firstLearningStep = 0; // 歸零狀態，進入下一組的第一個單字展示
-                handleFirstLearningStep();
+
+            if (!firstLearningReviewMode) {
+                // ========== 首輪學習 ========== //
+                firstLearningCurrentIndex += 2;
+                if (firstLearningCurrentIndex < n) {
+                    firstLearningStep = 0;
+                    handleFirstLearningStep();
+                } else {
+                    // === 進入錯題複習階段 ===
+                    if (firstLearningWrongIndexes.length > 0) {
+                        firstLearningReviewMode = true;
+                        firstLearningReviewQueue = [...firstLearningWrongIndexes]; // 複製
+                        firstLearningReviewCurrent = null;
+                        startNextReviewQuiz();
+                    } else {
+                        showFirstLearningSummary();
+                    }
+                }
             } else {
-                alert("恭喜完成所有單字學習！");
-                // 您可以在此加入「結束動畫」等 UX 強化
+                // ========== 錯題複習模式 ========== //
+                if (firstLearningReviewQueue.length > 0) {
+                    startNextReviewQuiz();
+                } else {
+                    showFirstLearningSummary();
+                }
             }
         }
 
@@ -1284,6 +1305,36 @@
                 };
             });
 
+        }
+
+        //====================新增 startNextReviewQuiz() 函式====================
+        function startNextReviewQuiz() {
+            if (firstLearningReviewQueue.length === 0) {
+                showFirstLearningSummary();
+                return;
+            }
+            // 取出下一個待複習索引
+            firstLearningReviewCurrent = firstLearningReviewQueue.shift();
+
+            // 渲染該單字 quiz，答對+5%，答錯則丟回隊尾
+            renderQuizForWord(firstLearningWords[firstLearningReviewCurrent], function (isCorrect) {
+                if (isCorrect) {
+                    updateProgressBar();
+                    nextLearningGroup();
+                } else {
+                    // ✨【核心】答錯的索引排回隊尾
+                    firstLearningReviewQueue.push(firstLearningReviewCurrent);
+                    nextLearningGroup();
+                }
+            });
+
+            // 錯題複習模式下隱藏 NEXT 按鈕
+            document.getElementById("firstLearnNextBtn").style.display = "none";
+        }
+
+        function showFirstLearningSummary() {
+            alert("恭喜完成所有單字學習與錯題複習！");
+            // 這裡可換成您自己的結算UI
         }
 
         // =================== 進度條更新（固定 +5%） ===================
