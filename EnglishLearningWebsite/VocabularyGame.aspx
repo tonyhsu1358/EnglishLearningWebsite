@@ -1060,7 +1060,11 @@
             if (firstLearningPaused) {
                 firstLearningPaused = false;
                 document.getElementById("firstLearnNextBtn").style.display = "none";
-                // 直接繼續走流程（不 return）
+                // ★ 判斷是否在複習模式下
+                if (firstLearningReviewMode) {
+                    nextLearningGroup();
+                    return;
+                }
             }
 
             const n = firstLearningWords.length;
@@ -1316,26 +1320,33 @@
             // 取出下一個待複習索引
             firstLearningReviewCurrent = firstLearningReviewQueue.shift();
 
-            // 渲染該單字 quiz，答對+5%，答錯則丟回隊尾
+            // 渲染該單字 quiz，答對+5%，答錯則丟回隊尾，但不馬上進下一題，必須點 NEXT
             renderQuizForWord(firstLearningWords[firstLearningReviewCurrent], function (isCorrect) {
                 if (isCorrect) {
                     updateProgressBar();
                     nextLearningGroup();
                 } else {
-                    // ✨【核心】答錯的索引排回隊尾
+                    // 【核心】答錯時，先暫停流程，待用戶點 NEXT 才繼續
+                    // 答錯的索引排回隊尾
                     firstLearningReviewQueue.push(firstLearningReviewCurrent);
-                    nextLearningGroup();
+                    firstLearningPaused = true;
+                    // 顯示 NEXT 按鈕
+                    document.getElementById("firstLearnNextBtn").style.display = "";
                 }
             });
 
-            // 錯題複習模式下隱藏 NEXT 按鈕
+            // 進入 quiz 時預設隱藏 NEXT 按鈕
             document.getElementById("firstLearnNextBtn").style.display = "none";
         }
 
+        //====================結算畫面方法全部寫於此====================
         function showFirstLearningSummary() {
-            alert("恭喜完成所有單字學習與錯題複習！");
-            // 這裡可換成您自己的結算UI
+            setTimeout(function () {
+                alert("恭喜完成所有單字學習與錯題複習！");
+                // showSummaryPanel();
+            }, 900); // 時間請與 CSS transition 秒數一致
         }
+
 
         // =================== 進度條更新（固定 +5%） ===================
         function updateProgressBar() {
@@ -1403,10 +1414,14 @@
                         alert("此祭壇沒有單字可學習！");
                         return;
                     }
+                    // ====== ✅ 每次開始前「完整重置所有狀態變數」 ======
                     firstLearningCurrentIndex = 0;
-                    firstLearningWrongIndexes = [];//新增這個以便清空錯誤單字索引
+                    firstLearningWrongIndexes = [];
                     firstLearningStep = 0;
                     currentProgressPercent = 0;
+                    firstLearningReviewMode = false;
+                    firstLearningReviewQueue = [];
+                    firstLearningReviewCurrent = null;
                     handleFirstLearningStep(); // 進入流程主控
                 })
                 .catch(() => {
