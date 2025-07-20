@@ -1173,23 +1173,24 @@
                 correctMeanings[Math.floor(Math.random() * correctMeanings.length)] : "（無）";
 
             // ========== 2. 干擾選項池準備 ==========
-            let distractorPool = [];
+            let allPoolSet = new Set();
+            // 收集所有「義項」
             firstLearningWords.forEach(w => {
                 if (w.word !== wordObj.word && w.positions[0]?.meaning) {
-                    let meanings = w.positions[0].meaning.split("；").map(m => m.trim()).filter(m => m);
-                    distractorPool.push(...meanings);
+                    w.positions[0].meaning.split("；").map(m => m.trim()).forEach(m => {
+                        if (m && m !== correct) allPoolSet.add(m);
+                    });
                 }
             });
-            distractorPool = distractorPool.filter(m => m && m !== correct);
-            distractorPool = [...new Set(distractorPool)];
-            let distractors = [];
-            let poolCopy = distractorPool.slice();
-            while (distractors.length < 3 && poolCopy.length > 0) {
-                let idx = Math.floor(Math.random() * poolCopy.length);
-                let opt = poolCopy[idx];
-                distractors.push(opt);
-                poolCopy.splice(idx, 1);
+            // 轉為陣列並洗牌
+            let poolArr = Array.from(allPoolSet);
+            for (let i = poolArr.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [poolArr[i], poolArr[j]] = [poolArr[j], poolArr[i]];
             }
+
+            // 嚴格選出最多3個不重複干擾選項
+            let distractors = poolArr.slice(0, 3);
             while (distractors.length < 3) {
                 distractors.push("（無）");
             }
@@ -1198,9 +1199,7 @@
             const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
 
             // 建立「option => 完整釋義」對應表
-            // 所有選項都要對應（不僅正確選項）
             const fullMeaningsMap = {};
-            // 先建立全部主義項的對應
             firstLearningWords.forEach(w => {
                 if (w.positions[0]?.meaning) {
                     w.positions[0].meaning.split("；").map(m => m.trim()).forEach(m => {
@@ -1239,10 +1238,9 @@
             // ========== 6. NEXT 按鈕隱藏 ==========
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // ========== 7. 選項點擊處理 ==========
+            // ========== 7. 選項點擊處理（含音效） ==========
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
-                // 記錄原始短義（之後還原、比對用途）
                 btn._originText = btn.innerText.trim();
             });
 
@@ -1253,6 +1251,15 @@
                     if (btn.innerText.trim() === correct) {
                         btn.classList.add('correct');
                         isCorrect = true;
+                        // 🌸 答對音效
+                        playSoundEffect('/sounds/Right.wav');
+
+                        // ✨【新增】僅展開正確選項完整義項
+                        btns.forEach(b => {
+                            if (b.innerText.trim() === correct && fullMeaningsMap[correct]) {
+                                b.innerText = fullMeaningsMap[correct];
+                            }
+                        });
                     } else {
                         btn.classList.add('wrong');
                         // 正確答案標綠
@@ -1261,19 +1268,22 @@
                                 b.classList.add('correct');
                             }
                         });
-                        // ======= ✨【關鍵】全部選項展開完整義項 ✨=======
+                        // ✨全部選項展開完整義項✨
                         btns.forEach(b => {
                             let original = b._originText;
                             if (fullMeaningsMap[original]) {
                                 b.innerText = fullMeaningsMap[original];
                             }
                         });
+                        // 🌸 答錯音效
+                        playSoundEffect('/sounds/MistakeSound_2.wav');
                     }
                     setTimeout(() => {
                         if (typeof onFinish === "function") onFinish(isCorrect);
-                    }, 400);
+                    }, 600);
                 };
             });
+
         }
 
         // =================== 進度條更新（固定 +5%） ===================
