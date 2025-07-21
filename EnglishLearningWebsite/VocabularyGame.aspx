@@ -1353,6 +1353,14 @@
             // 每次呼叫進度條就 +5%，但最大不得超過100%
             currentProgressPercent = Math.min(currentProgressPercent + 5, 100);
             document.getElementById("firstLearningProgressBarFill").style.width = currentProgressPercent + "%";
+
+            // 進度條 ICON 路徑控制
+            const tickIcon = document.getElementById("firstLearningProgressTick");
+            if (currentProgressPercent >= 100) {
+                tickIcon.src = "images/tick-circle-finished.svg"; // 進度達 100% 換成完成圖示
+            } else {
+                tickIcon.src = "images/tick-circle.svg"; // 進度未滿時用預設
+            }
         }
 
         // ================ 綁定 NEXT 按鈕 ================
@@ -1422,6 +1430,10 @@
                     firstLearningReviewMode = false;
                     firstLearningReviewQueue = [];
                     firstLearningReviewCurrent = null;
+                    // === 進度條 ICON 恢復預設 ===
+                    const tickIcon = document.getElementById("firstLearningProgressTick");
+                    if (tickIcon) tickIcon.src = "images/tick-circle.svg";
+
                     handleFirstLearningStep(); // 進入流程主控
                 })
                 .catch(() => {
