@@ -1199,7 +1199,6 @@
 
             // ========== 2. 干擾選項池準備 ==========
             let allPoolSet = new Set();
-            // 收集所有「義項」
             firstLearningWords.forEach(w => {
                 if (w.word !== wordObj.word && w.positions[0]?.meaning) {
                     w.positions[0].meaning.split("；").map(m => m.trim()).forEach(m => {
@@ -1207,14 +1206,11 @@
                     });
                 }
             });
-            // 轉為陣列並洗牌
             let poolArr = Array.from(allPoolSet);
             for (let i = poolArr.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1));
                 [poolArr[i], poolArr[j]] = [poolArr[j], poolArr[i]];
             }
-
-            // 嚴格選出最多3個不重複干擾選項
             let distractors = poolArr.slice(0, 3);
             while (distractors.length < 3) {
                 distractors.push("（無）");
@@ -1222,8 +1218,6 @@
 
             // ========== 3. 洗牌並記錄所有選項的完整釋義 ==========
             const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
-
-            // 建立「option => 完整釋義」對應表
             const fullMeaningsMap = {};
             firstLearningWords.forEach(w => {
                 if (w.positions[0]?.meaning) {
@@ -1260,10 +1254,23 @@
             icon.onclick = playWordAudio;
             setTimeout(playWordAudio, 100);
 
-            // ========== 6. NEXT 按鈕隱藏 ==========
+            // 🌸 ========== 6. 收藏愛心 ICON同步刷新 ==========
+            const favIcon = document.getElementById("firstLearnFavIcon");
+            if (favIcon) {
+                favIcon.src = wordObj.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                favIcon.onclick = function () {
+                    const newFav = !wordObj.positions[0]?.is_favorite;
+                    wordObj.positions.forEach(p => p.is_favorite = newFav);
+                    favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                    toggleFavorite(wordObj.positions[0]?.scroll_id, newFav);
+                    if (newFav) showFlyingHeart(favIcon);
+                };
+            }
+
+            // ========== 7. NEXT 按鈕隱藏 ==========
             document.getElementById("firstLearnNextBtn").style.display = "none";
 
-            // ========== 7. 選項點擊處理（含音效） ==========
+            // ========== 8. 選項點擊處理（含音效） ==========
             const btns = container.querySelectorAll('.quiz-option');
             btns.forEach(btn => {
                 btn._originText = btn.innerText.trim();
@@ -1276,10 +1283,7 @@
                     if (btn.innerText.trim() === correct) {
                         btn.classList.add('correct');
                         isCorrect = true;
-                        // 🌸 答對音效
                         playSoundEffect('/sounds/Right.wav');
-
-                        // ✨【新增】僅展開正確選項完整義項
                         btns.forEach(b => {
                             if (b.innerText.trim() === correct && fullMeaningsMap[correct]) {
                                 b.innerText = fullMeaningsMap[correct];
@@ -1287,20 +1291,17 @@
                         });
                     } else {
                         btn.classList.add('wrong');
-                        // 正確答案標綠
                         btns.forEach(b => {
                             if (b.innerText.trim() === correct) {
                                 b.classList.add('correct');
                             }
                         });
-                        // ✨全部選項展開完整義項✨
                         btns.forEach(b => {
                             let original = b._originText;
                             if (fullMeaningsMap[original]) {
                                 b.innerText = fullMeaningsMap[original];
                             }
                         });
-                        // 🌸 答錯音效
                         playSoundEffect('/sounds/MistakeSound_2.wav');
                     }
                     setTimeout(() => {
@@ -1308,7 +1309,6 @@
                     }, 600);
                 };
             });
-
         }
 
         //====================新增 startNextReviewQuiz() 函式====================
@@ -1697,16 +1697,18 @@
                     card.appendChild(transDiv);
                 }
 
-                // === 收藏愛心 ICON（由外部獨立存在，這裡只處理邏輯） ===
+                // 🌸 === 收藏愛心 ICON（由外部獨立存在，這裡只處理邏輯） ===
                 const favIcon = document.getElementById("firstLearnFavIcon");
-                favIcon.src = w.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                favIcon.onclick = function () {
-                    const newFav = !w.positions[0]?.is_favorite;
-                    w.positions.forEach(p => p.is_favorite = newFav);
-                    favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                    toggleFavorite(w.positions[0]?.scroll_id, newFav);
-                    if (newFav) showFlyingHeart(favIcon);
-                };
+                if (favIcon) {
+                    favIcon.src = w.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                    favIcon.onclick = function () {
+                        const newFav = !w.positions[0]?.is_favorite;
+                        w.positions.forEach(p => p.is_favorite = newFav);
+                        favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                        toggleFavorite(w.positions[0]?.scroll_id, newFav);
+                        if (newFav) showFlyingHeart(favIcon);
+                    };
+                }
 
                 // === 地點資訊（下方） ===
                 const locationDiv = document.getElementById("firstLearningLocation");
