@@ -188,7 +188,7 @@
         <!-- ✅ 首次學習單字詳細資訊儀表板（複用 scroll-overlay 與 word-detail-panel 風格） -->
         <div id="pnlFirstLearningDetail" class="scroll-overlay" style="display: none;">
             <div class="word-detail-panel">
-                                <!-- ✅ 純文字地點資訊區塊 -->
+                <!-- ✅ 純文字地點資訊區塊 -->
                 <div id="firstLearningLocation" class="first-learning-location"></div>
 
                 <!-- 首次學習 NEW ICON（左上角絕對定位） -->
@@ -1342,11 +1342,105 @@
         //====================結算畫面方法全部寫於此====================
         function showFirstLearningSummary() {
             setTimeout(function () {
-                alert("恭喜完成所有單字學習與錯題複習！");
-                // showSummaryPanel();
-            }, 900); // 時間請與 CSS transition 秒數一致
+                showSummaryPanel();
+            }, 900);
         }
+        //==================延續上面的showSummaryPanel()方法=============
+        function showSummaryPanel() {
+            // 1. 隱藏愛心與 NEW（避免殘影和誤觸）
+            document.getElementById("firstLearnFavIcon").style.display = "none";
+            document.querySelector(".first-learn-new-icon").style.display = "none";
+            document.getElementById("firstLearnClose").style.display = "none"; // ★ 叉叉
 
+            // 2. 準備資料排序與標記
+            // 複製單字陣列並進行 A~Z 排序（依照 word 屬性）
+            let sortedWords = [...firstLearningWords].sort((a, b) =>
+                a.word.localeCompare(b.word, 'en')
+            );
+            // 建立錯誤單字 scroll_id 集合，方便判斷
+            let wrongIdSet = new Set();
+            firstLearningWrongIndexes.forEach(idx => {
+                if (firstLearningWords[idx]) {
+                    wrongIdSet.add(firstLearningWords[idx].positions[0]?.scroll_id);
+                }
+            });
+
+            // 3. 開始動態生成卡片到 pnlFirstLearningWordContent
+            const container = document.getElementById("pnlFirstLearningWordContent");
+            container.innerHTML = ""; // 清空
+
+            sortedWords.forEach(w => {
+                // 主卡片外層
+                const card = document.createElement("div");
+                card.className = "scroll-word-card";
+
+                // 若有在錯誤名單，加紅色框
+                if (wrongIdSet.has(w.positions[0]?.scroll_id)) {
+                    card.style.border = "4px solid #e74c3c"; // ★加粗紅色框框
+                }
+
+                // 左側單字 + 詞性翻譯
+                const left = document.createElement("div");
+                left.className = "word-left";
+                left.innerHTML = `
+            <span class="word">${w.word}</span>
+            <span class="info"><span class="badge badge-secondary">${w.positions[0]?.part_of_speech || ''}</span> ${w.positions[0]?.meaning || ''}</span>
+        `;
+                card.appendChild(left);
+
+                // 右上角愛心
+                const favImg = document.createElement("img");
+                favImg.className = "word-fav";
+                favImg.src = w.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                favImg.onclick = function () {
+                    // 切換最愛狀態（本輪已學習完成，只切換 UI）
+                    const newFav = !w.positions[0]?.is_favorite;
+                    w.positions.forEach(p => p.is_favorite = newFav);
+                    favImg.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                    toggleFavorite(w.positions[0]?.scroll_id, newFav);
+                    if (newFav) showFlyingHeart(favImg);
+                };
+                card.appendChild(favImg);
+
+                // 右下角圖示列（語音、詳細資訊）
+                const icons = document.createElement("div");
+                icons.className = "word-icons";
+
+                // 語音 ICON
+                const volIcon = document.createElement("img");
+                volIcon.src = "images/volumewithnocolor.svg";
+                volIcon.title = "播放單字";
+                volIcon.onclick = function () {
+                    volIcon.src = "images/volumewithlightcolor.svg";
+                    const utter = new SpeechSynthesisUtterance(w.word);
+                    utter.lang = "en-US";
+                    utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
+                    speechSynthesis.speak(utter);
+                    utter.onend = function () {
+                        volIcon.src = "images/volumewithnocolor.svg";
+                    };
+                };
+                icons.appendChild(volIcon);
+
+                // 詳細 ICON（可選：如要進一步單字詳情）
+                const infoIcon = document.createElement("img");
+                infoIcon.src = "images/list-bullet.svg";
+                infoIcon.title = "查看詳情";
+                infoIcon.onclick = function () {
+                    // 如需彈窗詳情，呼叫 showWordDetailPanel 等自訂函式
+                    // showWordDetailPanel(sortedWords, sortedWords.indexOf(w));
+                };
+                icons.appendChild(infoIcon);
+
+                card.appendChild(icons);
+
+                // 加入主容器
+                container.appendChild(card);
+            });
+
+            // 4. 隱藏進度條與 NEXT 按鈕（可用 display = "none" 或 style.visibility）
+            document.getElementById("firstLearningProgressBarContainer").style.display = "none";
+        }
 
         // =================== 進度條更新（固定 +5%） ===================
         function updateProgressBar() {
@@ -1390,6 +1484,13 @@
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
             document.getElementById("pnlFirstLearningWordContent").innerHTML = "";
 
+            // === 恢復必要元素 ===
+            document.getElementById("firstLearnFavIcon").style.display = "";
+            document.querySelector(".first-learn-new-icon").style.display = "";
+            document.getElementById("firstLearningProgressBarContainer").style.display = "";
+            document.getElementById("firstLearningLocation").style.display = "";
+            document.getElementById("firstLearnNextBtn").style.display = ""; // 讓 handleFirstLearningStep 決定要不要顯示
+
             fetch("FirstLearningService.asmx/GetFirstLearningWords", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1415,7 +1516,7 @@
                             .join('\n');
                         console.log(`【本次攻略亂數單字（共 ${firstLearningWords.length} 筆）】\n` + debugList);
                     }
-                   
+
                     //若無單字則首次測驗將無法進行
                     if (firstLearningWords.length === 0) {
                         document.getElementById("pnlFirstLearningDetail").style.display = "none";

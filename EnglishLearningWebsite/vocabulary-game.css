@@ -450,7 +450,7 @@ body {
     box-shadow: 0 0 15px rgba(0,0,0,0.3); /* 外陰影 */
     padding: 20px 30px; /* 內距 */
     width: 600px; /* 固定寬度 */
-    height: 633.2px;
+    height: 645px;
     max-height: 90vh; /* 最多高度 */
     overflow-y: auto; /* 垂直捲動 */
     position: relative; /* 內部定位基準 */
@@ -1158,6 +1158,8 @@ img[src*='arrow-down'] {
 
 /* ◆ NEXT 按鈕本體樣式 */
 #firstLearnNextBtn {
+    width: 350px;
+    height:53px;
     padding: 8px 32px;
     border-radius: 5px;
     border: 2px solid #6b4226;
