@@ -1352,12 +1352,10 @@
             document.querySelector(".first-learn-new-icon").style.display = "none";
             document.getElementById("firstLearnClose").style.display = "none"; // ★ 叉叉
 
-            // 2. 準備資料排序與標記
-            // 複製單字陣列並進行 A~Z 排序（依照 word 屬性）
+            // 2. 資料 A~Z 排序，建立錯誤單字集合
             let sortedWords = [...firstLearningWords].sort((a, b) =>
                 a.word.localeCompare(b.word, 'en')
             );
-            // 建立錯誤單字 scroll_id 集合，方便判斷
             let wrongIdSet = new Set();
             firstLearningWrongIndexes.forEach(idx => {
                 if (firstLearningWords[idx]) {
@@ -1365,35 +1363,40 @@
                 }
             });
 
-            // 3. 開始動態生成卡片到 pnlFirstLearningWordContent
+            // 3. 進場動畫：重設 class 與 opacity，準備滑入
             const container = document.getElementById("pnlFirstLearningWordContent");
-            container.innerHTML = ""; // 清空
+            if (!container) return;
+            container.classList.remove('slide-in-right', 'slide-out-left');
+            container.innerHTML = "";
+            container.style.opacity = "0";
 
+            // 4. 動態產生卡片
             sortedWords.forEach(w => {
-                // 主卡片外層
+                // --- 卡片外層 ---
                 const card = document.createElement("div");
                 card.className = "scroll-word-card";
-
-                // 若有在錯誤名單，加紅色框
+                // 錯誤紅框
                 if (wrongIdSet.has(w.positions[0]?.scroll_id)) {
-                    card.style.border = "4px solid #e74c3c"; // ★加粗紅色框框
+                    card.style.border = "4px solid #e74c3c";
                 }
 
-                // 左側單字 + 詞性翻譯
+                // --- 單字/詞性/翻譯 ---
                 const left = document.createElement("div");
                 left.className = "word-left";
                 left.innerHTML = `
             <span class="word">${w.word}</span>
-            <span class="info"><span class="badge badge-secondary">${w.positions[0]?.part_of_speech || ''}</span> ${w.positions[0]?.meaning || ''}</span>
+            <span class="info">
+                <span class="badge badge-secondary">${w.positions[0]?.part_of_speech || ''}</span>
+                ${w.positions[0]?.meaning || ''}
+            </span>
         `;
                 card.appendChild(left);
 
-                // 右上角愛心
+                // --- 右上角愛心（本輪已學習完成，只切UI，仍可點） ---
                 const favImg = document.createElement("img");
                 favImg.className = "word-fav";
                 favImg.src = w.positions[0]?.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
                 favImg.onclick = function () {
-                    // 切換最愛狀態（本輪已學習完成，只切換 UI）
                     const newFav = !w.positions[0]?.is_favorite;
                     w.positions.forEach(p => p.is_favorite = newFav);
                     favImg.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
@@ -1402,11 +1405,11 @@
                 };
                 card.appendChild(favImg);
 
-                // 右下角圖示列（語音、詳細資訊）
+                // --- 右下角 ICONs ---
                 const icons = document.createElement("div");
                 icons.className = "word-icons";
 
-                // 語音 ICON
+                // 語音
                 const volIcon = document.createElement("img");
                 volIcon.src = "images/volumewithnocolor.svg";
                 volIcon.title = "播放單字";
@@ -1422,24 +1425,32 @@
                 };
                 icons.appendChild(volIcon);
 
-                // 詳細 ICON（可選：如要進一步單字詳情）
+                // 詳細資訊 ICON（可連接詳細面板）
                 const infoIcon = document.createElement("img");
                 infoIcon.src = "images/list-bullet.svg";
                 infoIcon.title = "查看詳情";
                 infoIcon.onclick = function () {
-                    // 如需彈窗詳情，呼叫 showWordDetailPanel 等自訂函式
                     // showWordDetailPanel(sortedWords, sortedWords.indexOf(w));
                 };
                 icons.appendChild(infoIcon);
 
                 card.appendChild(icons);
-
-                // 加入主容器
                 container.appendChild(card);
             });
 
-            // 4. 隱藏進度條與 NEXT 按鈕（可用 display = "none" 或 style.visibility）
-            document.getElementById("firstLearningProgressBarContainer").style.display = "none";
+            // 5. 顯示 NEXT 按鈕（**此時務必顯示**，不可被隱藏）
+            let nextBtn = document.getElementById("firstLearnNextBtn");
+            if (nextBtn) nextBtn.style.display = "";
+
+            // 6. 隱藏進度條
+            let progressBar = document.getElementById("firstLearningProgressBarContainer");
+            if (progressBar) progressBar.style.display = "none";
+
+            // 7. 進場動畫效果
+            setTimeout(() => {
+                container.classList.add('slide-in-right');
+                container.style.opacity = "1";
+            }, 10);
         }
 
         // =================== 進度條更新（固定 +5%） ===================
