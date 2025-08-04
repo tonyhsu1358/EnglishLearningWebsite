@@ -1151,6 +1151,14 @@
                 return;
             }
 
+            if (firstLearningStep === 200) {
+                // 已進入結算畫面1
+                return;
+            }
+            if (firstLearningStep === 201) {
+                // 已進入結算畫面2
+                return;
+            }
         }
 
         // =================== 進入下一組單字學習 ===================
@@ -1440,7 +1448,17 @@
 
             // 5. 顯示 NEXT 按鈕（**此時務必顯示**，不可被隱藏）
             let nextBtn = document.getElementById("firstLearnNextBtn");
-            if (nextBtn) nextBtn.style.display = "";
+            if (nextBtn) {
+                nextBtn.style.display = "";
+                // 移除舊的點擊事件
+                nextBtn.onclick = null;
+                // 點擊後切到結算畫面2
+                nextBtn.onclick = function () {
+                    playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
+                    firstLearningStep = 201;  // 切換至結算畫面2狀態
+                    showSummaryPanel2();
+                };
+            }
 
             // 6. 隱藏進度條
             let progressBar = document.getElementById("firstLearningProgressBarContainer");
@@ -1451,6 +1469,82 @@
                 container.classList.add('slide-in-right');
                 container.style.opacity = "1";
             }, 10);
+
+            // 8. 最後明確設 firstLearningStep = 200
+            firstLearningStep = 200;
+        }
+
+        //===================結算畫面2===============
+        function showSummaryPanel2() {
+            // 1. 計算答對率
+            const n = firstLearningWords.length;
+            const wrong = firstLearningWrongIndexes.length;
+            const correct = n - wrong;
+            const rate = (correct / n) * 100;
+            let hours;
+            if (rate >= 100) hours = 12;
+            else if (rate >= 90) hours = 11;
+            else if (rate >= 80) hours = 10;
+            else if (rate >= 70) hours = 9;
+            else hours = 8;
+
+            const diamonds = 10;    // 請依實際情境填入
+            const altarTimes = 6;   // 請依實際情境填入
+
+            // 只更新內容，不插入按鈕
+            const container = document.getElementById("pnlFirstLearningWordContent");
+            if (!container) return;
+            container.innerHTML = `
+        <div style="height:28px;"></div>
+        <div style="text-align:center;font-size:26px;font-weight:700;letter-spacing:2px;color:#53a35e;margin-bottom:16px;">◆ 攻略成功 ◆</div>
+        <div style="display:flex;justify-content:center;">
+            <div style="min-width:280px;max-width:350px;width:90%;background:#fff;box-shadow:0 2px 8px #e4e7ed33;border-radius:16px;padding:24px 16px 18px 16px;">
+                <div style="text-align:center;font-size:20px;padding:5px 0;color:#644224;">
+                    獲得鑽石: <span style="color:#e17043;font-weight:700;">${diamonds}顆</span>
+                </div>
+                <div style="text-align:center;font-size:19px;padding:4px 0;color:#644224;">
+                    下次再來充能: <span style="color:#b35c19;font-weight:700;">${hours}時</span>
+                </div>
+                <div style="text-align:center;font-size:19px;padding:4px 0;color:#644224;">
+                    變永久需再: <span style="color:#b35c19;font-weight:700;">${altarTimes}次充能</span>
+                </div>
+            </div>
+        </div>
+        <div style="height:30px;"></div>
+    `;
+
+            // 動畫
+            container.classList.remove('slide-in-right', 'slide-out-left');
+            container.style.opacity = "0";
+            setTimeout(() => {
+                container.classList.add('slide-in-right');
+                container.style.opacity = "1";
+            }, 10);
+
+            // 綁定既有靜態NEXT按鈕，保證單一來源，絕不重複產生
+            const nextBtn = document.getElementById("firstLearnNextBtn");
+            if (nextBtn) {
+                nextBtn.style.display = ""; // 確保按鈕可見
+                // 每次重綁點擊事件
+                nextBtn.onclick = null;
+                nextBtn.onclick = function (e) {
+                    playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
+                    if (e) e.preventDefault();
+                    // 完全仿照您Modal離開作法，非同步關閉所有相關面板
+                    setTimeout(function () {
+                        // 關閉首次學習相關面板（樣式可依專案調整）
+                        document.getElementById('pnlFirstLearningDetail').style.display = "none";
+                        document.getElementById('pnlAltarOptions').style.display = "none";
+                        document.getElementById('altarOptionsOverlay').style.display = "none";
+                        // 進度條歸零
+                        currentProgressPercent = 0;
+                        document.getElementById('firstLearningProgressBarFill').style.width = "0%";
+                        // 若有遮罩、狀態列等也可一併關閉
+                    }, 0);
+                };
+            }
+
+            firstLearningStep = 201;
         }
 
         // =================== 進度條更新（固定 +5%） ===================
@@ -1492,6 +1586,18 @@
 
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
+
+            // ====== ✅ 每次開始新流程時「再次綁定」NEXT 按鈕 handler ======
+            const nextBtn = document.getElementById("firstLearnNextBtn");
+            if (nextBtn) {
+                nextBtn.onclick = function () {
+                    playSoundEffect('/sounds/click-sound.wav');
+                    if (firstLearningStep === 1 || firstLearningStep === 2) {
+                        updateProgressBar();
+                    }
+                    handleFirstLearningStep();
+                };
+            }
             document.getElementById("pnlFirstLearningDetail").style.display = "flex";
             document.getElementById("pnlFirstLearningWordContent").innerHTML = "";
 
@@ -1539,6 +1645,7 @@
                     firstLearningWrongIndexes = [];
                     firstLearningStep = 0;
                     currentProgressPercent = 0;
+                    firstLearningPaused = false; // 🌸
                     firstLearningReviewMode = false;
                     firstLearningReviewQueue = [];
                     firstLearningReviewCurrent = null;
