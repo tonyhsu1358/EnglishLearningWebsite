@@ -1476,7 +1476,6 @@
 
         //===================結算畫面2===============
         function showSummaryPanel2() {
-
             // ✨ 結算進場自動播放勝利音效
             playSoundEffect('/sounds/victory2.mp3');
             // 1. 計算答對率
@@ -1498,26 +1497,23 @@
             const container = document.getElementById("pnlFirstLearningWordContent");
             if (!container) return;
             container.innerHTML = `
-        <div class="summary2-spacing-top"></div>
-        <div class="summary2-title">◆ 攻略成功 ◆</div>
-        <div class="summary2-flex-center">
-            <div class="summary2-content-box">
-                <div class="summary2-line">
-                    獲得鑽石:
-                    <span class="summary2-orange">${diamonds}顆</span>
-                </div>
-                <div class="summary2-line summary2-line-2">
-                    下次再來充能:
-                    <span class="summary2-brown">${hours}時</span>
-                </div>
-                <div class="summary2-line summary2-line-3">
-                    變永久需再:
-                    <span class="summary2-brown">${altarTimes}次充能</span>
-                </div>
+    <div class="summary2-spacing-top"></div>
+    <div class="summary2-title">◆ 攻略成功 ◆</div>
+    <div class="summary2-flex-center">
+        <div class="summary2-content-box">
+            <div class="summary2-line">
+                獲得鑽石: <span class="summary2-orange">${diamonds}顆</span>
+            </div>
+            <div class="summary2-line summary2-line-2">
+                下次再來充能: <span class="summary2-brown">${hours}時</span>
+            </div>
+            <div class="summary2-line summary2-line-3">
+                變永久需再: <span class="summary2-brown">${altarTimes}次充能</span>
             </div>
         </div>
-        <div class="summary2-spacing-bottom"></div>
-    `;
+    </div>
+    <div class="summary2-spacing-bottom"></div>
+`;
 
             // 動畫
             container.classList.remove('slide-in-right', 'slide-out-left');
@@ -1534,14 +1530,18 @@
                 // 每次重綁點擊事件
                 nextBtn.onclick = null;
                 nextBtn.onclick = function (e) {
-                    playSoundEffect('/sounds/click-sound.wav');
+                    playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
                     if (e) e.preventDefault();
+                    // 完全仿照您Modal離開作法，非同步關閉所有相關面板
                     setTimeout(function () {
+                        // 關閉首次學習相關面板（樣式可依專案調整）
                         document.getElementById('pnlFirstLearningDetail').style.display = "none";
                         document.getElementById('pnlAltarOptions').style.display = "none";
                         document.getElementById('altarOptionsOverlay').style.display = "none";
+                        // 進度條歸零
                         currentProgressPercent = 0;
                         document.getElementById('firstLearningProgressBarFill').style.width = "0%";
+                        // 若有遮罩、狀態列等也可一併關閉
                     }, 0);
                 };
             }
@@ -1610,6 +1610,7 @@
             document.getElementById("firstLearningLocation").style.display = "";
             document.getElementById("firstLearnNextBtn").style.display = ""; // 讓 handleFirstLearningStep 決定要不要顯示
             document.getElementById("firstLearnClose").style.display = ""; // ✅ 這行必加，恢復叉叉按鈕
+
 
             fetch("FirstLearningService.asmx/GetFirstLearningWords", {
                 method: "POST",
@@ -1712,10 +1713,7 @@
             });
         }
 
-        // =================== 單字內容渲染（多詞性完整支援，邊距優化） ===================
-        // ========================
         // 首次學習面板：單字內容渲染（多詞性完整支援、所有互動與圖示行為優化）
-        // ========================
         function showFirstLearningPanel(index, isFirst = false) {
             const container = document.getElementById("pnlFirstLearningWordContent");
             slideCardSwitch(container, () => {
