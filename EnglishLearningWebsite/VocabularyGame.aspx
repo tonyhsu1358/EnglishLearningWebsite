@@ -336,6 +336,9 @@
 
     <audio id="bgm" src="musics/ScentOfForest.mp3" autoplay loop></audio>
     <script>
+        /*================================================ */
+        /*=BGM背景音樂撥放邏輯，載入網頁BGM自動設置為50%音量，用戶可依需求調整=*/
+        /*================================================ */
         document.addEventListener("DOMContentLoaded", function () {
             const audio = document.getElementById("bgm");
             const volumeSlider = document.getElementById("volumeSlider");
@@ -1875,7 +1878,7 @@
                         utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
                         speechSynthesis.speak(utter);
                         utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-                    }, 100);
+                    }, 400);
 
                 } else {
                     // 若無例句則仍需插入單字語音 ICON
@@ -1908,7 +1911,7 @@
                         utter.volume = typeof soundEffectVolume === "number" ? soundEffectVolume : 1.0;
                         speechSynthesis.speak(utter);
                         utter.onend = () => iconAudio.src = "images/volumewithnocolor.svg";
-                    }, 100);
+                    }, 400);
                 }
 
                 // === 中文翻譯（下方，若有） ===
