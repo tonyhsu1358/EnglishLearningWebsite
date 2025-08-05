@@ -1449,15 +1449,17 @@
             // 5. 顯示 NEXT 按鈕（**此時務必顯示**，不可被隱藏）
             let nextBtn = document.getElementById("firstLearnNextBtn");
             if (nextBtn) {
-                nextBtn.style.display = "";
-                // 移除舊的點擊事件
-                nextBtn.onclick = null;
-                // 點擊後切到結算畫面2
-                nextBtn.onclick = function () {
-                    playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
-                    firstLearningStep = 201;  // 切換至結算畫面2狀態
-                    showSummaryPanel2();
-                };
+                nextBtn.style.display = "none"; // 先隱藏
+                nextBtn.onclick = null; // 解除舊事件
+                // 延遲600ms後再顯示與綁定
+                setTimeout(() => {
+                    nextBtn.style.display = "";
+                    nextBtn.onclick = function () {
+                        playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
+                        firstLearningStep = 201;  // 切換至結算畫面2狀態
+                        showSummaryPanel2();
+                    };
+                }, 600);
             }
 
             // 6. 隱藏進度條
@@ -1526,25 +1528,25 @@
             // 綁定既有靜態NEXT按鈕，保證單一來源，絕不重複產生
             const nextBtn = document.getElementById("firstLearnNextBtn");
             if (nextBtn) {
-                nextBtn.style.display = ""; // 確保按鈕可見
-                // 每次重綁點擊事件
+                nextBtn.style.display = "none"; // 先隱藏
                 nextBtn.onclick = null;
-                nextBtn.onclick = function (e) {
-                    playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
-                    if (e) e.preventDefault();
-                    // 完全仿照您Modal離開作法，非同步關閉所有相關面板
-                    setTimeout(function () {
-                        // 關閉首次學習相關面板（樣式可依專案調整）
-                        document.getElementById('pnlFirstLearningDetail').style.display = "none";
-                        document.getElementById('pnlAltarOptions').style.display = "none";
-                        document.getElementById('altarOptionsOverlay').style.display = "none";
-                        // 進度條歸零
-                        currentProgressPercent = 0;
-                        document.getElementById('firstLearningProgressBarFill').style.width = "0%";
-                        // 若有遮罩、狀態列等也可一併關閉
-                    }, 0);
-                };
+                // 延遲600ms後再顯示與綁定
+                setTimeout(() => {
+                    nextBtn.style.display = "";
+                    nextBtn.onclick = function (e) {
+                        playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
+                        if (e) e.preventDefault();
+                        setTimeout(function () {
+                            document.getElementById('pnlFirstLearningDetail').style.display = "none";
+                            document.getElementById('pnlAltarOptions').style.display = "none";
+                            document.getElementById('altarOptionsOverlay').style.display = "none";
+                            currentProgressPercent = 0;
+                            document.getElementById('firstLearningProgressBarFill').style.width = "0%";
+                        }, 0);
+                    };
+                }, 600);
             }
+
 
             firstLearningStep = 201;
         }
