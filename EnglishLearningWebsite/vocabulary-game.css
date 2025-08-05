@@ -988,9 +988,9 @@ img[src*='arrow-down'] {
     margin-top: 8px;
 }
 
-    #pnlFirstLearningDetail .pos-row:last-child {
-        margin-bottom: 0;
-    }
+#pnlFirstLearningDetail .pos-row:last-child {
+    margin-bottom: 0;
+}
 
 
 #pnlFirstLearningDetail .expand-toggle {
@@ -1159,7 +1159,7 @@ img[src*='arrow-down'] {
 /* ◆ NEXT 按鈕本體樣式 */
 #firstLearnNextBtn {
     width: 350px;
-    height:53px;
+    height: 53px;
     padding: 8px 32px;
     border-radius: 5px;
     border: 2px solid #6b4226;
@@ -1295,3 +1295,59 @@ img[src*='arrow-down'] {
         color: #b23321;
         border-color: #ef8580;
     }
+
+/* 結算畫面2：外層間距 */
+.summary2-spacing-top {
+    height: 28px;
+}
+
+.summary2-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #53a35e;
+    margin-bottom: 16px;
+}
+/* 外層容器 */
+.summary2-flex-center {
+    display: flex;
+    justify-content: center;
+}
+/* 內容卡片 */
+.summary2-content-box {
+    min-width: 280px;
+    max-width: 350px;
+    width: 90%;
+    background: #fff;
+    box-shadow: 0 2px 8px #e4e7ed33;
+    border-radius: 16px;
+    padding: 24px 16px 18px 16px;
+}
+/* 內部三行資訊 */
+.summary2-line {
+    text-align: center;
+    font-size: 20px;
+    padding: 5px 0;
+    color: #644224;
+}
+
+.summary2-line-2,
+.summary2-line-3 {
+    font-size: 19px;
+    padding: 4px 0;
+}
+/* 強調顏色 */
+.summary2-orange {
+    color: #e17043;
+    font-weight: 700;
+}
+
+.summary2-brown {
+    color: #b35c19;
+    font-weight: 700;
+}
+/* 底部留白 */
+.summary2-spacing-bottom {
+    height: 30px;
+}
