@@ -347,7 +347,7 @@
             const volumeSlider = document.getElementById("volumeSlider");
             const volumeIcon = document.getElementById("volumeIcon");
 
-            // 1️⃣ 從 sessionStorage 取出記錄的音量與播放狀態
+            // 1️⃣ 從 sessionStorage 取出記錄的音量與播放狀態，可以確保用戶重整或離開網頁仍紀錄調整過後的音量
             const savedVolume = sessionStorage.getItem("bgmVolume");
             const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
 
@@ -1618,9 +1618,10 @@
                     originalBgmVolume = audio.volume;
                 }
                 // 2️⃣ 自動將 BGM 降低至 10%
-                audio.volume = 0.2;
-                volumeSlider.value = 0.2;
-                sessionStorage.setItem("bgmVolume", 0.2); // 同步sessionStorage（下次刷新會保留）
+                audio.volume = 0.2;           // 將背景音樂（BGM）實際的播放音量設為 10%，令旋律不至於吵雜
+                volumeSlider.value = 0.2;     // 同步將音量調整滑桿的值設為 0.1，確保 UI 顯示與實際音量一致
+                sessionStorage.setItem("bgmVolume", 0.2); // 將目前音量（10%）暫存於 sessionStorage，以便頁面刷新後能自動回復此音量設定
+
                 bgmVolumeWasAdjusted = true;
             }
 
