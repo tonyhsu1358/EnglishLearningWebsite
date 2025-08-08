@@ -339,6 +339,9 @@
         /*================================================ */
         /*=BGM背景音樂撥放邏輯，載入網頁BGM自動設置為50%音量，用戶可依需求調整=*/
         /*================================================ */
+        let originalBgmVolume = null; // ⬅️ 全域變數，儲存原本音量
+        let bgmVolumeWasAdjusted = false; // ⬅️ 用來判斷這次有無自動切音量
+
         document.addEventListener("DOMContentLoaded", function () {
             const audio = document.getElementById("bgm");
             const volumeSlider = document.getElementById("volumeSlider");
@@ -1545,6 +1548,17 @@
                             document.getElementById('altarOptionsOverlay').style.display = "none";
                             currentProgressPercent = 0;
                             document.getElementById('firstLearningProgressBarFill').style.width = "0%";
+
+                            // =========== 🌟 於離開首次學習時恢復BGM音量 =========== //
+                            const audio = document.getElementById("bgm");
+                            const volumeSlider = document.getElementById("volumeSlider");
+                            if (audio && bgmVolumeWasAdjusted && originalBgmVolume !== null) {
+                                audio.volume = originalBgmVolume;
+                                volumeSlider.value = originalBgmVolume;
+                                sessionStorage.setItem("bgmVolume", originalBgmVolume); // 同步sessionStorage
+                                bgmVolumeWasAdjusted = false; // 重置flag
+                                originalBgmVolume = null;
+                            }
                         }, 0);
                     };
                 }, 600);
@@ -1593,6 +1607,22 @@
 
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
+
+            // ====== ✅ 每次開始首次學習時BGM音量自動降至20%，若原本0%則不做調整 ======
+            const audio = document.getElementById("bgm");
+            const volumeSlider = document.getElementById("volumeSlider");
+            // 僅當音量不是 0 時，才自動切換
+            if (audio && audio.volume > 0) {
+                // 1️⃣ 記錄原本音量（只記一次）
+                if (originalBgmVolume === null) {
+                    originalBgmVolume = audio.volume;
+                }
+                // 2️⃣ 自動將 BGM 降低至 10%
+                audio.volume = 0.2;
+                volumeSlider.value = 0.2;
+                sessionStorage.setItem("bgmVolume", 0.2); // 同步sessionStorage（下次刷新會保留）
+                bgmVolumeWasAdjusted = true;
+            }
 
             // ====== ✅ 每次開始新流程時「再次綁定」NEXT 按鈕 handler ======
             const nextBtn = document.getElementById("firstLearnNextBtn");
@@ -1978,6 +2008,19 @@
                 // 進度條歸零
                 currentProgressPercent = 0;
                 document.getElementById('firstLearningProgressBarFill').style.width = "0%";
+
+                // =========== 🌟 補上：恢復BGM音量 =========== //
+                const audio = document.getElementById("bgm");
+                const volumeSlider = document.getElementById("volumeSlider");
+                if (audio && bgmVolumeWasAdjusted && originalBgmVolume !== null) {
+                    audio.volume = originalBgmVolume;
+                    volumeSlider.value = originalBgmVolume;
+                    sessionStorage.setItem("bgmVolume", originalBgmVolume); // 同步sessionStorage
+                    bgmVolumeWasAdjusted = false; // 重置flag
+                    originalBgmVolume = null;
+                }
+                // =========================================== //
+
             }, 0);
         };
 
