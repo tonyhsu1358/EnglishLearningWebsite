@@ -1510,6 +1510,9 @@
     <div class="summary2-flex-center">
         <div class="summary2-content-box">
             <div class="summary2-line">
+                答對率: <span class="summary2-brown">${rate.toFixed(0)}%</span>
+            </div>
+            <div class="summary2-line">
                 獲得鑽石: <span class="summary2-orange">${diamonds}顆</span>
             </div>
             <div class="summary2-line summary2-line-2">
