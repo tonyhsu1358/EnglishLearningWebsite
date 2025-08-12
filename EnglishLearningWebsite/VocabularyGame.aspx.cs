@@ -109,11 +109,6 @@ public partial class VocabularyGame : System.Web.UI.Page
                 LoadMagicAltars();
                 hiddenUserId.Value = Session["UserID"].ToString();
 
-                //if (Request.QueryString["startTrial"] != null)
-                //{
-                //    int altarId = int.Parse(Request.QueryString["startTrial"]);
-                //    StartTrial(altarId);
-                //}
             }
             catch (Exception ex)
             {
@@ -315,16 +310,5 @@ public partial class VocabularyGame : System.Web.UI.Page
     {
         Response.Redirect("Statics.aspx");
     }
-
-    //==============================================
-    //  3. 學習流程邏輯🔷包含進入祭壇學單字、開始測驗的業務邏輯。
-    //==============================================
-    //方法3.1-開始測驗
-    //protected void StartTrial(int altarId)
-    //{
-    //    Debug.WriteLine($" [StartTrial] - 祭壇 {altarId} 測驗開始");
-    //    pnlMagicAltar.Visible = false;
-    //    //pnlTrialChamber.Visible = true;
-    //}
 
 }
