@@ -132,19 +132,23 @@ public class FirstLearningService : WebService
     [WebMethod(EnableSession = true)]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
     public object SaveFirstLearningResult(
-        int altar_id,
-        int correct_count,
-        int wrong_count,
-        double accuracy,
-        int diamonds,
-        int hours,
-        string diamond_batch_id,
-        string energy_batch_id)
+       int altar_id,
+       int correct_count,
+       int wrong_count,
+       double accuracy,
+       int diamonds,
+       int hours,
+       string diamond_batch_id,
+       string energy_batch_id)
     {
         if (HttpContext.Current.Session["UserID"] == null)
             return new { status = "NOT_LOGGED_IN" };
 
         int userId = (int)HttpContext.Current.Session["UserID"];
+
+        // 🔹 宣告暫存變數（最後要回傳的值）
+        int finalEnergy = 0;
+        int finalDiamonds = 0;
 
         using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString))
         {
@@ -153,12 +157,12 @@ public class FirstLearningService : WebService
             {
                 try
                 {
-                    // 讀取現有資源
+                    // 1️⃣ 讀取現有資源
                     string getUserResSql = @"
-                    SELECT diamonds, diamonds_vocabulary_game, diamonds_total, 
-                           last_awarded_batch_id, energy, last_energy_deduction_batch_id
-                    FROM UserResources
-                    WHERE user_id = @UserId";
+                SELECT diamonds, diamonds_vocabulary_game, diamonds_total, 
+                       last_awarded_batch_id, energy, last_energy_deduction_batch_id
+                FROM UserResources
+                WHERE user_id = @UserId";
 
                     int curDiamonds = 0, curVocabDiamonds = 0, curTotalDiamonds = 0, curEnergy = 0;
                     string lastDiamondBatch = null, lastEnergyBatch = null;
@@ -180,49 +184,59 @@ public class FirstLearningService : WebService
                         }
                     }
 
-                    // ✅ 發鑽石
+                    // 2️⃣ 發鑽石（避免重複發放，需檢查 batch_id）
                     if (lastDiamondBatch != diamond_batch_id)
                     {
-                        int newDiamonds = curDiamonds + diamonds;
+                        finalDiamonds = curDiamonds + diamonds;   // ✅ 更新最終變數
                         int newVocabDiamonds = curVocabDiamonds + diamonds;
                         int newTotalDiamonds = curTotalDiamonds + diamonds;
 
                         string updateDiamondSql = @"
-                        UPDATE UserResources
-                        SET diamonds = @NewDiamonds,
-                            diamonds_vocabulary_game = @NewVocabDiamonds,
-                            diamonds_total = @NewTotalDiamonds,
-                            last_awarded_batch_id = @BatchId
-                        WHERE user_id = @UserId";
+                    UPDATE UserResources
+                    SET diamonds = @NewDiamonds,
+                        diamonds_vocabulary_game = @NewVocabDiamonds,
+                        diamonds_total = @NewTotalDiamonds,
+                        last_awarded_batch_id = @BatchId
+                    WHERE user_id = @UserId";
                         using (SqlCommand cmd = new SqlCommand(updateDiamondSql, conn, tran))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
-                            cmd.Parameters.AddWithValue("@NewDiamonds", newDiamonds);
+                            cmd.Parameters.AddWithValue("@NewDiamonds", finalDiamonds);
                             cmd.Parameters.AddWithValue("@NewVocabDiamonds", newVocabDiamonds);
                             cmd.Parameters.AddWithValue("@NewTotalDiamonds", newTotalDiamonds);
                             cmd.Parameters.AddWithValue("@BatchId", diamond_batch_id);
                             cmd.ExecuteNonQuery();
                         }
                     }
+                    else
+                    {
+                        // ❗ 若沒有發新鑽石，就維持原值
+                        finalDiamonds = curDiamonds;
+                    }
 
-                    // ✅ 扣體力
+                    // 3️⃣ 扣體力（避免重複扣除，需檢查 batch_id）
                     if (lastEnergyBatch != energy_batch_id)
                     {
-                        int newEnergy = curEnergy - 10;
-                        if (newEnergy < 0) newEnergy = 0;
+                        finalEnergy = curEnergy - 10;
+                        if (finalEnergy < 0) finalEnergy = 0;
 
                         string updateEnergySql = @"
-                        UPDATE UserResources
-                        SET energy = @NewEnergy,
-                            last_energy_deduction_batch_id = @BatchId
-                        WHERE user_id = @UserId";
+                    UPDATE UserResources
+                    SET energy = @NewEnergy,
+                        last_energy_deduction_batch_id = @BatchId
+                    WHERE user_id = @UserId";
                         using (SqlCommand cmd = new SqlCommand(updateEnergySql, conn, tran))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
-                            cmd.Parameters.AddWithValue("@NewEnergy", newEnergy);
+                            cmd.Parameters.AddWithValue("@NewEnergy", finalEnergy);
                             cmd.Parameters.AddWithValue("@BatchId", energy_batch_id);
                             cmd.ExecuteNonQuery();
                         }
+                    }
+                    else
+                    {
+                        // ❗ 若沒有扣能量，就維持原值
+                        finalEnergy = curEnergy;
                     }
 
                     tran.Commit();
@@ -236,7 +250,7 @@ public class FirstLearningService : WebService
             }
         }
 
-        return new { status = "OK" };
+        // 🔥 回傳最新能量與鑽石
+        return new { status = "OK", newEnergy = finalEnergy, newDiamonds = finalDiamonds };
     }
-
 }

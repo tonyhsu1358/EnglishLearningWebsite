@@ -1597,6 +1597,16 @@
                 .then(resData => {
                     if (resData.d && resData.d.status === "OK") {
                         console.log("✅ 結算資料已儲存成功");
+                        // 🔥 立刻更新 UI
+                        const lblEnergy = document.getElementById("lblEnergy");
+                        const lblDiamonds = document.getElementById("lblDiamonds");
+
+                        if (lblEnergy && resData.d.newEnergy !== undefined) {
+                            lblEnergy.textContent = resData.d.newEnergy;
+                        }
+                        if (lblDiamonds && resData.d.newDiamonds !== undefined) {
+                            lblDiamonds.textContent = resData.d.newDiamonds;
+                        }
                     } else {
                         console.warn("⚠ 儲存失敗", resData);
                     }
