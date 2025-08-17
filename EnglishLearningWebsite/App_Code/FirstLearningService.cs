@@ -108,4 +108,113 @@ public class FirstLearningService : WebService
         }
         return results;
     }
+    [WebMethod(EnableSession = true)]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public object ResetFirstLearningBatchID(int altar_id)
+    {
+        if (HttpContext.Current.Session["UserID"] == null)
+            return new { status = "NOT_LOGGED_IN" };
+
+        string newBatchId = Guid.NewGuid().ToString();
+        HttpContext.Current.Session["FirstLearningBatchID"] = newBatchId;
+
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] ResetFirstLearningBatchID: UserID={HttpContext.Current.Session["UserID"]}, NewBatchID={newBatchId}, AltarID={altar_id}");
+
+        return new { status = "OK", batch_id = newBatchId };
+    }
+
+    [WebMethod(EnableSession = true)]
+    [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+    public object SaveFirstLearningResult(int altar_id, int correct_count, int wrong_count, double accuracy, int diamonds, int hours)
+    {
+        if (HttpContext.Current.Session["UserID"] == null)
+            return new { status = "NOT_LOGGED_IN" };
+
+        int userId = (int)HttpContext.Current.Session["UserID"];
+        string batchID = HttpContext.Current.Session["FirstLearningBatchID"]?.ToString();
+
+        System.Diagnostics.Debug.WriteLine($"[DEBUG] SaveFirstLearningResult: START - UserID={userId}, BatchID={batchID}, AltarID={altar_id}");
+
+        if (string.IsNullOrEmpty(batchID))
+        {
+            batchID = Guid.NewGuid().ToString();
+            HttpContext.Current.Session["FirstLearningBatchID"] = batchID;
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] SaveFirstLearningResult: BatchID 是 NULL，自動生成新 BatchID={batchID}");
+        }
+
+        using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString))
+        {
+            conn.Open();
+
+            // 讀取使用者資源
+            string getUserResSql = @"
+        SELECT COALESCE(diamonds, 0), 
+               COALESCE(diamonds_vocabulary_game, 0), 
+               COALESCE(diamonds_total, 0), 
+               last_awarded_batch_id
+        FROM UserResources
+        WHERE user_id = @UserId";
+
+            int curDiamonds = 0, curVocabDiamonds = 0, curTotalDiamonds = 0;
+            string lastBatchId = null;
+
+            using (SqlCommand cmd = new SqlCommand(getUserResSql, conn))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        curDiamonds = dr.GetInt32(0);
+                        curVocabDiamonds = dr.GetInt32(1);
+                        curTotalDiamonds = dr.GetInt32(2);
+
+                        // ★ 修正：用 GetString() 而不是 GetGuid()
+                        lastBatchId = dr.IsDBNull(3) ? null : dr.GetString(3);
+                    }
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] 當前鑽石={curDiamonds}, 上次 BatchID={lastBatchId}");
+
+            // 檢查是否已領過
+            if (lastBatchId == batchID)
+            {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] ALREADY_CLAIMED - 批次相同，跳過更新");
+                return new { status = "ALREADY_CLAIMED" };
+            }
+
+            // 計算新數值
+            int newDiamonds = curDiamonds + diamonds;
+            int newVocabDiamonds = curVocabDiamonds + diamonds;
+            int newTotalDiamonds = curTotalDiamonds + diamonds;
+
+            // 更新 UserResources
+            string updateSql = @"
+        UPDATE UserResources
+        SET diamonds = @NewDiamonds,
+            diamonds_vocabulary_game = @NewVocabDiamonds,
+            diamonds_total = @NewTotalDiamonds,
+            last_awarded_batch_id = @BatchId
+        WHERE user_id = @UserId";
+
+            using (SqlCommand cmd = new SqlCommand(updateSql, conn))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@NewDiamonds", newDiamonds);
+                cmd.Parameters.AddWithValue("@NewVocabDiamonds", newVocabDiamonds);
+                cmd.Parameters.AddWithValue("@NewTotalDiamonds", newTotalDiamonds);
+
+                // ★ 修正：直接傳字串，不用 Guid.Parse()
+                cmd.Parameters.AddWithValue("@BatchId", batchID);
+
+                int rows = cmd.ExecuteNonQuery();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] UserResources 更新完成，影響 {rows} 筆資料");
+            }
+        }
+
+        System.Diagnostics.Debug.WriteLine("[DEBUG] SaveFirstLearningResult: END ✅ 更新完成");
+        return new { status = "OK" };
+    }
+
 }

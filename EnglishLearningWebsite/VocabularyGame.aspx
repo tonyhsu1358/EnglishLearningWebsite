@@ -1567,8 +1567,44 @@
                 }, 600);
             }
 
+            // ✅ 一顯示結算畫面 2 就立刻呼叫 API
+            saveFirstLearningResult({
+                altar_id: currentAltarId,
+                correct_count: correct,
+                wrong_count: wrong,
+                accuracy: rate,
+                diamonds: diamonds,
+                hours: hours
+            });
 
             firstLearningStep = 201;
+        }
+
+        // =================== 儲存首次學習結果（原生 fetch） ===================
+        function saveFirstLearningResult(data) {
+            console.log("▶ 送出首次學習結果：", data);
+
+            fetch('<%= ResolveUrl("~/FirstLearningService.asmx/SaveFirstLearningResult") %>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP 錯誤：" + res.status);
+                    return res.json();
+                })
+                .then(resData => {
+                    if (resData.d && resData.d.status === "OK") {
+                        console.log("✅ 結算資料已儲存成功");
+                    } else {
+                        console.warn("⚠ 儲存失敗", resData);
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ 儲存 API 錯誤:", err);
+                });
         }
 
         // =================== 進度條更新（固定 +5%） ===================
@@ -1611,16 +1647,40 @@
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
 
+            // 先透過原生 fetch 呼叫 API 重置 BatchID
+            console.log("▶ 進入首次學習，祭壇 ID:", altarId);
+            fetch('<%= ResolveUrl("~/FirstLearningService.asmx/ResetFirstLearningBatchID") %>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ altar_id: altarId })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP 錯誤：" + res.status);
+                    return res.json();
+                })
+                .then(resData => {
+                    if (resData.d && resData.d.status === "OK") {
+                        console.log("✅ BatchID 已重置：" + resData.d.batch_id);
+                    } else {
+                        console.warn("⚠ BatchID 重置失敗", resData);
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ 重置 BatchID API 錯誤:", err);
+                });
+
             // ====== ✅ 每次開始首次學習時BGM音量自動降至20%，若原本0%則不做調整 ======
             const audio = document.getElementById("bgm");
             const volumeSlider = document.getElementById("volumeSlider");
             // 僅當音量不是 0 時，才自動切換
             if (audio && audio.volume > 0) {
-                // 1️⃣ 記錄原本音量（只記一次）
+                // 1️.記錄原本音量（只記一次）
                 if (originalBgmVolume === null) {
                     originalBgmVolume = audio.volume;
                 }
-                // 2️⃣ 自動將 BGM 降低至 10%
+                // 2️.自動將 BGM 降低至 10%
                 audio.volume = 0.2;           // 將背景音樂（BGM）實際的播放音量設為 10%，令旋律不至於吵雜
                 volumeSlider.value = 0.2;     // 同步將音量調整滑桿的值設為 0.1，確保 UI 顯示與實際音量一致
                 sessionStorage.setItem("bgmVolume", 0.2); // 將目前音量（10%）暫存於 sessionStorage，以便頁面刷新後能自動回復此音量設定
@@ -2002,6 +2062,8 @@
         // 必須 type="button"，**永不觸發 form submit**
         document.getElementById('btnFirstLearnExitYes').onclick = function (e) {
             if (e) e.preventDefault();
+            // 🌟 前端偵測用：記錄用戶按下叉叉退出
+            console.log("[首次學習] 用戶按下叉叉退出首次學習流程");
             // 非同步閉合，保證不卡畫面、不刷新
             setTimeout(function () {
                 // 關閉各面板與遮罩
