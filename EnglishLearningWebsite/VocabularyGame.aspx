@@ -1582,19 +1582,18 @@
 
         // =================== 儲存首次學習結果（原生 fetch） ===================
         function saveFirstLearningResult(data) {
+            // 帶上批次 ID
+            data.diamond_batch_id = window.currentDiamondBatchId;
+            data.energy_batch_id = window.currentEnergyBatchId;
+
             console.log("▶ 送出首次學習結果：", data);
 
             fetch('<%= ResolveUrl("~/FirstLearningService.asmx/SaveFirstLearningResult") %>', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
                 body: JSON.stringify(data)
             })
-                .then(res => {
-                    if (!res.ok) throw new Error("HTTP 錯誤：" + res.status);
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(resData => {
                     if (resData.d && resData.d.status === "OK") {
                         console.log("✅ 結算資料已儲存成功");
@@ -1602,9 +1601,7 @@
                         console.warn("⚠ 儲存失敗", resData);
                     }
                 })
-                .catch(err => {
-                    console.error("❌ 儲存 API 錯誤:", err);
-                });
+                .catch(err => console.error("❌ 儲存 API 錯誤:", err));
         }
 
         // =================== 進度條更新（固定 +5%） ===================
@@ -1646,31 +1643,25 @@
 
         // =================== 進入首次學習 ===================
         function startFirstLearning(altarId) {
-
-            // 先透過原生 fetch 呼叫 API 重置 BatchID
             console.log("▶ 進入首次學習，祭壇 ID:", altarId);
             fetch('<%= ResolveUrl("~/FirstLearningService.asmx/ResetFirstLearningBatchID") %>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                body: JSON.stringify({ altar_id: altarId })
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error("HTTP 錯誤：" + res.status);
-                    return res.json();
-                })
-                .then(resData => {
-                    if (resData.d && resData.d.status === "OK") {
-                        console.log("✅ BatchID 已重置：" + resData.d.batch_id);
-                    } else {
-                        console.warn("⚠ BatchID 重置失敗", resData);
-                    }
-                })
-                .catch(err => {
-                    console.error("❌ 重置 BatchID API 錯誤:", err);
-                });
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json; charset=utf-8' },
+               body: JSON.stringify({ altar_id: altarId })
+           })
+               .then(res => res.json())
+               .then(resData => {
+                   if (resData.d && resData.d.status === "OK") {
+                       // 存在全域變數，後續 SaveFirstLearningResult 要用
+                       window.currentDiamondBatchId = resData.d.diamond_batch_id;
+                       window.currentEnergyBatchId = resData.d.energy_batch_id;
 
+                       console.log("✅ 鑽石 BatchID 已重置：" + window.currentDiamondBatchId);
+                       console.log("✅ 體力 BatchID 已重置：" + window.currentEnergyBatchId);
+                   }
+               })
+               .catch(err => console.error("❌ 重置 BatchID API 錯誤:", err));
+       
             // ====== ✅ 每次開始首次學習時BGM音量自動降至20%，若原本0%則不做調整 ======
             const audio = document.getElementById("bgm");
             const volumeSlider = document.getElementById("volumeSlider");
