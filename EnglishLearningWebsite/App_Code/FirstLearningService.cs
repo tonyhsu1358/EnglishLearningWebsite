@@ -128,18 +128,17 @@ public class FirstLearningService : WebService
         return new { status = "OK", diamond_batch_id = diamondBatchId, energy_batch_id = energyBatchId };
     }
 
-
     [WebMethod(EnableSession = true)]
     [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
     public object SaveFirstLearningResult(
-       int altar_id,
-       int correct_count,
-       int wrong_count,
-       double accuracy,
-       int diamonds,
-       int hours,
-       string diamond_batch_id,
-       string energy_batch_id)
+   int altar_id,
+   int correct_count,
+   int wrong_count,
+   double accuracy,
+   int diamonds,
+   int hours,
+   string diamond_batch_id,
+   string energy_batch_id)
     {
         if (HttpContext.Current.Session["UserID"] == null)
             return new { status = "NOT_LOGGED_IN" };
@@ -239,13 +238,42 @@ public class FirstLearningService : WebService
                         finalEnergy = curEnergy;
                     }
 
+                    // 4️⃣ 更新使用者祭壇進度（首次學習 → learning_status=1，並設定複習時間）
+                    string updateProgressSql = @"
+                IF EXISTS (SELECT 1 FROM user_altar_progress WHERE user_id = @UserId AND altar_id = @AltarId)
+                BEGIN
+                    UPDATE user_altar_progress
+                    SET learning_status = CASE 
+                                             WHEN learning_status = 0 THEN 1 
+                                             ELSE learning_status 
+                                         END,
+                        last_review_time = GETDATE(),
+                        next_review_time = DATEADD(HOUR, @Hours, GETDATE())
+                    WHERE user_id = @UserId AND altar_id = @AltarId;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO user_altar_progress (user_id, altar_id, learning_status, last_review_time, next_review_time)
+                    VALUES (@UserId, @AltarId, 1, GETDATE(), DATEADD(HOUR, @Hours, GETDATE()));
+                END";
+
+                    using (SqlCommand cmd = new SqlCommand(updateProgressSql, conn, tran))
+                    {
+                        cmd.Parameters.AddWithValue("@UserId", userId);
+                        cmd.Parameters.AddWithValue("@AltarId", altar_id);
+                        cmd.Parameters.AddWithValue("@Hours", hours);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // ✅ 所有 SQL 都成功，最後才 Commit 一次
                     tran.Commit();
                 }
                 catch (Exception ex)
                 {
+                    // ❌ 發生錯誤 → Rollback
                     tran.Rollback();
                     System.Diagnostics.Debug.WriteLine("❌ [ERROR] SaveFirstLearningResult 發生錯誤: " + ex.Message);
-                    return new { status = "ERROR" };
+                    return new { status = "ERROR", message = ex.Message };
                 }
             }
         }
@@ -253,4 +281,5 @@ public class FirstLearningService : WebService
         // 🔥 回傳最新能量與鑽石
         return new { status = "OK", newEnergy = finalEnergy, newDiamonds = finalDiamonds };
     }
+
 }

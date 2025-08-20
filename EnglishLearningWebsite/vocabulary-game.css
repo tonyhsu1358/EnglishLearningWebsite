@@ -112,7 +112,7 @@ body {
         color: #fff;
         border: 2px solid #4e944f;
         box-shadow: 0 0 5px #76b852;
-        animation: pulse 2s infinite;
+        /*animation: pulse 2s infinite;*/
         border-radius: 10px;
     }
 
@@ -140,7 +140,7 @@ body {
     }
 
 /* 💓 呼吸動畫 */
-@keyframes pulse {
+/*@keyframes pulse {
     0% {
         transform: scale(1);
     }
@@ -152,7 +152,7 @@ body {
     100% {
         transform: scale(1);
     }
-}
+}*/
 
 /* ===== 告示牌 & 資訊按鈕 (綁定在一起，可自由調整位置) ===== */
 .billboard-container {

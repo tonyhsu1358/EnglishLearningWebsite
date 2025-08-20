@@ -536,7 +536,7 @@
                     const totalSeconds = Math.floor(-diffMs / 1000);
                     const hours = Math.floor(totalSeconds / 3600);
                     const minutes = Math.floor((totalSeconds % 3600) / 60);
-                    daysLabel.textContent = `澆水：${hours}時${minutes}分`;
+                    daysLabel.textContent = `下次充能：${hours}時${minutes}分`;
                 } else {
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                     daysLabel.textContent = `${days} 天未複習`;
