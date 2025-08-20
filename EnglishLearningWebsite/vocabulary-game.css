@@ -1352,3 +1352,32 @@ img[src*='arrow-down'] {
 .summary2-spacing-bottom {
     height: 30px;
 }
+
+/*首次學習後的提示訊息*/
+.reward-toast {
+    position: fixed;
+    top: 30%; /* 初始位置：比較低 */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 20px;
+    text-align: center;
+    white-space: pre-line;
+    opacity: 0;
+    pointer-events: none;
+    transition: top 0.8s ease, opacity 0.8s ease;
+    z-index: 9999;
+}
+
+    .reward-toast.show {
+        top: 20%; /* 進場：往上滑到中間 */
+        opacity: 1;
+    }
+
+    .reward-toast.hide {
+        top: 10%; /* 退場：繼續往上 */
+        opacity: 0;
+    }

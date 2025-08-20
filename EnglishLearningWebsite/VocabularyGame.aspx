@@ -1545,6 +1545,8 @@
                     nextBtn.onclick = function (e) {
                         playSoundEffect('/sounds/click-sound.wav');  // 一定要加這行！
                         if (e) e.preventDefault();
+                        // ✨ 顯示獎勵提示
+                        showRewardToast(`💎 恭喜獲得 10 鑽石 💎\n⚡ 扣除 10 能量 ⚡`);
                         setTimeout(function () {
                             document.getElementById('pnlFirstLearningDetail').style.display = "none";
                             document.getElementById('pnlAltarOptions').style.display = "none";
@@ -1650,27 +1652,26 @@
         }
 
         // 🔔 動態生成提示訊息
-        //function showRewardToast(message) {
-        //    // 建立 DOM 元素
-        //    const toast = document.createElement("div");
-        //    toast.className = "reward-toast";
-        //    toast.textContent = message;
+        function showRewardToast(message) {
+            const toast = document.createElement("div");
+            toast.className = "reward-toast";
+            toast.innerText = message;
+            document.body.appendChild(toast);
 
-        //    // 插入 body
-        //    document.body.appendChild(toast);
+            // 觸發 reflow
+            void toast.offsetWidth;
 
-        //    // 強制 reflow，讓動畫能生效
-        //    void toast.offsetWidth;
+            // 顯示動畫（由下往上）
+            toast.classList.add("show");
 
-        //    // 加上顯示 class（觸發 CSS transition）
-        //    toast.classList.add("show");
-
-        //    // 過 2.5 秒後淡出並移除 DOM
-        //    setTimeout(() => {
-        //        toast.classList.remove("show");
-        //        setTimeout(() => toast.remove(), 800); // 留 transition 時間再刪
-        //    }, 2500);
-        //}
+            // 2 秒後觸發退場動畫
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("hide");
+                // 動畫結束後移除
+                setTimeout(() => toast.remove(), 800);
+            }, 2000);
+        }
 
         // =================== 進度條更新（固定 +5%） ===================
         function updateProgressBar() {
