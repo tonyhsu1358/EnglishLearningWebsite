@@ -1580,24 +1580,29 @@
             firstLearningStep = 201;
         }
 
-        // =================== 儲存首次學習結果（原生 fetch） ===================
+        // =================== 儲存首次學習結果（使用原生 fetch API） ===================
         function saveFirstLearningResult(data) {
-            // 帶上批次 ID
+            // ➤ 帶上伺服器所需的批次 ID（體力 / 鑽石用於對應消耗批次）
             data.diamond_batch_id = window.currentDiamondBatchId;
             data.energy_batch_id = window.currentEnergyBatchId;
 
             console.log("▶ 送出首次學習結果：", data);
 
+            // ➤ 呼叫後端 WebMethod：FirstLearningService.asmx/SaveFirstLearningResult
             fetch('<%= ResolveUrl("~/FirstLearningService.asmx/SaveFirstLearningResult") %>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify(data)
+                method: 'POST', // 使用 POST 傳遞資料
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8' // 明確指定 JSON 格式
+                },
+                body: JSON.stringify(data) // 將物件轉為 JSON 字串送出
             })
-                .then(res => res.json())
+                .then(res => res.json()) // 解析伺服器回應為 JSON
                 .then(resData => {
+                    // ➤ 確認回傳物件中含有 d，並且狀態為 OK
                     if (resData.d && resData.d.status === "OK") {
                         console.log("✅ 結算資料已儲存成功");
-                        // 🔥 立刻更新 UI
+
+                        // =================== 更新體力與鑽石 ===================
                         const lblEnergy = document.getElementById("lblEnergy");
                         const lblDiamonds = document.getElementById("lblDiamonds");
 
@@ -1607,12 +1612,65 @@
                         if (lblDiamonds && resData.d.newDiamonds !== undefined) {
                             lblDiamonds.textContent = resData.d.newDiamonds;
                         }
+
+                        // =================== 更新祭壇按鈕的樣式 ===================
+                        if (resData.d.altarId && resData.d.newStatus !== undefined) {
+                            // 找到對應祭壇按鈕（透過 onclick 屬性辨識）
+                            const btn = document.querySelector(
+                                `.altar-button[onclick="showAltarOptions(${resData.d.altarId})"]`
+                            );
+                            if (btn) {
+                                // 先清掉舊 class
+                                btn.classList.remove("locked", "learning", "withered", "completed");
+
+                                // 根據 newStatus 決定新樣式
+                                if (resData.d.newStatus === 0) {
+                                    btn.classList.add("locked");       // 未解鎖
+                                }
+                                else if (resData.d.newStatus >= 1 && resData.d.newStatus <= 6) {
+                                    btn.classList.add("learning");     // 學習中（包含 1~6，當然包括 5）
+                                }
+                                else if (resData.d.newStatus === 999) {
+                                    btn.classList.add("withered");     // 乾枯狀態
+                                }
+                                else if (resData.d.newStatus >= 7) {
+                                    btn.classList.add("completed");    // 完成型態
+                                }
+                            }
+                        }
                     } else {
-                        console.warn("⚠ 儲存失敗", resData);
+                        // ➤ 如果 API 回傳錯誤或狀態非 OK，則警告顯示
+                        console.warn("⚠ 儲存失敗，回傳內容：", resData);
                     }
                 })
-                .catch(err => console.error("❌ 儲存 API 錯誤:", err));
+                .catch(err => {
+                    // ➤ 捕捉網路錯誤（例如伺服器無回應、格式錯誤等）
+                    console.error("❌ 儲存 API 錯誤:", err);
+                });
         }
+
+        // 🔔 動態生成提示訊息
+        //function showRewardToast(message) {
+        //    // 建立 DOM 元素
+        //    const toast = document.createElement("div");
+        //    toast.className = "reward-toast";
+        //    toast.textContent = message;
+
+        //    // 插入 body
+        //    document.body.appendChild(toast);
+
+        //    // 強制 reflow，讓動畫能生效
+        //    void toast.offsetWidth;
+
+        //    // 加上顯示 class（觸發 CSS transition）
+        //    toast.classList.add("show");
+
+        //    // 過 2.5 秒後淡出並移除 DOM
+        //    setTimeout(() => {
+        //        toast.classList.remove("show");
+        //        setTimeout(() => toast.remove(), 800); // 留 transition 時間再刪
+        //    }, 2500);
+        //}
 
         // =================== 進度條更新（固定 +5%） ===================
         function updateProgressBar() {

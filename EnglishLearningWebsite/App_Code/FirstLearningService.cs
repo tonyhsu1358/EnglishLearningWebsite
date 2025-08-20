@@ -156,7 +156,7 @@ public class FirstLearningService : WebService
             {
                 try
                 {
-                    // 1️⃣ 讀取現有資源
+                    // 1️.讀取現有資源
                     string getUserResSql = @"
                 SELECT diamonds, diamonds_vocabulary_game, diamonds_total, 
                        last_awarded_batch_id, energy, last_energy_deduction_batch_id
@@ -183,7 +183,7 @@ public class FirstLearningService : WebService
                         }
                     }
 
-                    // 2️⃣ 發鑽石（避免重複發放，需檢查 batch_id）
+                    // 2️.發鑽石（避免重複發放，需檢查 batch_id）
                     if (lastDiamondBatch != diamond_batch_id)
                     {
                         finalDiamonds = curDiamonds + diamonds;   // ✅ 更新最終變數
@@ -213,7 +213,7 @@ public class FirstLearningService : WebService
                         finalDiamonds = curDiamonds;
                     }
 
-                    // 3️⃣ 扣體力（避免重複扣除，需檢查 batch_id）
+                    // 3️.扣體力（避免重複扣除，需檢查 batch_id）
                     if (lastEnergyBatch != energy_batch_id)
                     {
                         finalEnergy = curEnergy - 10;
@@ -238,7 +238,7 @@ public class FirstLearningService : WebService
                         finalEnergy = curEnergy;
                     }
 
-                    // 4️⃣ 更新使用者祭壇進度（首次學習 → learning_status=1，並設定複習時間）
+                    // 4️.更新使用者祭壇進度（首次學習 → learning_status=1，並設定複習時間）
                     string updateProgressSql = @"
                 IF EXISTS (SELECT 1 FROM user_altar_progress WHERE user_id = @UserId AND altar_id = @AltarId)
                 BEGIN
@@ -278,8 +278,15 @@ public class FirstLearningService : WebService
             }
         }
 
-        // 🔥 回傳最新能量與鑽石
-        return new { status = "OK", newEnergy = finalEnergy, newDiamonds = finalDiamonds };
+        // 🔥 回傳最新能量、鑽石，以及該祭壇的最新狀態
+        return new
+        {
+            status = "OK",
+            newEnergy = finalEnergy,
+            newDiamonds = finalDiamonds,
+            altarId = altar_id,
+            newStatus = 1 // 首次學習完成 → 狀態至少會是 1
+        };
     }
 
 }
