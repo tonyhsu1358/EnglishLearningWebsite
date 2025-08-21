@@ -267,23 +267,23 @@
 
     <script>
         //================================================
-        //第一章:顯示100個祭壇且點選祭壇按鈕後會自動記錄
+        //第一章: 顯示100個祭壇，並記錄被點擊的祭壇 ID
         //================================================
         function showAltarOptions(altarId) {
-            window.currentAltarId = altarId;   // ✅ 放這裡才對！每次呼叫都記錄最新ID
+            // ✅ 每次點擊時記錄最新祭壇 ID
+            window.currentAltarId = altarId;
             console.log("🎯 點到祭壇 ID:", altarId);
 
-            // 存進 hidden 欄位
+            // ✅ 存進隱藏欄位，後端有需要可用
             document.getElementById("hiddenAltarId").value = altarId;
 
-            // 從頁面抓 userId（Session 已存在）
+            // ✅ 從隱藏欄位抓 userId（Session 已存在）
             const userId = parseInt(document.getElementById("hiddenUserId").value);
 
+            // ✅ 呼叫後端 WebMethod (ASMX)，查詢祭壇狀態
             fetch("AltarService.asmx/GetAltarStatus", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 credentials: 'include',
                 body: JSON.stringify({ altarId: altarId })
             })
@@ -291,12 +291,13 @@
                 .then(result => {
                     const data = result.d;
 
+                    // ⚠️ 若尚未登入，直接提示
                     if (data.error === "NOT_LOGGED_IN") {
                         alert("請先登入！");
                         return;
                     }
 
-                    // 傳給你原本的 showAltarPanel（✅ 不改你原本的參數）
+                    // ✅ 呼叫第一點五章 → 顯示祭壇儀表板
                     showAltarPanel(altarId, data.learningStatus, data.nextReviewTime);
                 })
                 .catch(error => {
@@ -307,7 +308,85 @@
 
     <script>
         //================================================
-        //第二章:顯示森林儀錶板
+        // 第一點五章: 顯示祭壇儀表板 (非同步更新 DOM，不中斷 BGM)
+        //================================================
+        let altarCountdownTimer = null; // 全域變數，避免重複 setInterval
+
+        function showAltarPanel(altarId, learningStatus, nextReviewTimeStr) {
+            // ✅ 顯示 Overlay 與 儀表板
+            document.getElementById("altarOptionsOverlay").style.display = "block";
+            document.getElementById("pnlAltarOptions").style.display = "block";
+
+            // ✅ 更新儀表板標題
+            document.getElementById("altarTitle").textContent = "祭壇 " + altarId;
+
+            // ✅ 顯示複習倒數 / 未複習天數
+            const daysLabel = document.getElementById("daysSinceReview");
+            const actionButton = document.querySelector(".altar-button-action");
+
+            // 清掉之前的計時器（避免多重 setInterval）
+            if (altarCountdownTimer) {
+                clearInterval(altarCountdownTimer);
+                altarCountdownTimer = null;
+            }
+
+            if (!nextReviewTimeStr) {
+                daysLabel.textContent = "尚未學習";
+                actionButton.disabled = false; // 尚未學習 → 可以攻略
+            } else {
+                const nextTime = new Date(nextReviewTimeStr);
+                const now = new Date();
+                const diffMs = nextTime - now;
+
+                if (diffMs > 0) {
+                    // ⏳ 尚未到下一次充能 → 禁用按鈕，顯示倒數
+                    actionButton.disabled = true;
+
+                    function updateCountdown() {
+                        const now = new Date();
+                        const diff = nextTime - now;
+
+                        if (diff <= 0) {
+                            // 倒數結束 → 解除禁用
+                            daysLabel.textContent = "可以開始充能！";
+                            actionButton.disabled = false;
+                            clearInterval(altarCountdownTimer);
+                            return;
+                        }
+
+                        const totalSeconds = Math.floor(diff / 1000);
+                        const hours = Math.floor(totalSeconds / 3600);
+                        const minutes = Math.floor((totalSeconds % 3600) / 60);
+                        daysLabel.textContent = `下次充能：${hours}時${minutes}分`;
+                    }
+
+                    // 先立即跑一次
+                    updateCountdown();
+                    // 每分鐘更新一次（60000 ms）
+                    altarCountdownTimer = setInterval(updateCountdown, 60000);
+
+                } else {
+                    // 📅 已經過期 → 顯示未複習天數，按鈕可點擊
+                    const days = Math.floor(-diffMs / (1000 * 60 * 60 * 24));
+                    daysLabel.textContent = `${days} 天未複習`;
+                    actionButton.disabled = false;
+                }
+            }
+
+            // ✅ 根據學習狀態更新按鈕文字
+            if (learningStatus === 0) {
+                actionButton.textContent = "攻略";
+            } else if (learningStatus >= 1 && learningStatus < 7) {
+                actionButton.textContent = "充能";
+            } else if (learningStatus === 999 || learningStatus >= 7) {
+                actionButton.textContent = "複習";
+            }
+        }
+    </script>
+
+    <script>
+        //================================================
+        //第二章:顯示森林切換、回首頁等儀錶板
         //================================================
 
         // 顯示森林儀表板
@@ -335,78 +414,83 @@
     </script>
 
     <audio id="bgm" src="musics/ScentOfForest.mp3" autoplay loop></audio>
-    <script>
-        /*================================================ */
-        /*=BGM背景音樂撥放邏輯，載入網頁BGM自動設置為50%音量，用戶可依需求調整=*/
-        /*================================================ */
-        let originalBgmVolume = null; // ⬅️ 全域變數，儲存原本音量
-        let bgmVolumeWasAdjusted = false; // ⬅️ 用來判斷這次有無自動切音量
+   <script>
+       /*================================================ */
+       /*= BGM背景音樂撥放邏輯                          =*/
+       /*= 載入網頁BGM自動設置為50%音量，用戶可調整      =*/
+       /*================================================ */
+       let originalBgmVolume = null;      // ⬅️ 全域變數，儲存原本音量
+       let bgmVolumeWasAdjusted = false;  // ⬅️ 判斷是否曾自動調整音量
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const audio = document.getElementById("bgm");
-            const volumeSlider = document.getElementById("volumeSlider");
-            const volumeIcon = document.getElementById("volumeIcon");
+       document.addEventListener("DOMContentLoaded", function () {
+           const audio = document.getElementById("bgm");
+           const volumeSlider = document.getElementById("volumeSlider");
+           const volumeIcon = document.getElementById("volumeIcon");
 
-            // 1️⃣ 從 sessionStorage 取出記錄的音量與播放狀態，可以確保用戶重整或離開網頁仍紀錄調整過後的音量
-            const savedVolume = sessionStorage.getItem("bgmVolume");
-            const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
+           // 1️. 從 sessionStorage 取出音量與播放狀態
+           const savedVolume = sessionStorage.getItem("bgmVolume");
+           const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
 
-            // 設定音量
-            if (savedVolume !== null) {
-                audio.volume = parseFloat(savedVolume);
-                volumeSlider.value = savedVolume;
-            } else {
-                audio.volume = 0.5; // 預設音量
-                volumeSlider.value = 0.5;
-            }
+           // 設定音量（若無紀錄則預設 50%）
+           if (savedVolume !== null) {
+               audio.volume = parseFloat(savedVolume);
+               volumeSlider.value = savedVolume;
+           } else {
+               audio.volume = 0.5;
+               volumeSlider.value = 0.5;
+           }
 
-            // 初始化圖示
-            function updateVolumeIcon(volume) {
-                volumeIcon.src = volume == 0 ? "images/volume0.svg" : "images/volume.svg";
-            }
-            updateVolumeIcon(audio.volume);
+           // 初始化圖示
+           function updateVolumeIcon(volume) {
+               volumeIcon.src = volume == 0 ? "images/volume0.svg" : "images/volume.svg";
+           }
+           updateVolumeIcon(audio.volume);
 
-            // 音量滑桿變動時
-            volumeSlider.addEventListener("input", function () {
-                const newVolume = parseFloat(this.value);
-                audio.volume = newVolume;
-                sessionStorage.setItem("bgmVolume", newVolume); // ⚠ 儲存音量
-                updateVolumeIcon(newVolume);
-            });
+           // 音量滑桿事件：即時更新 + 儲存
+           volumeSlider.addEventListener("input", function () {
+               const newVolume = parseFloat(this.value);
+               audio.volume = newVolume;
+               sessionStorage.setItem("bgmVolume", newVolume);
+               updateVolumeIcon(newVolume);
+           });
 
-            // 2️⃣ 如果之前是播放狀態，則恢復播放
-            if (shouldPlay === "true") {
-                audio.play().catch(() => { });
-            }
+           // 2️. 若上次是播放狀態，恢復播放
+           if (shouldPlay === "true") {
+               audio.play().catch(() => { });
+           }
 
-            // 3️⃣ 監聽播放與暫停事件，紀錄狀態
-            audio.addEventListener("play", () => {
-                sessionStorage.setItem("bgmShouldPlay", "true");
-            });
-            audio.addEventListener("pause", () => {
-                sessionStorage.setItem("bgmShouldPlay", "false");
-            });
-        });
-        function showInfoModal() {
-            document.getElementById("infoModal").classList.remove("d-none");
-        }
+           // 3️. 監聽播放與暫停事件，紀錄狀態
+           audio.addEventListener("play", () => {
+               sessionStorage.setItem("bgmShouldPlay", "true");
+           });
+           audio.addEventListener("pause", () => {
+               sessionStorage.setItem("bgmShouldPlay", "false");
+           });
+       });
 
-        function closeInfoModal() {
-            document.getElementById("infoModal").classList.add("d-none");
-        }
-    </script>
+       /*================================================ */
+       /*= Modal 控制邏輯（Info 視窗）                   =*/
+       /*================================================ */
+       function showInfoModal() {
+           document.getElementById("infoModal").classList.remove("d-none");
+       }
+       function closeInfoModal() {
+           document.getElementById("infoModal").classList.add("d-none");
+       }
 
-    <script>
-        function stopBGM() {
-            const audio = document.getElementById("bgm");
-            if (audio) {
-                audio.pause();
-                sessionStorage.setItem("bgmShouldPlay", "false"); // ❗ 確保狀態儲存
-                audio.src = "";  // 關鍵：清掉音源，讓瀏覽器以為沒有聲音了
-                audio.load();    // 強迫重新載入，觸發「音訊已停止」
-            }
-        }
-    </script>
+       /*================================================ */
+       /*= 停止BGM：完全清除音源，確保不再播放           =*/
+       /*================================================ */
+       function stopBGM() {
+           const audio = document.getElementById("bgm");
+           if (audio) {
+               audio.pause();
+               sessionStorage.setItem("bgmShouldPlay", "false");
+               audio.src = "";  // 關鍵：清掉音源
+               audio.load();    // 強迫重新載入，讓瀏覽器認定已停止
+           }
+       }
+   </script>
 
     <!-- ✅ ✅ ✅ 已整合語音音量控制邏輯 -->
     <script>
@@ -467,7 +551,7 @@
                 }
             });
 
-            // ✅ 森林遮罩關閉（正確）
+            // ✅ 森林遮罩關閉
             const forestOverlay = document.getElementById("forestOverlay");
             forestOverlay?.addEventListener("click", function (e) {
                 if (e.target === forestOverlay) {
@@ -517,41 +601,6 @@
                 });
             });
         });
-
-        // ✅ 顯示祭壇儀表板（更新為顯示整個 overlay）
-        function showAltarPanel(altarId, learningStatus, nextReviewTimeStr) {
-            document.getElementById("altarOptionsOverlay").style.display = "block";
-            document.getElementById("pnlAltarOptions").style.display = "block"; // 🟢 加這一行，顯示儀表板
-            document.getElementById("altarTitle").textContent = "祭壇 " + altarId;
-
-            const daysLabel = document.getElementById("daysSinceReview");
-            if (!nextReviewTimeStr) {
-                daysLabel.textContent = "尚未學習";
-            } else {
-                const nextTime = new Date(nextReviewTimeStr);
-                const now = new Date();
-                const diffMs = now - nextTime;
-
-                if (diffMs < 0) {
-                    const totalSeconds = Math.floor(-diffMs / 1000);
-                    const hours = Math.floor(totalSeconds / 3600);
-                    const minutes = Math.floor((totalSeconds % 3600) / 60);
-                    daysLabel.textContent = `下次充能：${hours}時${minutes}分`;
-                } else {
-                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                    daysLabel.textContent = `${days} 天未複習`;
-                }
-            }
-
-            const actionButton = document.querySelector(".altar-button-action");
-            if (learningStatus === 0) {
-                actionButton.textContent = "攻略";
-            } else if (learningStatus >= 1 && learningStatus < 7) {
-                actionButton.textContent = "充能";
-            } else if (learningStatus === 999 || learningStatus >= 7) {
-                actionButton.textContent = "複習";
-            }
-        }
     </script>
 
     <script>
@@ -1714,23 +1763,23 @@
         function startFirstLearning(altarId) {
             console.log("▶ 進入首次學習，祭壇 ID:", altarId);
             fetch('<%= ResolveUrl("~/FirstLearningService.asmx/ResetFirstLearningBatchID") %>', {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json; charset=utf-8' },
-               body: JSON.stringify({ altar_id: altarId })
-           })
-               .then(res => res.json())
-               .then(resData => {
-                   if (resData.d && resData.d.status === "OK") {
-                       // 存在全域變數，後續 SaveFirstLearningResult 要用
-                       window.currentDiamondBatchId = resData.d.diamond_batch_id;
-                       window.currentEnergyBatchId = resData.d.energy_batch_id;
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ altar_id: altarId })
+            })
+                .then(res => res.json())
+                .then(resData => {
+                    if (resData.d && resData.d.status === "OK") {
+                        // 存在全域變數，後續 SaveFirstLearningResult 要用
+                        window.currentDiamondBatchId = resData.d.diamond_batch_id;
+                        window.currentEnergyBatchId = resData.d.energy_batch_id;
 
-                       console.log("✅ 鑽石 BatchID 已重置：" + window.currentDiamondBatchId);
-                       console.log("✅ 體力 BatchID 已重置：" + window.currentEnergyBatchId);
-                   }
-               })
-               .catch(err => console.error("❌ 重置 BatchID API 錯誤:", err));
-       
+                        console.log("✅ 鑽石 BatchID 已重置：" + window.currentDiamondBatchId);
+                        console.log("✅ 體力 BatchID 已重置：" + window.currentEnergyBatchId);
+                    }
+                })
+                .catch(err => console.error("❌ 重置 BatchID API 錯誤:", err));
+
             // ====== ✅ 每次開始首次學習時BGM音量自動降至20%，若原本0%則不做調整 ======
             const audio = document.getElementById("bgm");
             const volumeSlider = document.getElementById("volumeSlider");

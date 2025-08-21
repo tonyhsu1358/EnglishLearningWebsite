@@ -411,7 +411,14 @@ body {
     transition: all 0.3s ease-in-out; /* 動畫過渡 */
 }
 
-    .altar-button-action:hover {
+    /* 🔶 冷卻期間按鈕所展示的顏色，不可點選由前端控制 */
+    .altar-button-action:disabled {
+        background-color: #BEBEBE; /* 灰色 */
+        cursor: not-allowed;
+    }
+
+    /* 🔶 滑鼠懸停效果（僅在可點擊時有效） */
+    .altar-button-action:not(:disabled):hover {
         background-color: #8b5a2b; /* 滑鼠懸停變亮一點 */
     }
 
