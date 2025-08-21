@@ -242,7 +242,9 @@ public partial class VocabularyGame : System.Web.UI.Page
         int userId = (int)Session["UserID"];
 
         string query = @"
-    SELECT ma.altar_id, COALESCE(up.learning_status, 0) AS learning_status
+    SELECT ma.altar_id, 
+           COALESCE(up.learning_status, 0) AS learning_status,
+           up.next_review_time
     FROM magic_altar ma
     LEFT JOIN user_altar_progress up
         ON ma.altar_id = up.altar_id AND up.user_id = @UserID
@@ -266,16 +268,25 @@ public partial class VocabularyGame : System.Web.UI.Page
                     int status = Convert.ToInt32(reader["learning_status"]);
                     string cssClass = "locked";
 
+                    // 依照狀態給初始樣式
                     if (status == 0)
                         cssClass = "locked";
                     else if (status >= 1 && status < 7)
                         cssClass = "learning";
-                    else if (status == 999)
-                        cssClass = "withered";
                     else if (status >= 7)
                         cssClass = "completed";
 
-                    // 加入 100 顆祭壇按鈕
+                    // 🔑 額外動態判斷是否乾枯（不修改 DB）
+                    if (!reader.IsDBNull(reader.GetOrdinal("next_review_time")))
+                    {
+                        DateTime nextReview = Convert.ToDateTime(reader["next_review_time"]);
+                        if (DateTime.Now > nextReview && status >= 1 && status < 7)
+                        {
+                            cssClass = "withered"; // 狀態覆蓋為乾枯
+                        }
+                    }
+
+                    // ✅ 加入祭壇按鈕
                     altarHtml.AppendFormat(
                       "<button type='button' class='altar-button {0}' onclick='showAltarOptions({1})'>{1}</button>",
                        cssClass, altarId
