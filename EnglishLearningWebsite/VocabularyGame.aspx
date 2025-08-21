@@ -381,6 +381,24 @@
             } else if (learningStatus === 999 || learningStatus >= 7) {
                 actionButton.textContent = "複習";
             }
+
+            // ✅ 同時更新南瓜進度條
+            updatePumpkins(learningStatus);
+        }
+
+        //================================================
+        // 南瓜進度條：根據 learningStatus 更新顏色
+        //================================================
+        function updatePumpkins(learningStatus) {
+            const pumpkins = document.querySelectorAll("#pumpkinProgress .altar-pumpkin");
+
+            pumpkins.forEach((pumpkin, index) => {
+                if (index < learningStatus) {
+                    pumpkin.src = "images/pumpkinwithcolor.svg";   // 已完成 → 有顏色
+                } else {
+                    pumpkin.src = "images/pumpkinwithnocolor.svg"; // 未完成 → 灰色
+                }
+            });
         }
     </script>
 
