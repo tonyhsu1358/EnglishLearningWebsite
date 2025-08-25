@@ -1130,6 +1130,7 @@
         let firstLearningWords = [];             // 儲存本次祭壇10個單字
         let firstLearningCurrentIndex = 0;       // 當前組的起始索引（0,2,4,...）
         let firstLearningWrongIndexes = [];      // 新增：記錄答錯的索引
+        let firstLearningWrongScrollIds = []; // 新增：記錄錯誤單字的 scroll_id，用於存入資料庫
         let firstLearningStep = 0;               // 控制流程的步驟：0=展示1, 1=展示2, 2=quiz1, 3=quiz2
         let currentProgressPercent = 0;          // 進度條目前百分比
         let firstLearningPaused = false;         // 若答錯 quiz，暫停流程，等用戶點 NEXT
@@ -1185,9 +1186,13 @@
                         if (!firstLearningWrongIndexes.includes(groupStart)) {
                             firstLearningWrongIndexes.push(groupStart);
                         }
+                        // ★ 新增：存 scroll_id
+                        const wrongScrollId = firstLearningWords[groupStart]?.positions?.[0]?.scroll_id;
+                        if (wrongScrollId) {
+                            firstLearningWrongScrollIds.push(wrongScrollId);
+                        }
                         console.log("目前錯誤單字索引：", firstLearningWrongIndexes);
 
-                        // -------- 這裡加上這行 --------
                         firstLearningStep = 3; // ★★★ 答錯時一樣 step 推進！下次就是 quiz2
 
                         // 啟用暫停，NEXT 只解除暫停（不直接切換步驟，由主控接管）
@@ -1210,6 +1215,11 @@
                             // 答錯：記錄索引，不重複測驗，顯示 NEXT
                             if (!firstLearningWrongIndexes.includes(groupStart + 1)) {
                                 firstLearningWrongIndexes.push(groupStart + 1);
+                            }
+                            // ★ 新增：存 scroll_id
+                            const wrongScrollId2 = firstLearningWords[groupStart + 1]?.positions?.[0]?.scroll_id;
+                            if (wrongScrollId2) {
+                                firstLearningWrongScrollIds.push(wrongScrollId2);
                             }
                             console.log("目前錯誤單字索引：", firstLearningWrongIndexes);
 
@@ -1654,7 +1664,8 @@
                 wrong_count: wrong,
                 accuracy: rate,
                 diamonds: diamonds,
-                hours: hours
+                hours: hours,
+                wrong_scroll_ids: firstLearningWrongScrollIds // ★ 傳給後端
             });
 
             firstLearningStep = 201;

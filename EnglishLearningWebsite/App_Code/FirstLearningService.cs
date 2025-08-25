@@ -138,7 +138,9 @@ public class FirstLearningService : WebService
    int diamonds,
    int hours,
    string diamond_batch_id,
-   string energy_batch_id)
+   string energy_batch_id,
+   List<int> wrong_scroll_ids // ★ 新增：接收前端傳來的錯誤單字 ID
+   )
     {
         if (HttpContext.Current.Session["UserID"] == null)
             return new { status = "NOT_LOGGED_IN" };
@@ -263,6 +265,34 @@ public class FirstLearningService : WebService
                         cmd.Parameters.AddWithValue("@AltarId", altar_id);
                         cmd.Parameters.AddWithValue("@Hours", hours);
                         cmd.ExecuteNonQuery();
+                    }
+
+                    // 5.存入答錯單字的必要資訊
+                    if (wrong_scroll_ids != null && wrong_scroll_ids.Count > 0)
+                    {
+                        foreach (int scrollId in wrong_scroll_ids)
+                        {
+                            string upsertErrorSql = @"
+        IF EXISTS (SELECT 1 FROM user_word_errors WHERE user_id = @UserId AND scroll_id = @ScrollId AND error_stage = 'first_learning')
+        BEGIN
+            UPDATE user_word_errors
+            SET error_count = error_count + 1,
+                last_wrong_time = GETDATE()
+            WHERE user_id = @UserId AND scroll_id = @ScrollId AND error_stage = 'first_learning';
+        END
+        ELSE
+        BEGIN
+            INSERT INTO user_word_errors (user_id, scroll_id, error_stage, error_count, last_wrong_time)
+            VALUES (@UserId, @ScrollId, 'first_learning', 1, GETDATE());
+        END";
+
+                            using (SqlCommand cmd = new SqlCommand(upsertErrorSql, conn, tran))
+                            {
+                                cmd.Parameters.AddWithValue("@UserId", userId);
+                                cmd.Parameters.AddWithValue("@ScrollId", scrollId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
                     }
 
                     // ✅ 所有 SQL 都成功，最後才 Commit 一次
