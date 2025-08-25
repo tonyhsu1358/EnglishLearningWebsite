@@ -83,7 +83,7 @@
                         <!-- ✅ 🔽 新增：祭壇選擇儀表板（點選祭壇按鈕後顯示） -->
                         <asp:UpdatePanel ID="UpdatePanelAltar" runat="server">
                             <ContentTemplate>
-                                <div id="altarOptionsOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); z-index: 10001;">
+                                <div id="altarOptionsOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); z-index: 100;">
                                     <asp:Panel ID="pnlAltarOptions" runat="server" ClientIDMode="Static" CssClass="altar-options-panel" Style="display: none;">
                                         <div class="altar-options-content">
                                             <!-- 🔴 右上角叉叉關閉按鈕 -->
@@ -341,6 +341,7 @@
                 if (diffMs > 0) {
                     // ⏳ 尚未到下一次充能 → 禁用按鈕，顯示倒數
                     actionButton.disabled = true;
+                    actionButton.setAttribute("data-tooltip", "冷卻期間不可充能"); // 🔥 套用提示
 
                     function updateCountdown() {
                         const now = new Date();
@@ -373,13 +374,23 @@
                 }
             }
 
-            // ✅ 根據學習狀態更新按鈕文字
+            // ✅ 根據學習狀態更新按鈕文字（預設）
             if (learningStatus === 0) {
                 actionButton.textContent = "攻略";
             } else if (learningStatus >= 1 && learningStatus < 7) {
                 actionButton.textContent = "充能";
             } else if (learningStatus === 999 || learningStatus >= 7) {
                 actionButton.textContent = "複習";
+            }
+
+            // ✅ 能量檢查邏輯
+            const lblEnergy = document.getElementById("lblEnergy");
+            let currentEnergy = lblEnergy ? parseInt(lblEnergy.textContent, 10) : 0;
+
+            if (!isNaN(currentEnergy) && currentEnergy <= 0) {
+                actionButton.textContent = "能量不足";
+                actionButton.disabled = true;  // 前端禁用，並套用CSS的.altar-button-action:disabled
+                actionButton.setAttribute("data-tooltip", "需要體力才能攻略/充能/複習"); // 套上提示
             }
 
             // ✅ 同時更新南瓜進度條
@@ -1697,7 +1708,7 @@
                                     btn.classList.add("locked");       // 未解鎖
                                 }
                                 else if (resData.d.newStatus >= 1 && resData.d.newStatus <= 6) {
-                                    btn.classList.add("learning");     // 學習中（包含 1~6，當然包括 5）
+                                    btn.classList.add("learning");     // 學習中（包含 1~6）
                                 }
                                 else if (resData.d.newStatus === 999) {
                                     btn.classList.add("withered");     // 乾枯狀態
@@ -2212,7 +2223,6 @@
                     bgmVolumeWasAdjusted = false; // 重置flag
                     originalBgmVolume = null;
                 }
-                // =========================================== //
 
             }, 0);
         };
