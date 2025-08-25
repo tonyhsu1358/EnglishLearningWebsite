@@ -359,7 +359,7 @@ body {
     position: absolute; /* 絕對定位 */
     left: calc(50% + 110px); /* 相對中間再偏右 110px */
     top: 2px; /* 距頂 2px */
-    font-size: 20px; /* 字體大小 */
+    font-size: 18px; /* 字體大小 */
     color: #999; /* 淡灰色 */
     font-weight: 500; /* 中粗體 */
 }
