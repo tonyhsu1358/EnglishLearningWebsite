@@ -443,83 +443,83 @@
     </script>
 
     <audio id="bgm" src="musics/ScentOfForest.mp3" autoplay loop></audio>
-   <script>
-       /*================================================ */
-       /*= BGM背景音樂撥放邏輯                          =*/
-       /*= 載入網頁BGM自動設置為50%音量，用戶可調整      =*/
-       /*================================================ */
-       let originalBgmVolume = null;      // ⬅️ 全域變數，儲存原本音量
-       let bgmVolumeWasAdjusted = false;  // ⬅️ 判斷是否曾自動調整音量
+    <script>
+        /*================================================ */
+        /*= BGM背景音樂撥放邏輯                          =*/
+        /*= 載入網頁BGM自動設置為50%音量，用戶可調整      =*/
+        /*================================================ */
+        let originalBgmVolume = null;      // ⬅️ 全域變數，儲存原本音量
+        let bgmVolumeWasAdjusted = false;  // ⬅️ 判斷是否曾自動調整音量
 
-       document.addEventListener("DOMContentLoaded", function () {
-           const audio = document.getElementById("bgm");
-           const volumeSlider = document.getElementById("volumeSlider");
-           const volumeIcon = document.getElementById("volumeIcon");
+        document.addEventListener("DOMContentLoaded", function () {
+            const audio = document.getElementById("bgm");
+            const volumeSlider = document.getElementById("volumeSlider");
+            const volumeIcon = document.getElementById("volumeIcon");
 
-           // 1️. 從 sessionStorage 取出音量與播放狀態
-           const savedVolume = sessionStorage.getItem("bgmVolume");
-           const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
+            // 1️. 從 sessionStorage 取出音量與播放狀態
+            const savedVolume = sessionStorage.getItem("bgmVolume");
+            const shouldPlay = sessionStorage.getItem("bgmShouldPlay");
 
-           // 設定音量（若無紀錄則預設 50%）
-           if (savedVolume !== null) {
-               audio.volume = parseFloat(savedVolume);
-               volumeSlider.value = savedVolume;
-           } else {
-               audio.volume = 0.5;
-               volumeSlider.value = 0.5;
-           }
+            // 設定音量（若無紀錄則預設 50%）
+            if (savedVolume !== null) {
+                audio.volume = parseFloat(savedVolume);
+                volumeSlider.value = savedVolume;
+            } else {
+                audio.volume = 0.5;
+                volumeSlider.value = 0.5;
+            }
 
-           // 初始化圖示
-           function updateVolumeIcon(volume) {
-               volumeIcon.src = volume == 0 ? "images/volume0.svg" : "images/volume.svg";
-           }
-           updateVolumeIcon(audio.volume);
+            // 初始化圖示
+            function updateVolumeIcon(volume) {
+                volumeIcon.src = volume == 0 ? "images/volume0.svg" : "images/volume.svg";
+            }
+            updateVolumeIcon(audio.volume);
 
-           // 音量滑桿事件：即時更新 + 儲存
-           volumeSlider.addEventListener("input", function () {
-               const newVolume = parseFloat(this.value);
-               audio.volume = newVolume;
-               sessionStorage.setItem("bgmVolume", newVolume);
-               updateVolumeIcon(newVolume);
-           });
+            // 音量滑桿事件：即時更新 + 儲存
+            volumeSlider.addEventListener("input", function () {
+                const newVolume = parseFloat(this.value);
+                audio.volume = newVolume;
+                sessionStorage.setItem("bgmVolume", newVolume);
+                updateVolumeIcon(newVolume);
+            });
 
-           // 2️. 若上次是播放狀態，恢復播放
-           if (shouldPlay === "true") {
-               audio.play().catch(() => { });
-           }
+            // 2️. 若上次是播放狀態，恢復播放
+            if (shouldPlay === "true") {
+                audio.play().catch(() => { });
+            }
 
-           // 3️. 監聽播放與暫停事件，紀錄狀態
-           audio.addEventListener("play", () => {
-               sessionStorage.setItem("bgmShouldPlay", "true");
-           });
-           audio.addEventListener("pause", () => {
-               sessionStorage.setItem("bgmShouldPlay", "false");
-           });
-       });
+            // 3️. 監聽播放與暫停事件，紀錄狀態
+            audio.addEventListener("play", () => {
+                sessionStorage.setItem("bgmShouldPlay", "true");
+            });
+            audio.addEventListener("pause", () => {
+                sessionStorage.setItem("bgmShouldPlay", "false");
+            });
+        });
 
-       /*================================================ */
-       /*= Modal 控制邏輯（Info 視窗）                   =*/
-       /*================================================ */
-       function showInfoModal() {
-           document.getElementById("infoModal").classList.remove("d-none");
-       }
-       function closeInfoModal() {
-           document.getElementById("infoModal").classList.add("d-none");
-       }
+        /*================================================ */
+        /*= Modal 控制邏輯（Info 視窗）                   =*/
+        /*================================================ */
+        function showInfoModal() {
+            document.getElementById("infoModal").classList.remove("d-none");
+        }
+        function closeInfoModal() {
+            document.getElementById("infoModal").classList.add("d-none");
+        }
 
-       /*================================================ */
-       /*= 停止BGM：完全清除音源，確保不再播放           =*/
-       /*================================================ */
-       function stopBGM() {
-           const audio = document.getElementById("bgm");
-           if (audio) {
-               audio.pause();
-               sessionStorage.setItem("bgmShouldPlay", "false");
-               audio.src = "";  // 關鍵：清掉音源
-               audio.load();    // 強迫重新載入，讓瀏覽器認定已停止
-           }
-       }
-   </script>
+        /*================================================ */
+        /*= 停止BGM：完全清除音源，確保不再播放           =*/
+        /*================================================ */
+        function stopBGM() {
+            const audio = document.getElementById("bgm");
+            if (audio) {
+                audio.pause();
+                sessionStorage.setItem("bgmShouldPlay", "false");
+                audio.src = "";  // 關鍵：清掉音源
+                audio.load();    // 強迫重新載入，讓瀏覽器認定已停止
+            }
+        }
+    </script>
 
     <!-- ✅ ✅ ✅ 已整合語音音量控制邏輯 -->
     <script>
@@ -784,55 +784,56 @@
         }
     </script>
 
-       <script>
-           //================================================
-           //第四章:顯示單字詳細資訊儀錶板
-           //================================================
-           // ✅ 從整座森林中載入所有單字，並打開詳細資訊儀表板（可用上下箭頭切換 1000 字）
-           let wheelHandler = null; // 🔥 全域變數，記錄當前的滾輪 handler
-           function loadFullScrollWords(forestId, clickedScrollId) {
-               // 🔁 發送 POST 請求給 ScrollService.asmx/GetAllScrollWordsByForest，取得該森林全部單字
-               fetch("ScrollService.asmx/GetAllScrollWordsByForest", {
-                   method: "POST",
-                   headers: { "Content-Type": "application/json" },
-                   body: JSON.stringify({ forestId: forestId }) // 傳入森林 ID 作為查詢條件
-               })
-                   .then(res => res.json()) // 轉成 JSON 格式
-                   .then(result => {
-                       speechSynthesis.cancel(); // 取消播放語音
+    <script>
+        //================================================
+        //第四章:顯示單字詳細資訊儀錶板
+        //================================================
+        // ✅ 從整座森林中載入所有單字，並打開詳細資訊儀表板（可用上下箭頭切換 1000 字）
+        let wheelHandler = null; // 🔥 全域變數，記錄當前的滾輪 handler  
+        let isExpandedGlobally = false;// 🔥 全域變數，用來記住展開狀態的變數（true = 展開中，false = 收起）
+        function loadFullScrollWords(forestId, clickedScrollId) {
+            // 🔁 發送 POST 請求給 ScrollService.asmx/GetAllScrollWordsByForest，取得該森林全部單字
+            fetch("ScrollService.asmx/GetAllScrollWordsByForest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ forestId: forestId }) // 傳入森林 ID 作為查詢條件
+            })
+                .then(res => res.json()) // 轉成 JSON 格式
+                .then(result => {
+                    speechSynthesis.cancel(); // 取消播放語音
 
-                       // 🔥 把所有亮著的小喇叭 ICON 還原成灰色
-                       document.querySelectorAll(".word-icons img[src*='volumewithlightcolor']").forEach(icon => {
-                           icon.src = "images/volumewithnocolor.svg";
-                       });
+                    // 🔥 把所有亮著的小喇叭 ICON 還原成灰色
+                    document.querySelectorAll(".word-icons img[src*='volumewithlightcolor']").forEach(icon => {
+                        icon.src = "images/volumewithnocolor.svg";
+                    });
 
-                       scrollWords = result.d;
-                       const startIndex = scrollWords.findIndex(w => w.scroll_id === clickedScrollId);
-                       if (startIndex !== -1) {
-                           showWordDetailPanel(scrollWords, startIndex);
-                       } else {
-                           alert("❌ 找不到該單字位置");
-                       }
-                   });
+                    scrollWords = result.d;
+                    const startIndex = scrollWords.findIndex(w => w.scroll_id === clickedScrollId);
+                    if (startIndex !== -1) {
+                        showWordDetailPanel(scrollWords, startIndex);
+                    } else {
+                        alert("❌ 找不到該單字位置");
+                    }
+                });
 
-           }
+        }
 
-           //此為顯示詳細單字資訊的方法
-           function showWordDetailPanel(words, index) {
-               const panel = document.getElementById("pnlWordDetail");
-               const container = document.getElementById("pnlWordDetailContent");
-               const posLabel = document.getElementById("wordPosition");
-               const locLabel = document.getElementById("wordLocation");
+        //此為顯示詳細單字資訊的方法
+        function showWordDetailPanel(words, index) {
+            const panel = document.getElementById("pnlWordDetail");
+            const container = document.getElementById("pnlWordDetailContent");
+            const posLabel = document.getElementById("wordPosition");
+            const locLabel = document.getElementById("wordLocation");
 
-               // ✅ 每次都清空容器（不只第一次）
-               container.innerHTML = "";
+            // ✅ 每次都清空容器（不只第一次）
+            container.innerHTML = "";
 
-               const card = document.createElement("div");
-               card.className = "scroll-word-card";
+            const card = document.createElement("div");
+            card.className = "scroll-word-card";
 
-               const left = document.createElement("div");
-               left.className = "word-left";
-               left.innerHTML = `
+            const left = document.createElement("div");
+            left.className = "word-left";
+            left.innerHTML = `
 <div class="word-text-wrapper">
     <span id="wordText" class="word-text"></span>
 </div>
@@ -851,297 +852,294 @@
 <span id="translationText" class="info text-muted"></span>
 `;
 
-               card.appendChild(left);
-               container.appendChild(card);
+            card.appendChild(left);
+            container.appendChild(card);
 
-               // 插入單字發音 icon（右上角）
-               const iconAudio = document.createElement("img");
-               iconAudio.id = "iconWordAudio";
-               iconAudio.className = "word-audio-icon";
-               iconAudio.src = "images/volumewithnocolor.svg";
-               card.appendChild(iconAudio);
+            // 插入單字發音 icon（右上角）
+            const iconAudio = document.createElement("img");
+            iconAudio.id = "iconWordAudio";
+            iconAudio.className = "word-audio-icon";
+            iconAudio.src = "images/volumewithnocolor.svg";
+            card.appendChild(iconAudio);
 
-               // 插入例句發音 icon（例句右側）
-               const exampleContainer = left.querySelector(".example-container");
-               const sentenceAudio = document.createElement("img");
-               sentenceAudio.id = "iconSentenceAudio";
-               sentenceAudio.className = "sentence-audio-icon";
-               sentenceAudio.src = "images/volumewithnocolor.svg";
-               exampleContainer.appendChild(sentenceAudio);
+            // 插入例句發音 icon（例句右側）
+            const exampleContainer = left.querySelector(".example-container");
+            const sentenceAudio = document.createElement("img");
+            sentenceAudio.id = "iconSentenceAudio";
+            sentenceAudio.className = "sentence-audio-icon";
+            sentenceAudio.src = "images/volumewithnocolor.svg";
+            exampleContainer.appendChild(sentenceAudio);
 
-               // ✅ 每次打開新祭壇 → 強制 reset 狀態
-               let currentIndex = index;
-               let lastScrollTime = 0; // 放這裡就好
-               let isSpeaking = false;
-               let hasWheelListener = false;
-               // 🔥 保證滾輪 listener 每次重綁，不會吃到上次的
-               panel.dataset.hasWheelListener = "false";
+            // ✅ 每次打開新祭壇 → 強制 reset 狀態
+            let currentIndex = index;
+            let lastScrollTime = 0; // 放這裡就好
+            let isSpeaking = false;
+            let hasWheelListener = false;
+            // 🔥 保證滾輪 listener 每次重綁，不會吃到上次的
+            panel.dataset.hasWheelListener = "false";
 
-               // 💡 用來記住展開狀態的變數（true = 展開中，false = 收起）
-               let isExpandedGlobally = false;
+            // ✅ 更新單字卡片內容
+            function updateCard(w) {
+                currentIndex = words.findIndex(word => word.scroll_id === w.scroll_id);
+                if (currentIndex === -1) return; // 萬一同步出問題就跳掉
 
-               // ✅ 更新單字卡片內容
-               function updateCard(w) {
-                   currentIndex = words.findIndex(word => word.scroll_id === w.scroll_id);
-                   if (currentIndex === -1) return; // 萬一同步出問題就跳掉
+                const wordAudio = document.getElementById("iconWordAudio");
+                const sentenceAudio = document.getElementById("iconSentenceAudio");
 
-                   const wordAudio = document.getElementById("iconWordAudio");
-                   const sentenceAudio = document.getElementById("iconSentenceAudio");
+                // 還原音效圖示狀態
+                if (wordAudio) wordAudio.src = "images/volumewithnocolor.svg";
+                if (sentenceAudio) sentenceAudio.src = "images/volumewithnocolor.svg";
 
-                   // 還原音效圖示狀態
-                   if (wordAudio) wordAudio.src = "images/volumewithnocolor.svg";
-                   if (sentenceAudio) sentenceAudio.src = "images/volumewithnocolor.svg";
+                speechSynthesis.cancel(); // 取消先前語音播放
 
-                   speechSynthesis.cancel(); // 取消先前語音播放
+                fetch("ScrollService.asmx/GetWordDetail", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ scrollId: w.scroll_id })
+                })
+                    .then(res => res.json())
+                    .then(result => {
+                        const items = result.d;
+                        if (!Array.isArray(items) || items.length === 0) {
+                            container.innerHTML = "<p>❌ 無法載入資料</p>";
+                            return;
+                        }
 
-                   fetch("ScrollService.asmx/GetWordDetail", {
-                       method: "POST",
-                       headers: { "Content-Type": "application/json" },
-                       credentials: "include",
-                       body: JSON.stringify({ scrollId: w.scroll_id })
-                   })
-                       .then(res => res.json())
-                       .then(result => {
-                           const items = result.d;
-                           if (!Array.isArray(items) || items.length === 0) {
-                               container.innerHTML = "<p>❌ 無法載入資料</p>";
-                               return;
-                           }
+                        const verbEntry = items.find(i => i.part_of_speech.startsWith("v")) || {};
+                        const base = items[0];
 
-                           const verbEntry = items.find(i => i.part_of_speech.startsWith("v")) || {};
-                           const base = items[0];
+                        // 填入基本資訊
+                        document.getElementById("wordText").innerText = base.word;
+                        document.getElementById("pronunciationText").innerHTML = `<strong>${base.pronunciation}</strong>`;
 
-                           // 填入基本資訊
-                           document.getElementById("wordText").innerText = base.word;
-                           document.getElementById("pronunciationText").innerHTML = `<strong>${base.pronunciation}</strong>`;
+                        const tenseElem = document.getElementById("tenseText");
+                        const past1 = verbEntry.past_tense || "—";
+                        const past2 = verbEntry.past_participle || "—";
 
-                           const tenseElem = document.getElementById("tenseText");
-                           const past1 = verbEntry.past_tense || "—";
-                           const past2 = verbEntry.past_participle || "—";
+                        if (past1 === "—" && past2 === "—") {
+                            tenseElem.style.display = "none";
+                        } else {
+                            tenseElem.style.display = "block";
+                            tenseElem.innerHTML = `過去式：${past1}<br/>過去分詞：${past2}`;
+                        }
 
-                           if (past1 === "—" && past2 === "—") {
-                               tenseElem.style.display = "none";
-                           } else {
-                               tenseElem.style.display = "block";
-                               tenseElem.innerHTML = `過去式：${past1}<br/>過去分詞：${past2}`;
-                           }
+                        document.getElementById("exampleText").innerText = base.example_sentence;
+                        document.getElementById("translationText").innerText = base.example_translation;
+                        locLabel.textContent = base.location_text;
+                        posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
 
-                           document.getElementById("exampleText").innerText = base.example_sentence;
-                           document.getElementById("translationText").innerText = base.example_translation;
-                           locLabel.textContent = base.location_text;
-                           posLabel.textContent = `${currentIndex + 1} / ${words.length}`;
+                        const meanings = items.map(item =>
+                            `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`
+                        ).join("<br/>");
+                        document.getElementById("posMeaningText").innerHTML = meanings;
 
-                           const meanings = items.map(item =>
-                               `<span class="part-of-speech-badge">${item.part_of_speech}</span> ${item.meaning}`
-                           ).join("<br/>");
-                           document.getElementById("posMeaningText").innerHTML = meanings;
+                        // 移除舊的展開區塊
+                        const oldExpand = document.getElementById("expandWrapper");
+                        if (oldExpand) oldExpand.remove();
 
-                           // 移除舊的展開區塊
-                           const oldExpand = document.getElementById("expandWrapper");
-                           if (oldExpand) oldExpand.remove();
+                        // 建立展開區塊（同反衍）
+                        const tenseWrapper = document.getElementById("tenseWrapper");
+                        const expandWrapper = document.createElement("div");
+                        expandWrapper.id = "expandWrapper";
+                        expandWrapper.style.marginTop = "6px";
 
-                           // 建立展開區塊（同反衍）
-                           const tenseWrapper = document.getElementById("tenseWrapper");
-                           const expandWrapper = document.createElement("div");
-                           expandWrapper.id = "expandWrapper";
-                           expandWrapper.style.marginTop = "6px";
+                        // 建立展開 icon 圖示
+                        const toggleIcon = document.createElement("img");
+                        toggleIcon.src = "images/more-svgrepo-com.svg";
+                        toggleIcon.className = "expand-toggle";
+                        toggleIcon.style.width = "24px";
+                        toggleIcon.style.cursor = "pointer";
 
-                           // 建立展開 icon 圖示
-                           const toggleIcon = document.createElement("img");
-                           toggleIcon.src = "images/more-svgrepo-com.svg";
-                           toggleIcon.className = "expand-toggle";
-                           toggleIcon.style.width = "24px";
-                           toggleIcon.style.cursor = "pointer";
+                        // 根據展開狀態加上 `.expanded` class（旋轉 90 度）
+                        if (isExpandedGlobally) {
+                            toggleIcon.classList.add("expanded");
+                        } else {
+                            toggleIcon.classList.remove("expanded");
+                        }
 
-                           // 根據展開狀態加上 `.expanded` class（旋轉 90 度）
-                           if (isExpandedGlobally) {
-                               toggleIcon.classList.add("expanded");
-                           } else {
-                               toggleIcon.classList.remove("expanded");
-                           }
+                        // 建立展開內容區塊
+                        const wordInfoDiv = document.createElement("div");
+                        wordInfoDiv.style.marginTop = "8px";
+                        wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
 
-                           // 建立展開內容區塊
-                           const wordInfoDiv = document.createElement("div");
-                           wordInfoDiv.style.marginTop = "8px";
-                           wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
+                        // 建立單行項目（同/反/衍）
+                        const createRow = (labelText, content) => {
+                            const row = document.createElement("div");
+                            const badge = document.createElement("span");
+                            badge.className = "part-of-speech-badge";
+                            badge.textContent = labelText;
 
-                           // 建立單行項目（同/反/衍）
-                           const createRow = (labelText, content) => {
-                               const row = document.createElement("div");
-                               const badge = document.createElement("span");
-                               badge.className = "part-of-speech-badge";
-                               badge.textContent = labelText;
+                            const contentSpan = document.createElement("span");
+                            contentSpan.textContent = content || "—";
+                            contentSpan.style.marginLeft = "6px";
 
-                               const contentSpan = document.createElement("span");
-                               contentSpan.textContent = content || "—";
-                               contentSpan.style.marginLeft = "6px";
+                            row.appendChild(badge);
+                            row.appendChild(contentSpan);
+                            return row;
+                        };
 
-                               row.appendChild(badge);
-                               row.appendChild(contentSpan);
-                               return row;
-                           };
+                        // 加入內容區塊
+                        wordInfoDiv.appendChild(createRow("同", base.synonym_words));
+                        wordInfoDiv.appendChild(createRow("反", base.antonym_words));
+                        wordInfoDiv.appendChild(createRow("衍", base.related_info));
 
-                           // 加入內容區塊
-                           wordInfoDiv.appendChild(createRow("同", base.synonym_words));
-                           wordInfoDiv.appendChild(createRow("反", base.antonym_words));
-                           wordInfoDiv.appendChild(createRow("衍", base.related_info));
+                        // 點擊 toggle 展開 / 收合
+                        toggleIcon.onclick = () => {
+                            isExpandedGlobally = !isExpandedGlobally;
+                            wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
+                            toggleIcon.classList.toggle("expanded", isExpandedGlobally);
+                        };
 
-                           // 點擊 toggle 展開 / 收合
-                           toggleIcon.onclick = () => {
-                               isExpandedGlobally = !isExpandedGlobally;
-                               wordInfoDiv.style.display = isExpandedGlobally ? "block" : "none";
-                               toggleIcon.classList.toggle("expanded", isExpandedGlobally);
-                           };
+                        // 最後插入 DOM
+                        expandWrapper.appendChild(toggleIcon);
+                        expandWrapper.appendChild(wordInfoDiv);
+                        tenseWrapper.appendChild(expandWrapper);
 
-                           // 最後插入 DOM
-                           expandWrapper.appendChild(toggleIcon);
-                           expandWrapper.appendChild(wordInfoDiv);
-                           tenseWrapper.appendChild(expandWrapper);
+                        // ❤️ 收藏圖示邏輯
+                        const favIcon = document.getElementById("favIcon");
+                        favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                        favIcon.onclick = () => {
+                            const newFav = !w.is_favorite;
+                            w.is_favorite = newFav;
+                            words[currentIndex].is_favorite = newFav;
 
-                           // ❤️ 收藏圖示邏輯
-                           const favIcon = document.getElementById("favIcon");
-                           favIcon.src = w.is_favorite ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                           favIcon.onclick = () => {
-                               const newFav = !w.is_favorite;
-                               w.is_favorite = newFav;
-                               words[currentIndex].is_favorite = newFav;
+                            // ✅ 同步 scrollWords 陣列（已經有）
+                            const target = scrollWords.find(item => item.scroll_id === w.scroll_id);
+                            if (target) target.is_favorite = newFav;
 
-                               // ✅ 同步 scrollWords 陣列（已經有）
-                               const target = scrollWords.find(item => item.scroll_id === w.scroll_id);
-                               if (target) target.is_favorite = newFav;
+                            // ✅ ✅ ✅ [新增] 同步更新卷軸卡片上的圖示
+                            const scrollCards = document.querySelectorAll(".scroll-word-card");
+                            scrollCards.forEach(card => {
+                                const icon = card.querySelector(".word-fav");
+                                const wordLabel = card.querySelector(".word-left .word");
+                                if (wordLabel && wordLabel.textContent === w.word && icon) {
+                                    icon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                                }
+                            });
 
-                               // ✅ ✅ ✅ [新增] 同步更新卷軸卡片上的圖示
-                               const scrollCards = document.querySelectorAll(".scroll-word-card");
-                               scrollCards.forEach(card => {
-                                   const icon = card.querySelector(".word-fav");
-                                   const wordLabel = card.querySelector(".word-left .word");
-                                   if (wordLabel && wordLabel.textContent === w.word && icon) {
-                                       icon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                                   }
-                               });
+                            // ✅ 換圖 + 傳後端
+                            favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
+                            toggleFavorite(w.scroll_id, newFav);
+                            if (newFav) showFlyingHeart(favIcon);
+                        };
 
-                               // ✅ 換圖 + 傳後端
-                               favIcon.src = newFav ? "images/heartwithredcolor.svg" : "images/heartwithnocolor.svg";
-                               toggleFavorite(w.scroll_id, newFav);
-                               if (newFav) showFlyingHeart(favIcon);
-                           };
+                        // 語音：單字
+                        wordAudio.onclick = () => {
+                            speechSynthesis.cancel();
+                            wordAudio.src = "images/volumewithlightcolor.svg";
 
-                           // 語音：單字
-                           wordAudio.onclick = () => {
-                               speechSynthesis.cancel();
-                               wordAudio.src = "images/volumewithlightcolor.svg";
+                            // ❗️補上這一行，修復例句語音亮著的殘留 BUG
+                            sentenceAudio.src = "images/volumewithnocolor.svg";
 
-                               // ❗️補上這一行，修復例句語音亮著的殘留 BUG
-                               sentenceAudio.src = "images/volumewithnocolor.svg";
+                            const utter = new SpeechSynthesisUtterance(base.word);
+                            utter.lang = "en-US";
+                            utter.volume = soundEffectVolume;
+                            speechSynthesis.speak(utter);
+                            utter.onend = () => wordAudio.src = "images/volumewithnocolor.svg";
+                        };
 
-                               const utter = new SpeechSynthesisUtterance(base.word);
-                               utter.lang = "en-US";
-                               utter.volume = soundEffectVolume;
-                               speechSynthesis.speak(utter);
-                               utter.onend = () => wordAudio.src = "images/volumewithnocolor.svg";
-                           };
+                        // 語音：例句
+                        sentenceAudio.onclick = () => {
+                            speechSynthesis.cancel();
+                            sentenceAudio.src = "images/volumewithlightcolor.svg";
 
-                           // 語音：例句
-                           sentenceAudio.onclick = () => {
-                               speechSynthesis.cancel();
-                               sentenceAudio.src = "images/volumewithlightcolor.svg";
+                            // ❗️補上這一行，修復單字語音亮著的殘留 BUG
+                            wordAudio.src = "images/volumewithnocolor.svg";
 
-                               // ❗️補上這一行，修復單字語音亮著的殘留 BUG
-                               wordAudio.src = "images/volumewithnocolor.svg";
-
-                               const utter = new SpeechSynthesisUtterance(base.example_sentence);
-                               utter.lang = "en-US";
-                               utter.volume = soundEffectVolume;
-                               speechSynthesis.speak(utter);
-                               utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
-                           };
+                            const utter = new SpeechSynthesisUtterance(base.example_sentence);
+                            utter.lang = "en-US";
+                            utter.volume = soundEffectVolume;
+                            speechSynthesis.speak(utter);
+                            utter.onend = () => sentenceAudio.src = "images/volumewithnocolor.svg";
+                        };
 
 
-                           // ✅ 自動播放語音（進入卡片後延遲播放）
-                           if (!isSpeaking) {
-                               isSpeaking = true;
-                               wordAudio.src = "images/volumewithlightcolor.svg";
+                        // ✅ 自動播放語音（進入卡片後延遲播放）
+                        if (!isSpeaking) {
+                            isSpeaking = true;
+                            wordAudio.src = "images/volumewithlightcolor.svg";
 
-                               setTimeout(() => {
-                                   const autoUtter = new SpeechSynthesisUtterance(base.word);
-                                   autoUtter.lang = "en-US";
-                                   autoUtter.volume = soundEffectVolume;
-                                   autoUtter.onend = () => {
-                                       wordAudio.src = "images/volumewithnocolor.svg";
-                                       isSpeaking = false;
-                                   };
-                                   autoUtter.onerror = () => { isSpeaking = false; };
-                                   speechSynthesis.speak(autoUtter);
-                               }, 100);
-                           }
-                       });
-               }
+                            setTimeout(() => {
+                                const autoUtter = new SpeechSynthesisUtterance(base.word);
+                                autoUtter.lang = "en-US";
+                                autoUtter.volume = soundEffectVolume;
+                                autoUtter.onend = () => {
+                                    wordAudio.src = "images/volumewithnocolor.svg";
+                                    isSpeaking = false;
+                                };
+                                autoUtter.onerror = () => { isSpeaking = false; };
+                                speechSynthesis.speak(autoUtter);
+                            }, 100);
+                        }
+                    });
+            }
 
-               // ✅ 確保滾輪事件只加一次（並且正確清掉舊的 listener）
-               function setupWheelScroll(panel, words, updateCardFunc) {
-                   // 若之前已經有 handler → 先移除，避免殘留舊的索引閉包
-                   if (wheelHandler) {
-                       panel.removeEventListener("wheel", wheelHandler);
-                   }
+            // ✅ 確保滾輪事件只加一次（並且正確清掉舊的 listener）
+            function setupWheelScroll(panel, words, updateCardFunc) {
+                // 若之前已經有 handler → 先移除，避免殘留舊的索引閉包
+                if (wheelHandler) {
+                    panel.removeEventListener("wheel", wheelHandler);
+                }
 
-                   // 定義新的 handler（閉包綁定這次的 currentIndex）
-                   wheelHandler = function (e) {
-                       const now = Date.now();
-                       if (now - lastScrollTime < 250) return; // ⏳ 滾輪冷卻，避免太快觸發
-                       lastScrollTime = now;
-                       speechSynthesis.cancel();
+                // 定義新的 handler（閉包綁定這次的 currentIndex）
+                wheelHandler = function (e) {
+                    const now = Date.now();
+                    if (now - lastScrollTime < 250) return; // ⏳ 滾輪冷卻，避免太快觸發
+                    lastScrollTime = now;
+                    speechSynthesis.cancel();
 
-                       if (e.deltaY > 0 && currentIndex < words.length - 1) {
-                           currentIndex++;
-                           updateCardFunc(words[currentIndex]);
-                       } else if (e.deltaY < 0 && currentIndex > 0) {
-                           currentIndex--;
-                           updateCardFunc(words[currentIndex]);
-                       }
+                    if (e.deltaY > 0 && currentIndex < words.length - 1) {
+                        currentIndex++;
+                        updateCardFunc(words[currentIndex]);
+                    } else if (e.deltaY < 0 && currentIndex > 0) {
+                        currentIndex--;
+                        updateCardFunc(words[currentIndex]);
+                    }
 
-                       e.preventDefault();
-                   };
+                    e.preventDefault();
+                };
 
-                   // 綁上新的 handler
-                   panel.addEventListener("wheel", wheelHandler, { passive: false });
+                // 綁上新的 handler
+                panel.addEventListener("wheel", wheelHandler, { passive: false });
 
-                   // ⚠️ dataset 標記可以省略，因為我們用 removeEventListener 保證「只會有一個 listener」
-                   panel.dataset.hasWheelListener = "true";
-               }
+                // ⚠️ dataset 標記可以省略，因為我們用 removeEventListener 保證「只會有一個 listener」
+                panel.dataset.hasWheelListener = "true";
+            }
 
-               // 初始載入
-               updateCard(words[currentIndex]);
-               panel.style.display = "flex";
-               setupWheelScroll(panel, words, updateCard);
+            // 初始載入
+            updateCard(words[currentIndex]);
+            panel.style.display = "flex";
+            setupWheelScroll(panel, words, updateCard);
 
-               // 上下切換
-               document.getElementById("btnPrevWord").onclick = () => {
-                   const now = Date.now();
-                   if (now - lastScrollTime < 200) return; // ⏳ 冷卻中，直接忽略
-                   lastScrollTime = now;
+            // 上下切換
+            document.getElementById("btnPrevWord").onclick = () => {
+                const now = Date.now();
+                if (now - lastScrollTime < 200) return; // ⏳ 冷卻中，直接忽略
+                lastScrollTime = now;
 
-                   if (currentIndex > 0) {
-                       currentIndex--;
-                       updateCard(words[currentIndex]);
-                   }
-               };
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateCard(words[currentIndex]);
+                }
+            };
 
-               document.getElementById("btnNextWord").onclick = () => {
-                   const now = Date.now();
-                   if (now - lastScrollTime < 200) return; // ⏳ 冷卻中，直接忽略
-                   lastScrollTime = now;
+            document.getElementById("btnNextWord").onclick = () => {
+                const now = Date.now();
+                if (now - lastScrollTime < 200) return; // ⏳ 冷卻中，直接忽略
+                lastScrollTime = now;
 
-                   if (currentIndex < words.length - 1) {
-                       currentIndex++;
-                       updateCard(words[currentIndex]);
-                   }
-               };
-           }
+                if (currentIndex < words.length - 1) {
+                    currentIndex++;
+                    updateCard(words[currentIndex]);
+                }
+            };
+        }
 
-           function closeWordDetailPanel() {
-               document.getElementById("pnlWordDetail").style.display = "none";
-           }
-       </script>
+        function closeWordDetailPanel() {
+            document.getElementById("pnlWordDetail").style.display = "none";
+        }
+    </script>
 
     <script>
         //===========================================================
