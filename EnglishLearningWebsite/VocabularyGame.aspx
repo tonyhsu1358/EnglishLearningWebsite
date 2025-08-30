@@ -390,7 +390,7 @@
             if (!isNaN(currentEnergy) && currentEnergy <= 0) {
                 actionButton.textContent = "能量不足";
                 actionButton.disabled = true;  // 前端禁用，並套用CSS的.altar-button-action:disabled
-                actionButton.setAttribute("data-tooltip", "需要體力才能攻略/充能/複習"); // 套上提示
+                actionButton.setAttribute("data-tooltip", "需要能量才能攻略/充能/複習"); // 套上提示
             }
 
             // ✅ 同時更新南瓜進度條
@@ -796,17 +796,27 @@
             fetch("ScrollService.asmx/GetAllScrollWordsByForest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ forestId: forestId }) // 傳入森林 ID 作為查詢條件
+                body: JSON.stringify({ forestId: forestId })
             })
-                .then(res => res.json()) // 轉成 JSON 格式
+                .then(res => res.json())
                 .then(result => {
-                    speechSynthesis.cancel(); // 取消播放語音
+                    speechSynthesis.cancel();
 
-                    // 🔥 把所有亮著的小喇叭 ICON 還原成灰色
-                    document.querySelectorAll(".word-icons img[src*='volumewithlightcolor']").forEach(icon => {
-                        icon.src = "images/volumewithnocolor.svg";
-                    });
+                    // 🛑 防呆檢查（新增）
+                    if (!result.d) {
+                        console.error("後端沒有回傳 d：", result);
+                        alert("⚠️ 伺服器錯誤，請稍後再試");
+                        return;
+                    }
 
+                    // 🛑 若後端傳錯誤物件
+                    if (result.d[0] && result.d[0].error) {
+                        console.error("後端錯誤：", result.d[0].message);
+                        alert("⚠️ 發生錯誤：" + result.d[0].message);
+                        return;
+                    }
+
+                    // 🔥 如果一切正常才執行
                     scrollWords = result.d;
                     const startIndex = scrollWords.findIndex(w => w.scroll_id === clickedScrollId);
                     if (startIndex !== -1) {
@@ -814,6 +824,10 @@
                     } else {
                         alert("❌ 找不到該單字位置");
                     }
+                })
+                .catch(err => {
+                    console.error("Fetch 錯誤:", err);
+                    alert("⚠️ 網路或伺服器錯誤");
                 });
 
         }

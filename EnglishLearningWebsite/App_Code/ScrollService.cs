@@ -43,10 +43,10 @@ FROM ancient_scrolls s
 LEFT JOIN user_favorite_words f
     ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
 WHERE s.altar_id = @AltarID AND s.priority_level = 1
-ORDER BY s.word ASC"; 
+ORDER BY s.word ASC";
 
 
-        SqlCommand cmd = new SqlCommand(query, conn);
+            SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@UserID", userId);
             cmd.Parameters.AddWithValue("@AltarID", altarId);
 
@@ -152,26 +152,25 @@ ORDER BY s.priority_level ASC";
     public List<object> GetAllScrollWordsByForest(int forestId)
     {
         var results = new List<object>();
-
-        if (HttpContext.Current.Session["UserID"] == null)
-            return results;
-
-        int userId = (int)HttpContext.Current.Session["UserID"];
-        string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
-
-        using (SqlConnection conn = new SqlConnection(connStr))
+        try
         {
-            conn.Open();
-            string query = @"
+            if (HttpContext.Current.Session["UserID"] == null)
+                return results;
+
+            int userId = (int)HttpContext.Current.Session["UserID"];
+            string connStr = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                string query = @"
 SELECT 
     s.scroll_id,
     s.word,
     s.part_of_speech,
     s.meaning,
     s.word_audio_url,
-    CASE 
-        WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 
-    END AS is_favorite,
+    CASE WHEN f.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_favorite,
     mf.forest_name_zh + N' 祭壇' + CAST(ma.altar_id AS NVARCHAR) AS location_text
 FROM ancient_scrolls s
 JOIN magic_altar ma ON s.altar_id = ma.altar_id
@@ -179,30 +178,42 @@ JOIN magic_forest mf ON ma.forest_id = mf.forest_id
 LEFT JOIN user_favorite_words f
     ON s.scroll_id = f.scroll_id AND f.user_id = @UserID
 WHERE mf.forest_id = @ForestID AND s.priority_level = 1
-ORDER BY ma.altar_id, s.word ASC";  // ✅ 按照祭壇與單字順序排列
+ORDER BY ma.altar_id, s.word ASC";
 
-            SqlCommand cmd = new SqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@UserID", userId);
-            cmd.Parameters.AddWithValue("@ForestID", forestId);
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@UserID", userId);
+                cmd.Parameters.AddWithValue("@ForestID", forestId);
 
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                results.Add(new
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    scroll_id = (int)reader["scroll_id"],
-                    word = reader["word"].ToString(),
-                    part_of_speech = reader["part_of_speech"].ToString(),
-                    meaning = reader["meaning"].ToString(),
-                    word_audio_url = reader["word_audio_url"]?.ToString(),
-                    is_favorite = Convert.ToBoolean(reader["is_favorite"]),
-                    location_text = reader["location_text"].ToString()
-                });
+                    results.Add(new
+                    {
+                        scroll_id = (int)reader["scroll_id"],
+                        word = reader["word"].ToString(),
+                        part_of_speech = reader["part_of_speech"].ToString(),
+                        meaning = reader["meaning"].ToString(),
+                        word_audio_url = reader["word_audio_url"]?.ToString(),
+                        is_favorite = Convert.ToBoolean(reader["is_favorite"]),
+                        location_text = reader["location_text"].ToString()
+                    });
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            results.Clear();
+            results.Add(new
+            {
+                error = "SERVER_ERROR",
+                message = ex.Message,
+                stack = ex.StackTrace
+            });
         }
 
         return results;
     }
+
     // ✅ 新增或移除收藏
     [WebMethod(EnableSession = true)]
     public string UpdateFavorite(int scrollId, bool isFavorite)
