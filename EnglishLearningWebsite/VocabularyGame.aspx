@@ -705,6 +705,16 @@
                         infoIcon.src = "images/list-bullet.svg?v=" + new Date().getTime();
                         infoIcon.title = "查看詳情";
                         infoIcon.onclick = () => {
+                            // 🛑 進入詳細前，先中止所有語音
+                            speechSynthesis.cancel();
+
+                            // 🛑 進入詳細前，把所有卷軸 ICON 還原
+                            document.querySelectorAll(".word-icons img").forEach(icon => {
+                                if (icon.src.includes("volumewithlightcolor")) {
+                                    icon.src = "images/volumewithnocolor.svg";
+                                }
+                            });
+
                             const forestId = parseInt('<%= Request.QueryString["level"] %>'); // ✅ 從 URL 抓 forestId
                             loadFullScrollWords(forestId, w.scroll_id); // ✅ 改用查整個森林
                         };
@@ -714,17 +724,25 @@
                         volIcon.src = "images/volumewithnocolor.svg?v=" + new Date().getTime();
                         volIcon.title = "播放單字";
                         volIcon.onclick = () => {
+                            // 1️.先中止目前所有語音
+                            speechSynthesis.cancel();
+                            // 2️.所有卷軸 ICON 還原
+                            document.querySelectorAll(".word-icons img[src*='volumewithlightcolor']").forEach(icon => {
+                                icon.src = "images/volumewithnocolor.svg";
+                            });
+                            // 3️.亮起當前 ICON
                             volIcon.src = "images/volumewithlightcolor.svg";
+                            // 4️.建立語音
                             const utter = new SpeechSynthesisUtterance(w.word);
                             utter.lang = "en-US";
                             utter.volume = soundEffectVolume;
                             speechSynthesis.speak(utter);
+                            // 5️.播放結束 → 自動還原圖示
                             utter.onend = () => {
                                 volIcon.src = "images/volumewithnocolor.svg";
                             };
                         };
                         icons.appendChild(volIcon);
-
                         card.appendChild(icons);
                         container.appendChild(card);
                     });
