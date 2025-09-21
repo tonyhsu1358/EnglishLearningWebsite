@@ -205,6 +205,10 @@ public partial class HomePage : System.Web.UI.Page
                 // 先導向 "SelectVocabularyLevel.aspx"，讓用戶選擇 CEFR 等級
                 Response.Redirect($"SelectVocabularyLevel.aspx?courseId={courseId}");
             }
+            else if (courseId == "2") // ✅ 聽力測驗
+            {
+                Response.Redirect("ListeningTest.aspx?courseId=2");
+            }
             else
             {
                 Response.Redirect($"CourseDetails.aspx?id={courseId}");
