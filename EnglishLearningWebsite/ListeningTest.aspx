@@ -338,6 +338,133 @@
                 opacity: 1;
             }
         }
+        /* 測驗 Panel 外框：高度自適應，盡量撐滿可用空間 */
+        .test-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* 從上排到下 */
+            background: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 80%;
+            height: 94vh; /* 🔹 高度佔螢幕 90% */
+            margin-top: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            border: 5px solid #6b4226;
+            z-index: 5000;
+        }
+
+        /* 頂部工具列：叉叉 + 進度條 */
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+            .close-btn:hover {
+                transform: scale(1.2);
+            }
+
+        /* 播放按鈕容器 */
+        .play-btn {
+            text-align: left; /* 改為靠左 */
+        }
+
+            /* 播放按鈕圖片 */
+            .play-btn img {
+                width: 28px; /* 從 40px 縮小 */
+                height: 28px;
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+
+                /* 🎵 播放按鈕禁用狀態 */
+                .play-btn img.disabled {
+                    opacity: 0.5; /* 半透明，表示無法操作 */
+                    pointer-events: none; /* 禁止滑鼠點擊 */
+                    cursor: not-allowed; /* 滑鼠指標變成禁止符號 */
+                }
+        /* 題目圖片 */
+        .test-image {
+            display: block;
+            margin: 1px auto;
+            max-height: 50vh; /*圖片最大高度佔螢幕一半*/
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            flex-shrink: 0; /*圖片不要因空間壓縮*/
+        }
+
+        /* 選項區塊：2x2 Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 兩欄 */
+            grid-template-rows: auto auto; /* 兩列 */
+            gap: 12px; /* 選項間距 */
+            margin-top: 15px;
+        }
+
+        /* 選項按鈕：改為適合兩欄的樣式 */
+        .option-btn {
+            width: 100%; /* 讓每個格子自動填滿 */
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #6b4226;
+            border-radius: 10px;
+            background: #f5f5f5;
+            transition: all 0.2s ease;
+        }
+
+            .option-btn:hover {
+                transform: scale(1.02);
+            }
+
+            /* 選項按鈕被選中 */
+            .option-btn.selected {
+                background: #006000;
+                border-color: #8b5a2b;
+                color: #fff;
+                transform: scale(1.02);
+            }
+
+        /* 送出按鈕 */
+        .submit-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 14px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            background: #6b4226;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+            .submit-btn:hover {
+                background: #8b5a2b;
+            }
+
+            /* 📤 送出按鈕禁用狀態 */
+            .submit-btn:disabled {
+                background-color: #ccc; /* 灰色背景 */
+                border: none;
+                color: #666; /* 文字也變淡 */
+                cursor: not-allowed;
+                transform: none !important; /* 移除 hover 效果 */
+                box-shadow: none;
+            }
     </style>
 </head>
 <body>
@@ -422,17 +549,45 @@
             <div class="text-center mt-4">
                 <button type="button" id="btnStart" class="btn-start-custom">開始測驗</button>
             </div>
+
+            <!-- 🔹 測驗 Panel（初始隱藏） -->
+            <asp:Panel ID="pnlDoTest" runat="server" CssClass="test-panel" Style="display: none;">
+
+                <!-- 頂部：叉叉 + 進度條 -->
+                <div class="test-header">
+                    <span>Part 1</span>
+                    <div class="progress flex-grow-1 mx-3" style="height: 12px;">
+                        <div id="progressBar" class="progress-bar bg-success" style="width: 20%;"></div>
+                    </div>
+                    <img src="<%= ResolveUrl("~/images/close.svg") %>" class="close-btn" alt="關閉" onclick="closeTest()" />
+                </div>
+
+                <!-- 播放按鈕 + 音檔 -->
+                <div class="play-btn">
+                    <img id="btnPlay" src="<%= ResolveUrl("~/images/triangle-filled.svg") %>"
+                        alt="播放" onclick="manualPlay()" />
+                    <audio id="audioPlayer"
+                        src="<%= ResolveUrl("~/ListeningTest_Audio/TOEIC_001.wav") %>">
+                    </audio>
+                </div>
+
+                <!-- 題目圖片 -->
+                <img src="<%= ResolveUrl("~/ListeningTest_Images/TOEIC_001.jpg") %>"
+                    alt="題目圖片" class="test-image" />
+
+                <!-- 選項 -->
+                <div class="options-grid mt-3">
+                    <button type="button" class="option-btn">A</button>
+                    <button type="button" class="option-btn">B</button>
+                    <button type="button" class="option-btn">C</button>
+                    <button type="button" class="option-btn">D</button>
+                </div>
+
+                <!-- 送出按鈕 -->
+                <button type="button" class="submit-btn" onclick="submitAnswer()">送出</button>
+            </asp:Panel>
         </div>
     </form>
-
-    <!-- 新的測驗 Panel -->
-    <asp:Panel ID="pnlDoTest" runat="server" CssClass="panel-container" Style="display: none;">
-        <h3 class="text-center">📖 測驗開始</h3>
-        <div id="testContent">
-            <!-- 這裡之後依您需求生成題目、紫色元素等等 -->
-            <p>這裡是測驗內容 (之後會用程式碼載入題目)</p>
-        </div>
-    </asp:Panel>
 
     <!-- Info Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1">
@@ -502,27 +657,111 @@
         }
 
         document.getElementById("btnStart").addEventListener("click", function () {
-            // 取得 Dropdown 題數
+            startQuestion()
             let ddl = document.getElementById("<%= ddlQuestionCount.ClientID %>");
             let selectedCount = parseInt(ddl.value);
 
-            // 計算勾選題數總和
+            // 計算勾選題數
             let totalQuestions = 0;
             document.querySelectorAll(".topicCheck:checked").forEach(cb => {
                 let topicName = cb.closest(".card").querySelector("h5").innerText;
                 totalQuestions += (topicName === "多益測驗") ? 100 : 10;
             });
 
-            // 驗證
             if (totalQuestions < selectedCount) {
                 let warningModal = new bootstrap.Modal(document.getElementById("warningModal"));
                 warningModal.show();
             } else {
-                // ✅ 通過驗證 → 切換 Panel
+                // ✅ 切換顯示狀態
                 document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "none";
-                document.getElementById("pnlDoTest").style.display = "block";
+                document.getElementById("btnStart").style.display = "none";
+                document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "block";
             }
         });
+    </script>
+
+    <script>
+        //=====================================
+        //====第一章:聽力測驗開始後邏輯
+        //=====================================
+
+        // 暫存使用者選的答案
+        let selectedAnswer = null;
+
+        // 題目開始時：自動播放，禁用播放與送出
+        function startQuestion() {
+            let audio = document.getElementById("audioPlayer");
+            let playBtn = document.getElementById("btnPlay");
+            let submitBtn = document.querySelector(".submit-btn");
+
+            // 初始狀態：禁用送出 + 禁用播放
+            selectedAnswer = null;
+            submitBtn.disabled = true;
+            playBtn.classList.add("disabled");
+
+            // 自動播放
+            audio.currentTime = 0;
+            audio.play().catch(err => {
+                console.log("⚠ 自動播放被瀏覽器阻擋，需要手動觸發", err);
+            });
+
+            // 播放結束後才允許點播放
+            //audio.onended = function () {
+            //    playBtn.classList.remove("disabled");
+            //};
+        }
+
+        // 使用者手動點播放（要加檢查）
+        function manualPlay() {
+            let audio = document.getElementById("audioPlayer");
+            let playBtn = document.getElementById("btnPlay");
+            if (playBtn.classList.contains("disabled")) return; // 禁用狀態下直接 return
+
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        // 綁定選項
+        document.querySelectorAll(".option-btn").forEach(btn => {
+            // 點擊選擇/取消
+            btn.addEventListener("click", function () {
+                if (this.classList.contains("selected")) {
+                    this.classList.remove("selected");
+                    selectedAnswer = null;
+                } else {
+                    document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+                    this.classList.add("selected");
+                    selectedAnswer = this.innerText.trim();
+                }
+
+                let submitBtn = document.querySelector(".submit-btn");
+                submitBtn.disabled = !selectedAnswer;
+            });
+
+        });
+
+        // 送出答案
+        function submitAnswer() {
+            if (!selectedAnswer) {
+                alert("請先選擇一個答案！");
+                return;
+            }
+            console.log("送出的答案是:", selectedAnswer);
+            // TODO: 之後比對正確答案
+        }
+
+        // 動態控制進度條
+        function updateProgress(current, total) {
+            let percent = (current / total) * 100;
+            document.getElementById("progressBar").style.width = percent + "%";
+        }
+
+        // 關閉測驗 Panel
+        function closeTest() {
+            document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";
+            document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "block";
+            document.getElementById("btnStart").style.display = "block";
+        }
     </script>
 </body>
 </html>
