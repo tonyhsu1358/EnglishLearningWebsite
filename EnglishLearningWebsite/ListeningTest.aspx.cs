@@ -6,7 +6,10 @@ using System.Diagnostics;
 public partial class ListeningTest : System.Web.UI.Page
 {
     private string connectionString;
-
+    //=================================
+    //====第零章:初始必要方法載入
+    //=================================
+    //0-1.首次載入網頁呼叫必要方法
     protected void Page_Load(object sender, EventArgs e)
     {
         connectionString = ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString;
@@ -52,7 +55,7 @@ public partial class ListeningTest : System.Web.UI.Page
         }
     }
 
-    // ✅ 讀取鑽石數量
+    //0-2.讀取鑽石數量
     private void LoadDiamonds()
     {
         int userId = (int)Session["UserID"];
@@ -73,7 +76,7 @@ public partial class ListeningTest : System.Web.UI.Page
         }
     }
 
-    // ✅ 載入題目主題
+    //0-2.載入題目主題
     private void LoadTopics()
     {
         using (SqlConnection conn = new SqlConnection(connectionString))
@@ -89,12 +92,7 @@ public partial class ListeningTest : System.Web.UI.Page
             }
         }
     }
-
-    protected void btnStart_Click(object sender, EventArgs e)
-    {
-        Response.Redirect("DoListeningTest.aspx");
-    }
-
+    //0-3.返回首頁按鈕
     protected void btnBack_Click(object sender, EventArgs e)
     {
         Response.Redirect("HomePage.aspx");
