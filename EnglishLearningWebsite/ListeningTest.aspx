@@ -373,6 +373,85 @@
             .close-btn:hover {
                 transform: scale(1.2);
             }
+        /* 🚩 提示是否中斷測驗Modal 遮罩 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            display: none; /* 初始隱藏 */
+            justify-content: center; /* 水平置中 */
+            align-items: center; /* 垂直置中 */
+            z-index: 10000;
+        }
+
+        /* 🚩 提示是否中斷測驗 Modal 內容面板容器 */
+        .modal-panel {
+            background: #fff; /* 白色背景 */
+            border-radius: 18px; /* 圓角 */
+            padding: 30px 26px; /* 內距 */
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2); /* 陰影效果 */
+            text-align: center; /* 內容文字置中 */
+            min-width: 320px; /* 最小寬度 */
+            max-width: 90vw; /* 最大寬度，避免超過視窗 */
+            animation: fadeIn 0.2s; /* 淡入動畫 */
+        }
+
+        /* 🚩 Modal 標題文字 */
+        .modal-title {
+            font-size: 22px; /* 字體大小 */
+            font-weight: 600; /* 半粗體 */
+            margin-bottom: 10px; /* 與下方元素間距 */
+            color: #222; /* 深灰色字體 */
+        }
+
+        /* 🚩 Modal 副標題文字 */
+        .modal-subtitle {
+            font-size: 15px; /* 字體大小 */
+            color: #666; /* 淺灰色字體 */
+            margin-bottom: 22px; /* 與下方元素間距 */
+        }
+
+        /* 🚩 Modal 按鈕容器 */
+        .modal-actions {
+            display: flex; /* 使用 flex 排版 */
+            flex-direction: column; /* 垂直排列子元素 */
+            gap: 12px; /* 按鈕間距 */
+            align-items: center; /* 子元素（水平方向）置中 */
+        }
+
+        /* 🚩 Modal 內的兩個按鈕（共用樣式） */
+        .exit-yes, .exit-no {
+            width: 220px; /* 按鈕寬度 */
+            padding: 12px 0; /* 上下內距 */
+            border: none; /* 移除邊框 */
+            border-radius: 14px; /* 圓角 */
+            font-size: 17px; /* 字體大小 */
+            font-weight: bold; /* 粗體 */
+            cursor: pointer; /* 滑鼠移上去變手指 */
+        }
+
+        /* 🚩 YES 按鈕（離開測驗） */
+        .exit-yes {
+            background: #fa2e50; /* 紅色背景 */
+            color: #fff; /* 白色字體 */
+        }
+
+            .exit-yes:hover {
+                background: #d0203b; /* 深紅色背景 */
+            }
+
+        /* 🚩 NO 按鈕（繼續作答） */
+        .exit-no {
+            background: #f5f5f5; /* 淺灰背景 */
+            color: #777; /* 中灰字體 */
+        }
+
+            .exit-no:hover {
+                background: #e1e1e1; /* 更深一點的灰背景 */
+            }
 
         /* 播放按鈕容器 */
         .play-btn {
@@ -386,6 +465,12 @@
                 cursor: pointer;
                 transition: transform 0.2s ease;
             }
+
+                /* 🚩 播放按鈕圖片：非禁用時 hover 有放大效果 */
+                .play-btn img:not(.disabled):hover {
+                    transform: scale(1.1); /* 放大 1.1 倍 */
+                    transition: transform 0.2s ease; /* 柔和過渡 */
+                }
 
                 /* 🎵 播放按鈕禁用狀態 */
                 .play-btn img.disabled {
@@ -403,6 +488,13 @@
             border-radius: 8px;
             border: 2px solid #ddd;
             flex-shrink: 0; /*圖片不要因空間壓縮*/
+        }
+
+        /* 父容器，每個選項一格：按鈕 + 文字 */
+        .option-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* 按鈕與文字的距離 */
         }
 
         /* 選項區塊：2x2 Grid */
@@ -438,6 +530,14 @@
                 transform: scale(1.02);
             }
 
+        .transcript {
+            font-size: 16px;
+            color: #333;
+            flex: 1; /* 靠近按鈕 */
+            margin-left: 8px; /* 與按鈕間距縮小 */
+            display: inline-block;
+        }
+
         /* 送出按鈕 */
         .submit-btn {
             margin-top: 15px;
@@ -465,6 +565,114 @@
                 transform: none !important; /* 移除 hover 效果 */
                 box-shadow: none;
             }
+
+
+        /* 詳解模式下：按鈕縮小成方塊 */
+        .option-btn.explained {
+            width: 16%; /* 父容器寬度的16 % */
+            aspect-ratio: 1/1; /* 保持正方形 */
+            padding: 0;
+            font-size: 1rem; /* 用 rem/em 讓字體跟隨縮放 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* 答錯選項 */
+        .option-btn.wrong {
+            background: #a00000 !important;
+            color: #fff !important;
+        }
+
+        /* 答對選項 */
+        .option-btn.correct {
+            background: #006000 !important;
+            color: #fff !important;
+        }
+        /* 題目進場（從右滑入） */
+        .slide-in-right {
+            animation: slideInRight 0.4s ease forwards;
+        }
+
+        /* 題目退場（往左滑出） */
+        .slide-out-left {
+            animation: slideOutLeft 0.4s ease forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutLeft {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+        }
+
+        .summary-panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            margin: 40px auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+            .summary-panel h2 {
+                font-size: 24px;
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+            .summary-panel p {
+                font-size: 18px;
+                margin: 8px 0;
+            }
+
+            .summary-panel .btn-finish {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 18px;
+                border: none;
+                border-radius: 8px;
+                background: #007bff;
+                color: #fff;
+                cursor: pointer;
+            }
+
+                .summary-panel .btn-finish:hover {
+                    background: #0056b3;
+                }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -559,7 +767,7 @@
                     <div class="progress flex-grow-1 mx-3" style="height: 12px;">
                         <div id="progressBar" class="progress-bar bg-success" style="width: 20%;"></div>
                     </div>
-                    <img src="<%= ResolveUrl("~/images/close.svg") %>" class="close-btn" alt="關閉" onclick="closeTest()" />
+                    <img src="<%= ResolveUrl("~/images/close.svg") %>" class="close-btn" alt="關閉" onclick="showExitModal()" />
                 </div>
 
                 <!-- 播放按鈕 + 音檔 -->
@@ -577,15 +785,45 @@
 
                 <!-- 選項 -->
                 <div class="options-grid mt-3">
-                    <button type="button" class="option-btn">A</button>
-                    <button type="button" class="option-btn">B</button>
-                    <button type="button" class="option-btn">C</button>
-                    <button type="button" class="option-btn">D</button>
+                    <div class="option-wrapper">
+                        <button type="button" class="option-btn">A</button>
+                        <span class="transcript"></span>
+                        <!-- ✅ 預留逐字稿 -->
+                    </div>
+                    <div class="option-wrapper">
+                        <button type="button" class="option-btn">B</button>
+                        <span class="transcript"></span>
+                    </div>
+                    <div class="option-wrapper">
+                        <button type="button" class="option-btn">C</button>
+                        <span class="transcript"></span>
+                    </div>
+                    <div class="option-wrapper">
+                        <button type="button" class="option-btn">D</button>
+                        <span class="transcript"></span>
+                    </div>
                 </div>
 
                 <!-- 送出按鈕 -->
                 <button type="button" class="submit-btn" onclick="submitAnswer()">送出</button>
             </asp:Panel>
+
+            <!-- 結算畫面 Panel -->
+            <div id="pnlSummary" style="display: none;" class="summary-panel">
+                <!-- 內容將由 JS 動態插入 -->
+            </div>
+
+            <!-- 🚩 離開確認 Modal -->
+            <div id="exitTestModal" class="modal-overlay" style="display: none;">
+                <div class="modal-panel">
+                    <div class="modal-title">是否確定離開測驗？</div>
+                    <div class="modal-subtitle">(本次作答將不會被記錄)</div>
+                    <div class="modal-actions">
+                        <button type="button" class="exit-yes" onclick="abortTest()">是，離開測驗</button>
+                        <button type="button" class="exit-no" onclick="hideExitModal()">否，繼續作答</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 
@@ -637,6 +875,12 @@
 
             let box = document.querySelector(".check-box[data-topicid='" + topicId + "']");
             if (box) box.classList.toggle("checked", cb.checked);
+            // 🚩 檢查是否所有都勾選
+            let allChecked = Array.from(document.querySelectorAll(".topicCheck"))
+                .every(c => c.checked);
+
+            document.getElementById("chkAll").checked = allChecked;
+            document.getElementById("chkAllBox").classList.toggle("checked", allChecked);
         }
 
         // 全選/取消全選
@@ -657,7 +901,6 @@
         }
 
         document.getElementById("btnStart").addEventListener("click", function () {
-            startQuestion()
             let ddl = document.getElementById("<%= ddlQuestionCount.ClientID %>");
             let selectedCount = parseInt(ddl.value);
 
@@ -676,91 +919,441 @@
                 document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "none";
                 document.getElementById("btnStart").style.display = "none";
                 document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "block";
+                //開始輪播題目
+                startTest(); // ✅ 正確呼叫
             }
         });
     </script>
 
     <script>
         //=====================================
-        //====第一章:聽力測驗開始後邏輯
+        //==== 第一章：聽力測驗多題輪播版邏輯
         //=====================================
 
-        // 暫存使用者選的答案
-        let selectedAnswer = null;
+        // 模擬從資料庫撈出的題目
+        const questions = [
+            {
+                QuestionID: 1,
+                QuestionCode: "TOEIC_001",
+                QuestionText: "Look at the picture.",
+                OptionA: "The man is writing on a whiteboard.",
+                OptionB: "The man is looking out the window.",
+                OptionC: "The man is speaking on the phone.",
+                OptionD: "The man is sitting at a desk.",
+                CorrectAnswer: "B",
+                AudioPath: "ListeningTest_Audio/TOEIC_001.wav",
+                ImagePath: "ListeningTest_Images/TOEIC_001.jpg"
+            },
+            {
+                QuestionID: 2,
+                QuestionCode: "TOEIC_002",
+                QuestionText: "Look at the picture.",
+                OptionA: "The woman is talking on the phone.",
+                OptionB: "The woman is cutting vegetables in the kitchen.",
+                OptionC: "The woman is washing the floor.",
+                OptionD: "The woman is sitting at a dining table.",
+                CorrectAnswer: "B",
+                AudioPath: "ListeningTest_Audio/TOEIC_002.wav",
+                ImagePath: "ListeningTest_Images/TOEIC_002.jpg"
+            },
+            {
+                QuestionID: 3,
+                QuestionCode: "TOEIC_003",
+                QuestionText: "Look at the picture.",
+                OptionA: "A woman is holding a puppy in front of a colorful wall.",
+                OptionB: "A dog is lying on a wooden floor.",
+                OptionC: "A man is walking a dog in the park.",
+                OptionD: "A cat is sitting on a couch.",
+                CorrectAnswer: "A",
+                AudioPath: "ListeningTest_Audio/TOEIC_003.wav",
+                ImagePath: "ListeningTest_Images/TOEIC_003.jpg"
+            },
+            {
+                QuestionID: 4,
+                QuestionCode: "TOEIC_004",
+                QuestionText: "Look at the picture.",
+                OptionA: "A man is reading a book at a cafe.",
+                OptionB: "A man is fixing a bicycle.",
+                OptionC: "A man is jogging through a park.",
+                OptionD: "A man is sleeping on a bench.",
+                CorrectAnswer: "A",
+                AudioPath: "ListeningTest_Audio/TOEIC_004.wav",
+                ImagePath: "ListeningTest_Images/TOEIC_004.jpg"
+            },
+            {
+                QuestionID: 5,
+                QuestionCode: "TOEIC_005",
+                QuestionText: "Look at the picture.",
+                OptionA: "A woman is using a laptop at a desk.",
+                OptionB: "A woman is cooking dinner.",
+                OptionC: "A woman is walking her dog.",
+                OptionD: "A woman is painting a wall.",
+                CorrectAnswer: "A",
+                AudioPath: "ListeningTest_Audio/TOEIC_005.wav",
+                ImagePath: "ListeningTest_Images/TOEIC_005.jpg"
+            }
+        ];
 
-        // 題目開始時：自動播放，禁用播放與送出
-        function startQuestion() {
-            let audio = document.getElementById("audioPlayer");
-            let playBtn = document.getElementById("btnPlay");
-            let submitBtn = document.querySelector(".submit-btn");
+        // 測驗狀態
+        let currentIndex = 0;  // 目前題號 (0 起算)
+        let correctCount = 0; // 記錄答對題數
+        let selectedAnswer = null; // 暫存使用者選擇的答案
 
-            // 初始狀態：禁用送出 + 禁用播放
-            selectedAnswer = null;
-            submitBtn.disabled = true;
+        //===============================
+        // 啟動測驗（載入第 1 題）
+        //===============================
+        function startTest() {
+            currentIndex = 0;
+            loadQuestion(currentIndex);
+        }
+
+        //===============================
+        // 載入題目（含動畫控制 & 自動播放）
+        //===============================
+        function loadQuestion(index) {
+            if (index >= questions.length) {
+                finishTest();
+                return;
+            }
+
+            const panel = document.querySelector(".test-panel"); // 題目外層容器
+
+            // 清除殘留動畫 class（避免干擾）
+            panel.classList.remove("slide-in-right", "slide-out-left");
+
+            // 如果不是第一次（index > 0），需要先做舊題「滑出」動畫
+            if (index > 0) {
+                panel.classList.add("slide-out-left");
+
+                // 監聽舊題動畫結束
+                panel.addEventListener("animationend", function handler(e) {
+                    if (e.animationName === "slideOutLeft") {
+                        // 換題目內容
+                        updateQuestionContent(index);
+
+                        // 新題目進場
+                        panel.classList.remove("slide-out-left");
+                        panel.classList.add("slide-in-right");
+
+                        // 等待新題滑入完成後 → 才開始自動播放音檔
+                        panel.addEventListener("animationend", function handler2(e2) {
+                            if (e2.animationName === "slideInRight") {
+                                setTimeout(() => {
+                                    autoPlayAudio();
+                                }, 600); // 🚩 延遲 300ms，避免音檔被吃掉
+                                panel.removeEventListener("animationend", handler2);
+                            }
+                        });
+
+                        // 移除舊的監聽器，避免累積
+                        panel.removeEventListener("animationend", handler);
+                    }
+                });
+            } else {
+                // 第一次載入，不需要滑出動畫，直接進場
+                updateQuestionContent(index);
+                panel.classList.add("slide-in-right");
+
+                // 等待第一次滑入動畫完成 → 再播放音檔
+                panel.addEventListener("animationend", function handler(e) {
+                    if (e.animationName === "slideInRight") {
+                        setTimeout(() => {
+                            autoPlayAudio();
+                        }, 600);
+                        panel.removeEventListener("animationend", handler);
+                    }
+                });
+            }
+        }
+
+        //===============================
+        // 更新題目內容（單純換資料）
+        //===============================
+        function updateQuestionContent(index) {
+            selectedAnswer = null; // 清空使用者選擇
+
+            const q = questions[index];
+            const img = document.querySelector(".test-image");
+            const audio = document.getElementById("audioPlayer");
+            const playBtn = document.getElementById("btnPlay");
+            const submitBtn = document.querySelector(".submit-btn");
+            const optionWrappers = document.querySelectorAll(".option-wrapper");
+
+            // 更新圖片與音檔
+            img.src = q.ImagePath;
+            audio.src = q.AudioPath;
+            audio.load(); //強制重新載入，確保 oncanplaythrough 正確觸發
+
+            // 初始化播放按鈕 → 先設為禁用，等自動播放結束後再啟用
             playBtn.classList.add("disabled");
 
-            // 自動播放
-            audio.currentTime = 0;
-            audio.play().catch(err => {
-                console.log("⚠ 自動播放被瀏覽器阻擋，需要手動觸發", err);
-            });
+            // 初始化送出按鈕
+            submitBtn.textContent = "送出";
+            submitBtn.disabled = true;
+            submitBtn.onclick = submitAnswer;
 
-            // 播放結束後才允許點播放
-            //audio.onended = function () {
-            //    playBtn.classList.remove("disabled");
-            //};
+            // 初始化選項按鈕
+            const optionTexts = ["A", "B", "C", "D"];
+            optionWrappers.forEach((wrap, i) => {
+                const btn = wrap.querySelector(".option-btn");
+                const transcript = wrap.querySelector(".transcript");
+
+                // 重置狀態
+                btn.innerText = optionTexts[i];
+                btn.disabled = false;
+                btn.className = "option-btn";
+                transcript.textContent = "";
+
+                // 綁定點擊事件（單選邏輯）
+                btn.onclick = () => {
+                    optionWrappers.forEach(w => w.querySelector(".option-btn").classList.remove("selected"));
+                    btn.classList.add("selected");
+                    selectedAnswer = btn.innerText.trim();
+                    submitBtn.disabled = !selectedAnswer;
+                };
+            });
         }
 
-        // 使用者手動點播放（要加檢查）
-        function manualPlay() {
-            let audio = document.getElementById("audioPlayer");
-            let playBtn = document.getElementById("btnPlay");
-            if (playBtn.classList.contains("disabled")) return; // 禁用狀態下直接 return
+        //===============================
+        // 自動播放（含預熱機制，避免開頭被吃掉）
+        //===============================
+        function autoPlayAudio() {
+            const audio = document.getElementById("audioPlayer");
+            const playBtn = document.getElementById("btnPlay");
 
-            audio.currentTime = 0;
-            audio.play();
-        }
+            playBtn.classList.add("disabled");
 
-        // 綁定選項
-        document.querySelectorAll(".option-btn").forEach(btn => {
-            // 點擊選擇/取消
-            btn.addEventListener("click", function () {
-                if (this.classList.contains("selected")) {
-                    this.classList.remove("selected");
-                    selectedAnswer = null;
-                } else {
-                    document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
-                    this.classList.add("selected");
-                    selectedAnswer = this.innerText.trim();
-                }
+            // === 預熱：偷偷播 0.05 秒再停下 ===
+            audio.currentTime = 0.09; // 避免 0s bug
+            audio.play().then(() => {
+                setTimeout(() => {
+                    audio.pause();
+                    audio.currentTime = 0; // 回到真正開頭
 
-                let submitBtn = document.querySelector(".submit-btn");
-                submitBtn.disabled = !selectedAnswer;
+                    // === 正式開始播放 ===
+                    setTimeout(() => {
+                        audio.play().catch(() => playBtn.classList.remove("disabled"));
+                    }, 50); // 預熱後稍等再播
+                }, 50); // 播放 0.05 秒後立刻停掉
+            }).catch(() => {
+                // 如果瀏覽器阻擋自動播放，至少解除禁用按鈕
+                playBtn.classList.remove("disabled");
             });
 
-        });
+            // === 播放結束 → 解鎖按鈕 ===
+            audio.onended = () => playBtn.classList.remove("disabled");
+        }
 
+        //===============================
         // 送出答案
+        //===============================
         function submitAnswer() {
             if (!selectedAnswer) {
                 alert("請先選擇一個答案！");
                 return;
             }
-            console.log("送出的答案是:", selectedAnswer);
-            // TODO: 之後比對正確答案
+
+            stopAudio();
+            document.getElementById("btnPlay").classList.remove("disabled");
+
+            const q = questions[currentIndex];
+            const optionWrappers = document.querySelectorAll(".option-wrapper");
+
+            optionWrappers.forEach(wrap => {
+                const btn = wrap.querySelector(".option-btn");
+                const transcript = wrap.querySelector(".transcript");
+                const key = btn.innerText.trim();
+
+                btn.disabled = true;
+                btn.classList.add("explained");
+
+                if (key === q.CorrectAnswer) {
+                    btn.classList.add("correct");
+                }
+                if (key === selectedAnswer && selectedAnswer !== q.CorrectAnswer) {
+                    btn.classList.add("wrong");
+                }
+
+                transcript.textContent = q["Option" + key]; // 顯示逐字稿
+            });
+
+            // 🚩 移到迴圈外：只要答對才 +1
+            if (selectedAnswer === q.CorrectAnswer) {
+                correctCount++;
+            }
+
+            updateProgress(currentIndex + 1, questions.length);
+
+            const submitBtn = document.querySelector(".submit-btn");
+            if (currentIndex + 1 < questions.length) {
+                submitBtn.textContent = "下一題";
+                submitBtn.onclick = nextQuestion;
+            } else {
+                submitBtn.textContent = "下一步"; // 🚩 改成下一步
+                submitBtn.onclick = showSummaryPanel; // 🚩 連到結算畫面
+            }
         }
 
-        // 動態控制進度條
+
+        function showSummaryPanel() {
+            // 隱藏測驗面板
+            document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";
+
+            // 顯示結算面板
+            const pnl = document.getElementById("pnlSummary");
+            pnl.style.display = "block";
+
+            // 清空舊內容
+            pnl.innerHTML = "";
+
+            // 計算數據
+            const total = questions.length;
+            const accuracy = ((correctCount / total) * 100).toFixed(0);
+            const diamonds = correctCount; // 每題一顆
+
+            // 動態生成結算內容
+            pnl.innerHTML = `
+        <h2>恭喜您結束測驗 🎉</h2>
+        <p>答對率：${accuracy}%</p>
+        <p>答對題數：${correctCount}/${total}</p>
+        <p>獲得鑽石：${diamonds} 顆 💎</p>
+        <button class="btn-finish" onclick="finishTest()">完成測驗</button>
+    `;
+        }
+
+
+        //===============================
+        // 下一題（會觸發動畫）
+        //===============================
+        function nextQuestion() {
+            stopAudio();
+            currentIndex++;
+            loadQuestion(currentIndex);
+        }
+
+        //===============================
+        // 使用者手動點播放
+        //===============================
+        function manualPlay() {
+            const audio = document.getElementById("audioPlayer");
+            const playBtn = document.getElementById("btnPlay");
+            if (playBtn.classList.contains("disabled")) return;
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        //===============================
+        // 停止語音播放
+        //===============================
+        function stopAudio() {
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        //===============================
+        // 更新進度條
+        //===============================
         function updateProgress(current, total) {
-            let percent = (current / total) * 100;
+            const percent = (current / total) * 100;
             document.getElementById("progressBar").style.width = percent + "%";
         }
 
-        // 關閉測驗 Panel
+        //===============================
+        // 重置測驗狀態
+        //===============================
+        function resetTest() {
+            currentIndex = 0;
+            selectedAnswer = null;
+            correctCount = 0; // 🚩 在這裡清空，保證每次測驗都是乾淨的
+            document.getElementById("progressBar").style.width = "0%";
+
+            const submitBtn = document.querySelector(".submit-btn");
+            if (submitBtn) {
+                submitBtn.textContent = "送出";
+                submitBtn.disabled = true;
+                submitBtn.onclick = submitAnswer;
+            }
+
+            document.querySelectorAll(".option-wrapper").forEach(wrap => {
+                const btn = wrap.querySelector(".option-btn");
+                const transcript = wrap.querySelector(".transcript");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.className = "option-btn";
+                }
+                if (transcript) transcript.textContent = "";
+            });
+        }
+
+        //===============================
+        // 中途離開 → 彈出 Modal
+        //===============================
+        function showExitModal() {
+            document.getElementById("exitTestModal").style.display = "flex";
+        }
+        function hideExitModal() {
+            document.getElementById("exitTestModal").style.display = "none";
+        }
+        document.getElementById("exitTestModal").onclick = function (e) {
+            if (e.target === this) hideExitModal();
+        };
+
+        //===============================
+        // 中途離開 → abortTest()
+        //===============================
+        function abortTest() {
+            hideExitModal();
+            resetTest();
+            closeTest();
+        }
+
+        //===============================
+        // 測驗完成 → finishTest()
+        //===============================
+        function finishTest() {
+            resetTest();
+            document.getElementById("pnlSummary").style.display = "none"; // 隱藏結算
+        }
+
+        // 🚩 首題音檔預熱機制(此邏輯不屬於任何函數，首次在載入網頁會自己執行)
+        window.addEventListener("load", () => {
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {
+                // 指定第一題音檔來源
+                audio.src = questions[0].AudioPath;
+                audio.load();
+
+                // 稍微等一下再做預熱，避免還沒 ready
+                setTimeout(() => {
+                    audio.currentTime = 0.1; // 往後跳避免 0s bug
+                    audio.play().then(() => {
+                        setTimeout(() => {
+                            audio.pause();
+                            audio.currentTime = 0; // 回到真正開頭
+                        }, 50); // 播放 0.05 秒後停掉
+                    }).catch(() => {
+                        // 瀏覽器若阻擋自動播放，忽略即可
+                    });
+                }, 300);
+            }
+        });
+
+        //===============================
+        // 關閉測驗 Panel（回主畫面）
+        //===============================
         function closeTest() {
+            stopAudio();
             document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";
             document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "block";
             document.getElementById("btnStart").style.display = "block";
+            // 🚩 清除所有勾選
+            document.querySelectorAll(".topicCheck").forEach(cb => cb.checked = false);
+            document.querySelectorAll(".check-box").forEach(box => box.classList.remove("checked"));
+            document.getElementById("chkAll").checked = false;
+            document.getElementById("chkAllBox").classList.remove("checked");
         }
     </script>
 </body>
