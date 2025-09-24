@@ -625,54 +625,71 @@
             }
         }
 
-        .summary-panel {
-            background: #fff;
-            border-radius: 12px;
-            padding: 30px;
+        /* 🎨 結算面板：延用 test-panel 外觀，讓大小一致 */
+        #pnlSummary {
+            display: none;
+        }
+
+        /* 結算內容：靠中置中，避免大片留白 */
+        .summary-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 垂直置中 */
+            align-items: center;
             text-align: center;
-            max-width: 500px;
-            margin: 40px auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: fadeIn 0.5s ease-in-out;
+            padding: 20px;
         }
 
-            .summary-panel h2 {
-                font-size: 24px;
-                margin-bottom: 20px;
-                color: #333;
+            /* 標題美化：加底線 + 主題色 */
+            .summary-content h2 {
+                font-size: 28px;
+                margin-bottom: 25px;
+                color: #6b4226;
+                border-bottom: 3px solid #d2b48c; /* 棕金色分隔線 */
+                padding-bottom: 8px;
+                display: inline-block;
             }
 
-            .summary-panel p {
-                font-size: 18px;
-                margin: 8px 0;
-            }
-
-            .summary-panel .btn-finish {
-                margin-top: 20px;
-                padding: 10px 20px;
-                font-size: 18px;
-                border: none;
-                border-radius: 8px;
-                background: #007bff;
-                color: #fff;
-                cursor: pointer;
-            }
-
-                .summary-panel .btn-finish:hover {
-                    background: #0056b3;
-                }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* 文字框：帶背景與圓角 */
+        .summary-box {
+            background: #fdfaf6;
+            border: 2px solid #6b4226;
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #3e2723;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
+            /* 鑽石圖示與文字對齊 */
+            .summary-box img {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                margin-left: 5px;
+            }
+
+        /* 完成按鈕：保留主題色 */
+        .btn-finish {
+            margin-top: 25px;
+            padding: 12px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            background: #6b4226;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+            .btn-finish:hover {
+                background: #8b5a2b;
+                transform: scale(1.05);
+            }
     </style>
 </head>
 <body>
@@ -765,7 +782,7 @@
                 <div class="test-header">
                     <span>Part 1</span>
                     <div class="progress flex-grow-1 mx-3" style="height: 12px;">
-                        <div id="progressBar" class="progress-bar bg-success" style="width: 20%;"></div>
+                        <div id="progressBar" class="progress-bar bg-success" style="width: 0%;"></div>
                     </div>
                     <img src="<%= ResolveUrl("~/images/close.svg") %>" class="close-btn" alt="關閉" onclick="showExitModal()" />
                 </div>
@@ -809,9 +826,10 @@
             </asp:Panel>
 
             <!-- 結算畫面 Panel -->
-            <div id="pnlSummary" style="display: none;" class="summary-panel">
-                <!-- 內容將由 JS 動態插入 -->
+            <div id="pnlSummary" class="test-panel" style="display: none;">
+                <!-- JS 動態插入內容 -->
             </div>
+
 
             <!-- 🚩 離開確認 Modal -->
             <div id="exitTestModal" class="modal-overlay" style="display: none;">
@@ -933,16 +951,16 @@
         // 模擬從資料庫撈出的題目
         const questions = [
             {
-                QuestionID: 1,
-                QuestionCode: "TOEIC_001",
+                QuestionID: 133,
+                QuestionCode: "MyGO_001",
                 QuestionText: "Look at the picture.",
-                OptionA: "The man is writing on a whiteboard.",
-                OptionB: "The man is looking out the window.",
-                OptionC: "The man is speaking on the phone.",
-                OptionD: "The man is sitting at a desk.",
-                CorrectAnswer: "B",
-                AudioPath: "ListeningTest_Audio/TOEIC_001.wav",
-                ImagePath: "ListeningTest_Images/TOEIC_001.jpg"
+                OptionA: "A girl is reading a book inside a classroom.",
+                OptionB: "A girl is standing in front of a bus stop.",
+                OptionC: "A girl is writing something on a piece of paper.",
+                OptionD: "A girl is kneeling down and holding another girl’s hand.",
+                CorrectAnswer: "D",
+                AudioPath: "ListeningTest_Audio/MyGO_001.wav",
+                ImagePath: "ListeningTest_Images/MyGO_001.jpg"
             },
             {
                 QuestionID: 2,
@@ -1104,14 +1122,24 @@
                 btn.className = "option-btn";
                 transcript.textContent = "";
 
-                // 綁定點擊事件（單選邏輯）
+                // 綁定點擊事件（單選邏輯 + 可取消）
                 btn.onclick = () => {
-                    optionWrappers.forEach(w => w.querySelector(".option-btn").classList.remove("selected"));
-                    btn.classList.add("selected");
-                    selectedAnswer = btn.innerText.trim();
-                    submitBtn.disabled = !selectedAnswer;
+                    // 如果已經選中，再按一次就取消
+                    if (btn.classList.contains("selected")) {
+                        btn.classList.remove("selected");
+                        selectedAnswer = null;
+                        submitBtn.disabled = true; // 沒有選擇就不能送出
+                    } else {
+                        // 先清除其他選項
+                        optionWrappers.forEach(w => w.querySelector(".option-btn").classList.remove("selected"));
+                        // 勾選當前
+                        btn.classList.add("selected");
+                        selectedAnswer = btn.innerText.trim();
+                        submitBtn.disabled = false;
+                    }
                 };
             });
+
         }
 
         //===============================
@@ -1201,26 +1229,28 @@
 
             // 顯示結算面板
             const pnl = document.getElementById("pnlSummary");
-            pnl.style.display = "block";
-
-            // 清空舊內容
-            pnl.innerHTML = "";
+            pnl.style.display = "flex"; // test-panel 用 flex
+            pnl.innerHTML = ""; // 清空舊內容
 
             // 計算數據
             const total = questions.length;
             const accuracy = ((correctCount / total) * 100).toFixed(0);
-            const diamonds = correctCount; // 每題一顆
+            const diamonds = correctCount;
 
             // 動態生成結算內容
             pnl.innerHTML = `
-        <h2>恭喜您結束測驗 🎉</h2>
-        <p>答對率：${accuracy}%</p>
-        <p>答對題數：${correctCount}/${total}</p>
-        <p>獲得鑽石：${diamonds} 顆 💎</p>
-        <button class="btn-finish" onclick="finishTest()">完成測驗</button>
+        <div class="summary-content">
+            <h2>🎧 測驗結束 🎉</h2>
+            <div class="summary-box">答對率：${accuracy}%</div>
+            <div class="summary-box">答對題數：${correctCount} / ${total}</div>
+            <div class="summary-box">
+                獲得鑽石：${diamonds} 顆 
+                <img src="images/diamond.svg" alt="魔法鑽石" />
+            </div>
+            <button class="btn-finish" onclick="finishTest()">完成測驗</button>
+        </div>
     `;
         }
-
 
         //===============================
         // 下一題（會觸發動畫）
