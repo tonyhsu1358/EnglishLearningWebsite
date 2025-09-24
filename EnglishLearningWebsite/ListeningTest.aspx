@@ -1016,6 +1016,7 @@
         let currentIndex = 0;  // 目前題號 (0 起算)
         let correctCount = 0; // 記錄答對題數
         let selectedAnswer = null; // 暫存使用者選擇的答案
+        let isAudioForcedStop = false;// 全域旗標：用來強制中斷音訊
 
         //===============================
         // 啟動測驗（載入第 1 題）
@@ -1023,6 +1024,26 @@
         function startTest() {
             currentIndex = 0;
             loadQuestion(currentIndex);
+            isAudioForcedStop = false; // 允許音檔播放
+            preloadFirstAudio();       // 🚩 新增：只在這裡做預熱
+        }
+        function preloadFirstAudio() {
+            const audio = document.getElementById("audioPlayer");
+            if (!audio) return;
+
+            audio.src = questions[0].AudioPath;
+            audio.load();
+
+            setTimeout(() => {
+                if (isAudioForcedStop) return; // 🚩 確保沒被中斷
+                audio.currentTime = 0.1;
+                audio.play().then(() => {
+                    setTimeout(() => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }, 50);
+                }).catch(() => { /* 瀏覽器阻擋就略過 */ });
+            }, 300);
         }
 
         //===============================
@@ -1149,20 +1170,31 @@
             const audio = document.getElementById("audioPlayer");
             const playBtn = document.getElementById("btnPlay");
 
+            if (isAudioForcedStop) return; // 🚩 若已強制停止，直接跳出
+
             playBtn.classList.add("disabled");
 
             // === 預熱：偷偷播 0.05 秒再停下 ===
-            audio.currentTime = 0.09; // 避免 0s bug
+            audio.currentTime = 0.01; // 避免 0s bug
             audio.play().then(() => {
+                if (isAudioForcedStop) { // 🚩 再檢查一次
+                    audio.pause();
+                    return;
+                }
                 setTimeout(() => {
+                    if (isAudioForcedStop) { // 🚩 避免延遲執行
+                        audio.pause();
+                        return;
+                    }
                     audio.pause();
                     audio.currentTime = 0; // 回到真正開頭
 
                     // === 正式開始播放 ===
                     setTimeout(() => {
+                        if (isAudioForcedStop) return; // 🚩
                         audio.play().catch(() => playBtn.classList.remove("disabled"));
-                    }, 50); // 預熱後稍等再播
-                }, 50); // 播放 0.05 秒後立刻停掉
+                    }, 400);
+                }, 50);
             }).catch(() => {
                 // 如果瀏覽器阻擋自動播放，至少解除禁用按鈕
                 playBtn.classList.remove("disabled");
@@ -1224,6 +1256,7 @@
 
 
         function showSummaryPanel() {
+            stopAudio(); // 🚩 進入結算前一定要強制停音
             // 隱藏測驗面板
             document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";
 
@@ -1257,6 +1290,7 @@
         //===============================
         function nextQuestion() {
             stopAudio();
+            isAudioForcedStop = false; // 🚩 換題後重置，允許新題播放
             currentIndex++;
             loadQuestion(currentIndex);
         }
@@ -1277,9 +1311,11 @@
         //===============================
         function stopAudio() {
             const audio = document.getElementById("audioPlayer");
+            isAudioForcedStop = true; // 🚩 強制標記
             if (audio) {
                 audio.pause();
                 audio.currentTime = 0;
+                audio.onended = null; // 🚩 避免殘留事件
             }
         }
 
@@ -1349,27 +1385,27 @@
         }
 
         // 🚩 首題音檔預熱機制(此邏輯不屬於任何函數，首次在載入網頁會自己執行)
-        window.addEventListener("load", () => {
-            const audio = document.getElementById("audioPlayer");
-            if (audio) {
-                // 指定第一題音檔來源
-                audio.src = questions[0].AudioPath;
-                audio.load();
+        //window.addEventListener("load", () => {
+        //    const audio = document.getElementById("audioPlayer");
+        //    if (audio) {
+        //        // 指定第一題音檔來源
+        //        audio.src = questions[0].AudioPath;
+        //        audio.load();
 
-                // 稍微等一下再做預熱，避免還沒 ready
-                setTimeout(() => {
-                    audio.currentTime = 0.1; // 往後跳避免 0s bug
-                    audio.play().then(() => {
-                        setTimeout(() => {
-                            audio.pause();
-                            audio.currentTime = 0; // 回到真正開頭
-                        }, 50); // 播放 0.05 秒後停掉
-                    }).catch(() => {
-                        // 瀏覽器若阻擋自動播放，忽略即可
-                    });
-                }, 300);
-            }
-        });
+        //        // 稍微等一下再做預熱，避免還沒 ready
+        //        setTimeout(() => {
+        //            audio.currentTime = 0.1; // 往後跳避免 0s bug
+        //            audio.play().then(() => {
+        //                setTimeout(() => {
+        //                    audio.pause();
+        //                    audio.currentTime = 0; // 回到真正開頭
+        //                }, 50); // 播放 0.05 秒後停掉
+        //            }).catch(() => {
+        //                // 瀏覽器若阻擋自動播放，忽略即可
+        //            });
+        //        }, 300);
+        //    }
+        //});
 
         //===============================
         // 關閉測驗 Panel（回主畫面）
