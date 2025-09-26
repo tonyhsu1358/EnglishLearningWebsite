@@ -342,14 +342,14 @@
         .test-panel {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* 從上排到下 */
+            justify-content: space-between;
             background: #fff;
             padding: 15px;
             border-radius: 15px;
             max-width: 800px;
             width: 80%;
-            height: 94vh; /* 🔹 高度佔螢幕 90% */
-            margin-top: 10px;
+            max-height: 96vh; /* 🚩 改成 max-height */
+            margin-top: 0px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
             border: 5px solid #6b4226;
             z-index: 5000;
@@ -373,6 +373,19 @@
             .close-btn:hover {
                 transform: scale(1.2);
             }
+
+        /* 內容區（上半部：題目、圖片、選項） */
+        .test-content {
+            flex: 1; /* 🚩 撐滿剩餘空間 */
+            overflow-y: auto; /* 🚩 選項太多時可滾動 */
+            padding-bottom: 10px; /* 與底部留點空隙 */
+        }
+
+        /* 底部區（固定送出/下一題按鈕） */
+        .test-footer {
+            display: flex;
+            justify-content: center; /* 🚩 水平置中 */
+        }
         /* 🚩 提示是否中斷測驗Modal 遮罩 */
         .modal-overlay {
             position: fixed;
@@ -500,10 +513,11 @@
         /* 選項區塊：2x2 Grid */
         .options-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 兩欄 */
-            grid-template-rows: auto auto; /* 兩列 */
-            gap: 12px; /* 選項間距 */
-            margin-top: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 95%; /* 🚩 保證跟送出按鈕一樣寬 */
+            margin: 0 auto; /* 🚩 置中 */
+            box-sizing: border-box; /* 🚩 避免 padding 撐爆容器 */
         }
 
         /* 選項按鈕：改為適合兩欄的樣式 */
@@ -533,15 +547,27 @@
         .transcript {
             font-size: 16px;
             color: #333;
-            flex: 1; /* 靠近按鈕 */
-            margin-left: 8px; /* 與按鈕間距縮小 */
-            display: inline-block;
+            display: block; /* 保證整段換行顯示 */
+            margin-left: 8px;
+            line-height: 1.4;
         }
+
+            .transcript .cn {
+                font-size: 14px;
+                color: #555;
+                display: block;
+                margin-top: 2px;
+            }
+
+            .transcript:empty {
+                display: none;
+            }
+
 
         /* 送出按鈕 */
         .submit-btn {
-            margin-top: 15px;
-            width: 100%;
+            margin-top: 0px;
+            width: 95%;
             padding: 14px;
             font-size: 20px;
             font-weight: bold;
@@ -628,6 +654,7 @@
         /* 🎨 結算面板：延用 test-panel 外觀，讓大小一致 */
         #pnlSummary {
             display: none;
+            margin: 90px auto 0 auto;
         }
 
         /* 結算內容：靠中置中，避免大片留白 */
@@ -787,42 +814,40 @@
                     <img src="<%= ResolveUrl("~/images/close.svg") %>" class="close-btn" alt="關閉" onclick="showExitModal()" />
                 </div>
 
-                <!-- 播放按鈕 + 音檔 -->
-                <div class="play-btn">
-                    <img id="btnPlay" src="<%= ResolveUrl("~/images/triangle-filled.svg") %>"
-                        alt="播放" onclick="manualPlay()" />
-                    <audio id="audioPlayer"
-                        src="<%= ResolveUrl("~/ListeningTest_Audio/TOEIC_001.wav") %>">
-                    </audio>
-                </div>
+                <!-- 🔹 內容區 -->
+                <div class="test-content">
+                    <div class="play-btn">
+                        <img id="btnPlay" src="<%= ResolveUrl("~/images/triangle-filled.svg") %>"
+                            alt="播放" onclick="manualPlay()" />
+                        <audio id="audioPlayer" src="<%= ResolveUrl("~/ListeningTest_Audio/TOEIC_001.wav") %>"></audio>
+                    </div>
 
-                <!-- 題目圖片 -->
-                <img src="<%= ResolveUrl("~/ListeningTest_Images/TOEIC_001.jpg") %>"
-                    alt="題目圖片" class="test-image" />
+                    <img src="<%= ResolveUrl("~/ListeningTest_Images/TOEIC_001.jpg") %>" alt="題目圖片" class="test-image" />
 
-                <!-- 選項 -->
-                <div class="options-grid mt-3">
-                    <div class="option-wrapper">
-                        <button type="button" class="option-btn">A</button>
-                        <span class="transcript"></span>
-                        <!-- ✅ 預留逐字稿 -->
-                    </div>
-                    <div class="option-wrapper">
-                        <button type="button" class="option-btn">B</button>
-                        <span class="transcript"></span>
-                    </div>
-                    <div class="option-wrapper">
-                        <button type="button" class="option-btn">C</button>
-                        <span class="transcript"></span>
-                    </div>
-                    <div class="option-wrapper">
-                        <button type="button" class="option-btn">D</button>
-                        <span class="transcript"></span>
+                    <div class="options-grid mt-3">
+                        <div class="option-wrapper">
+                            <button type="button" class="option-btn">A</button>
+                            <span class="transcript"></span>
+                        </div>
+                        <div class="option-wrapper">
+                            <button type="button" class="option-btn">B</button>
+                            <span class="transcript"></span>
+                        </div>
+                        <div class="option-wrapper">
+                            <button type="button" class="option-btn">C</button>
+                            <span class="transcript"></span>
+                        </div>
+                        <div class="option-wrapper">
+                            <button type="button" class="option-btn">D</button>
+                            <span class="transcript"></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 送出按鈕 -->
-                <button type="button" class="submit-btn" onclick="submitAnswer()">送出</button>
+                <!-- 🔹 底部固定區 -->
+                <div class="test-footer">
+                    <button type="button" class="submit-btn" onclick="submitAnswer()">送出</button>
+                </div>
             </asp:Panel>
 
             <!-- 結算畫面 Panel -->
@@ -951,6 +976,78 @@
         // 模擬從資料庫撈出的題目
         const questions = [
             {
+                QuestionID: 137,
+                QuestionCode: "MyGO_005",
+                QuestionText: "Look at the picture.",
+                OptionA: "A boy is holding a smartphone in his hand.",
+                OptionB: "A teacher is writing something on the board.",
+                OptionC: "A few books are lying on the wooden desk.",
+                OptionD: "A girl is holding a notebook with both hands.",
+                CorrectAnswer: "D",
+                AudioPath: "ListeningTest_Audio/MyGO_005.wav",
+                ImagePath: "ListeningTest_Images/MyGO_005.jpg",
+                TopicID: 5,
+                TopicName: "MyGO!!!!!",
+                OptionA_Chinese: "一名男孩正拿著一支手機。",
+                OptionB_Chinese: "一名老師正在黑板上寫字。",
+                OptionC_Chinese: "幾本書正放在木桌上。",
+                OptionD_Chinese: "一名女孩正用雙手拿著一本筆記本。"
+            },
+            {
+                QuestionID: 136,
+                QuestionCode: "MyGO_004",
+                QuestionText: "Look at the picture.",
+                OptionA: "Some papers are posted on a green bulletin board.",
+                OptionB: "A few books are stacked neatly on the desk.",
+                OptionC: "A man is writing something on the chalkboard.",
+                OptionD: "Several chairs are arranged in front of the board.",
+                CorrectAnswer: "A",
+                AudioPath: "ListeningTest_Audio/MyGO_004.wav",
+                ImagePath: "ListeningTest_Images/MyGO_004.jpg",
+                TopicID: 5,
+                TopicName: "MyGO!!!!!",
+                OptionA_Chinese: "有一些紙張被貼在綠色的布告欄上。",
+                OptionB_Chinese: "有幾本書整齊地堆放在桌子上。",
+                OptionC_Chinese: "一名男子正在黑板上寫字。",
+                OptionD_Chinese: "幾張椅子被擺放在布告欄前。"
+            },
+            {
+                QuestionID: 135,
+                QuestionCode: "MyGO_003",
+                QuestionText: "Look at the picture.",
+                OptionA: "A waitress is serving food to the customers.",
+                OptionB: "Some jars are placed on the shelves.",
+                OptionC: "A girl is standing outside the café.",
+                OptionD: "A menu is lying open on the table.",
+                CorrectAnswer: "B",
+                AudioPath: "ListeningTest_Audio/MyGO_003.wav",
+                ImagePath: "ListeningTest_Images/MyGO_003.jpg",
+                TopicID: 5,
+                TopicName: "MyGO!!!!!",
+                OptionA_Chinese: "一名女服務生正在為客人上菜。",
+                OptionB_Chinese: "有一些罐子放在架子上。",
+                OptionC_Chinese: "一名女孩正站在咖啡廳外。",
+                OptionD_Chinese: "一份菜單正攤開在桌子上。"
+            },
+            {
+                QuestionID: 134,
+                QuestionCode: "MyGO_002",
+                QuestionText: "Look at the picture.",
+                OptionA: "Some students are walking in a corridor.",
+                OptionB: "A few students are standing near the window.",
+                OptionC: "A group of students are sitting together and talking.",
+                OptionD: "Some students are playing outside on the field.",
+                CorrectAnswer: "C",
+                AudioPath: "ListeningTest_Audio/MyGO_002.wav",
+                ImagePath: "ListeningTest_Images/MyGO_002.jpg",
+                TopicID: 5,
+                TopicName: "MyGO!!!!!",
+                OptionA_Chinese: "一些學生正在走廊裡走動。",
+                OptionB_Chinese: "幾位學生正站在窗邊。",
+                OptionC_Chinese: "一群學生正坐在一起聊天。",
+                OptionD_Chinese: "一些學生正在操場上玩耍。"
+            },
+            {
                 QuestionID: 133,
                 QuestionCode: "MyGO_001",
                 QuestionText: "Look at the picture.",
@@ -960,55 +1057,13 @@
                 OptionD: "A girl is kneeling down and holding another girl’s hand.",
                 CorrectAnswer: "D",
                 AudioPath: "ListeningTest_Audio/MyGO_001.wav",
-                ImagePath: "ListeningTest_Images/MyGO_001.jpg"
-            },
-            {
-                QuestionID: 2,
-                QuestionCode: "TOEIC_002",
-                QuestionText: "Look at the picture.",
-                OptionA: "The woman is talking on the phone.",
-                OptionB: "The woman is cutting vegetables in the kitchen.",
-                OptionC: "The woman is washing the floor.",
-                OptionD: "The woman is sitting at a dining table.",
-                CorrectAnswer: "B",
-                AudioPath: "ListeningTest_Audio/TOEIC_002.wav",
-                ImagePath: "ListeningTest_Images/TOEIC_002.jpg"
-            },
-            {
-                QuestionID: 3,
-                QuestionCode: "TOEIC_003",
-                QuestionText: "Look at the picture.",
-                OptionA: "A woman is holding a puppy in front of a colorful wall.",
-                OptionB: "A dog is lying on a wooden floor.",
-                OptionC: "A man is walking a dog in the park.",
-                OptionD: "A cat is sitting on a couch.",
-                CorrectAnswer: "A",
-                AudioPath: "ListeningTest_Audio/TOEIC_003.wav",
-                ImagePath: "ListeningTest_Images/TOEIC_003.jpg"
-            },
-            {
-                QuestionID: 4,
-                QuestionCode: "TOEIC_004",
-                QuestionText: "Look at the picture.",
-                OptionA: "A man is reading a book at a cafe.",
-                OptionB: "A man is fixing a bicycle.",
-                OptionC: "A man is jogging through a park.",
-                OptionD: "A man is sleeping on a bench.",
-                CorrectAnswer: "A",
-                AudioPath: "ListeningTest_Audio/TOEIC_004.wav",
-                ImagePath: "ListeningTest_Images/TOEIC_004.jpg"
-            },
-            {
-                QuestionID: 5,
-                QuestionCode: "TOEIC_005",
-                QuestionText: "Look at the picture.",
-                OptionA: "A woman is using a laptop at a desk.",
-                OptionB: "A woman is cooking dinner.",
-                OptionC: "A woman is walking her dog.",
-                OptionD: "A woman is painting a wall.",
-                CorrectAnswer: "A",
-                AudioPath: "ListeningTest_Audio/TOEIC_005.wav",
-                ImagePath: "ListeningTest_Images/TOEIC_005.jpg"
+                ImagePath: "ListeningTest_Images/MyGO_001.jpg",
+                TopicID: 5,
+                TopicName: "MyGO!!!!!",
+                OptionA_Chinese: "一名女孩正在教室裡讀書。",
+                OptionB_Chinese: "一名女孩正站在公車站前。",
+                OptionC_Chinese: "一名女孩正在紙上寫字。",
+                OptionD_Chinese: "一名女孩正跪著並握著另一名女孩的手。"
             }
         ];
 
@@ -1174,7 +1229,7 @@
 
             playBtn.classList.add("disabled");
 
-            // === 預熱：偷偷播 0.05 秒再停下 ===
+            // === 預熱：偷偷播 0.01秒再停下 ===
             audio.currentTime = 0.01; // 避免 0s bug
             audio.play().then(() => {
                 if (isAudioForcedStop) { // 🚩 再檢查一次
@@ -1234,10 +1289,14 @@
                     btn.classList.add("wrong");
                 }
 
-                transcript.textContent = q["Option" + key]; // 顯示逐字稿
+                // 🚩 顯示「英文 + 中文」逐字稿
+                transcript.innerHTML = `
+            ${q["Option" + key]}<br/>
+            <span class="cn">${q["Option" + key + "_Chinese"]}</span>
+        `;
             });
 
-            // 🚩 移到迴圈外：只要答對才 +1
+            // 🚩 答對才 +1
             if (selectedAnswer === q.CorrectAnswer) {
                 correctCount++;
             }
@@ -1249,11 +1308,10 @@
                 submitBtn.textContent = "下一題";
                 submitBtn.onclick = nextQuestion;
             } else {
-                submitBtn.textContent = "下一步"; // 🚩 改成下一步
-                submitBtn.onclick = showSummaryPanel; // 🚩 連到結算畫面
+                submitBtn.textContent = "下一步";
+                submitBtn.onclick = showSummaryPanel;
             }
         }
-
 
         function showSummaryPanel() {
             stopAudio(); // 🚩 進入結算前一定要強制停音
