@@ -55,7 +55,7 @@ public partial class ListeningTest : System.Web.UI.Page
         }
     }
 
-    //0-2.讀取鑽石數量
+    //0-1.讀取鑽石數量
     private void LoadDiamonds()
     {
         int userId = (int)Session["UserID"];
@@ -82,12 +82,19 @@ public partial class ListeningTest : System.Web.UI.Page
         using (SqlConnection conn = new SqlConnection(connectionString))
         {
             conn.Open();
-            string query = "SELECT TopicID, TopicName, ImagePath, Description FROM Listening_Topics ORDER BY Priority ASC";
+            string query = @"
+        SELECT t.TopicID, t.TopicName, t.ImagePath, t.Description, 
+               COUNT(q.QuestionID) AS QuestionCount   -- 🚩 新增：計算每個主題的題目數
+        FROM Listening_Topics t
+        LEFT JOIN Listening_Questions q ON t.TopicID = q.TopicID
+        WHERE t.IsActive = 1                         -- 🚩 只撈啟用中的主題
+        GROUP BY t.TopicID, t.TopicName, t.ImagePath, t.Description, t.Priority
+        ORDER BY t.Priority ASC";                    // 🚩 按優先權排序
 
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
                 SqlDataReader reader = cmd.ExecuteReader();
-                rptTopics.DataSource = reader;
+                rptTopics.DataSource = reader;           // 🚩 綁定到 Repeater
                 rptTopics.DataBind();
             }
         }

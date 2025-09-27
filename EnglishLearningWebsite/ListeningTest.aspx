@@ -491,16 +491,19 @@
                     pointer-events: none; /* 禁止滑鼠點擊 */
                     cursor: not-allowed; /* 滑鼠指標變成禁止符號 */
                 }
+
         /* 題目圖片 */
         .test-image {
             display: block;
             margin: 1px auto;
-            max-height: 50vh; /*圖片最大高度佔螢幕一半*/
+            max-height:40vh; /* 最大高度佔螢幕一半 */
+            min-height: 350px; /* 🚩 最小高度，避免小圖縮太小 */
             width: auto;
-            object-fit: contain;
+            max-width: 100%; /* 🚩 保證不會超出 panel */
+            object-fit: contain; /* 🚩 保持比例 */
             border-radius: 8px;
             border: 2px solid #ddd;
-            flex-shrink: 0; /*圖片不要因空間壓縮*/
+            flex-shrink: 0;
         }
 
         /* 父容器，每個選項一格：按鈕 + 文字 */
@@ -744,7 +747,7 @@
 
                 <!-- 題數下拉 -->
                 <div class="text-center mb-3">
-                    <label for="ddlQuestionCount" class="form-label me-2">選擇題目數量：</label>
+                    <label for="ddlQuestionCount" class="form-label me-2">選擇測驗的題數：</label>
                     <asp:DropDownList ID="ddlQuestionCount" runat="server" CssClass="form-select d-inline-block" Width="150px">
                         <asp:ListItem Value="5">5 題</asp:ListItem>
                         <asp:ListItem Value="10" Selected="True">10 題</asp:ListItem>
@@ -770,7 +773,10 @@
                     <asp:Repeater ID="rptTopics" runat="server">
                         <ItemTemplate>
                             <div class="col-md-4 mb-4">
-                                <div class="card topic-card" onclick="toggleCheckBox('<%# Eval("TopicID") %>')">
+                                <!-- 🚩 新增 data-questioncount，讓前端 JS 能讀到題數 -->
+                                <div class="card topic-card"
+                                    onclick="toggleCheckBox('<%# Eval("TopicID") %>')"
+                                    data-questioncount='<%# Eval("QuestionCount") %>'>
                                     <img src='<%# Eval("ImagePath") %>' alt='<%# Eval("TopicName") %>' />
                                     <div class="topic-card-body">
                                         <h5><%# Eval("TopicName") %></h5>
@@ -782,20 +788,18 @@
                                             class="d-none topicCheck"
                                             value='<%# Eval("TopicID") %>' />
 
-                                        <!-- ✅ 勾選框 + 題數 -->
+                                        <!-- 🚩 改成顯示資料庫撈到的題數 -->
                                         <div class="card-footer d-flex align-items-center">
                                             <div class="check-box" data-topicid='<%# Eval("TopicID") %>'></div>
-                                            <span class="question-count">
-                                                <%# (Eval("TopicName").ToString() == "多益測驗") ? "題數：100 題" : "題數：10 題" %>
-                                            </span>
+                                            <span class="question-count">題數：<%# Eval("QuestionCount") %> 題</span>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>
                 </div>
+
             </asp:Panel>
             <!-- 開始測驗按鈕 -->
             <div class="text-center mt-4">
@@ -895,7 +899,7 @@
                 </div>
                 <div class="modal-body">
                     您未勾選主題或所選主題的題目總數不足，<br />
-                    請重新選擇題目數量或增加主題。
+                    請<span style="color: red; font-weight: bold;">減少</span>測驗的題目數量或<span style="color: darkgreen; font-weight: bold;">增加</span>欲測驗主題。
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-warning custom-warning-btn" data-bs-dismiss="modal">確定</button>
@@ -943,28 +947,58 @@
             });
         }
 
+        //開始測驗點選時先檢查題數是否足夠
         document.getElementById("btnStart").addEventListener("click", function () {
             let ddl = document.getElementById("<%= ddlQuestionCount.ClientID %>");
             let selectedCount = parseInt(ddl.value);
 
-            // 計算勾選題數
+            // 🚩 讀取勾選的主題 ID
+            let selectedTopics = [];
+            document.querySelectorAll(".topicCheck:checked").forEach(cb => {
+                selectedTopics.push(parseInt(cb.value));
+            });
+
+            // 🚩 驗證題數是否足夠（前端預檢）
             let totalQuestions = 0;
             document.querySelectorAll(".topicCheck:checked").forEach(cb => {
-                let topicName = cb.closest(".card").querySelector("h5").innerText;
-                totalQuestions += (topicName === "多益測驗") ? 100 : 10;
+                let card = cb.closest(".card");
+                let count = parseInt(card.getAttribute("data-questioncount")) || 0;
+                totalQuestions += count;
             });
 
             if (totalQuestions < selectedCount) {
                 let warningModal = new bootstrap.Modal(document.getElementById("warningModal"));
                 warningModal.show();
-            } else {
-                // ✅ 切換顯示狀態
-                document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "none";
-                document.getElementById("btnStart").style.display = "none";
-                document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "block";
-                //開始輪播題目
-                startTest(); // ✅ 正確呼叫
+                return;
             }
+
+            // 🚩 呼叫 ASMX Web API 撈題
+            fetch("ListeningTestService.asmx/GetQuestions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topicIds: selectedTopics, questionCount: selectedCount })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.d || data.d.length === 0 || data.d[0].error) {
+                        alert("❌ 載入題目失敗，請重新登入！");
+                        window.location.href = "UserLogin.aspx";
+                        return;
+                    }
+
+                    // ✅ 替換全域題目陣列
+                    questions.length = 0; // 清空原本模擬資料
+                    data.d.forEach(q => questions.push(q));
+
+                    // ✅ 切換畫面 & 開始測驗
+                    document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "none";
+                    document.getElementById("btnStart").style.display = "none";
+                    document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "block";
+                    startTest();
+                })
+                .catch(err => {
+                    console.error("❌ AJAX 錯誤：", err);
+                });
         });
     </script>
 
@@ -973,99 +1007,8 @@
         //==== 第一章：聽力測驗多題輪播版邏輯
         //=====================================
 
-        // 模擬從資料庫撈出的題目
-        const questions = [
-            {
-                QuestionID: 137,
-                QuestionCode: "MyGO_005",
-                QuestionText: "Look at the picture.",
-                OptionA: "A boy is holding a smartphone in his hand.",
-                OptionB: "A teacher is writing something on the board.",
-                OptionC: "A few books are lying on the wooden desk.",
-                OptionD: "A girl is holding a notebook with both hands.",
-                CorrectAnswer: "D",
-                AudioPath: "ListeningTest_Audio/MyGO_005.wav",
-                ImagePath: "ListeningTest_Images/MyGO_005.jpg",
-                TopicID: 5,
-                TopicName: "MyGO!!!!!",
-                OptionA_Chinese: "一名男孩正拿著一支手機。",
-                OptionB_Chinese: "一名老師正在黑板上寫字。",
-                OptionC_Chinese: "幾本書正放在木桌上。",
-                OptionD_Chinese: "一名女孩正用雙手拿著一本筆記本。"
-            },
-            {
-                QuestionID: 136,
-                QuestionCode: "MyGO_004",
-                QuestionText: "Look at the picture.",
-                OptionA: "Some papers are posted on a green bulletin board.",
-                OptionB: "A few books are stacked neatly on the desk.",
-                OptionC: "A man is writing something on the chalkboard.",
-                OptionD: "Several chairs are arranged in front of the board.",
-                CorrectAnswer: "A",
-                AudioPath: "ListeningTest_Audio/MyGO_004.wav",
-                ImagePath: "ListeningTest_Images/MyGO_004.jpg",
-                TopicID: 5,
-                TopicName: "MyGO!!!!!",
-                OptionA_Chinese: "有一些紙張被貼在綠色的布告欄上。",
-                OptionB_Chinese: "有幾本書整齊地堆放在桌子上。",
-                OptionC_Chinese: "一名男子正在黑板上寫字。",
-                OptionD_Chinese: "幾張椅子被擺放在布告欄前。"
-            },
-            {
-                QuestionID: 135,
-                QuestionCode: "MyGO_003",
-                QuestionText: "Look at the picture.",
-                OptionA: "A waitress is serving food to the customers.",
-                OptionB: "Some jars are placed on the shelves.",
-                OptionC: "A girl is standing outside the café.",
-                OptionD: "A menu is lying open on the table.",
-                CorrectAnswer: "B",
-                AudioPath: "ListeningTest_Audio/MyGO_003.wav",
-                ImagePath: "ListeningTest_Images/MyGO_003.jpg",
-                TopicID: 5,
-                TopicName: "MyGO!!!!!",
-                OptionA_Chinese: "一名女服務生正在為客人上菜。",
-                OptionB_Chinese: "有一些罐子放在架子上。",
-                OptionC_Chinese: "一名女孩正站在咖啡廳外。",
-                OptionD_Chinese: "一份菜單正攤開在桌子上。"
-            },
-            {
-                QuestionID: 134,
-                QuestionCode: "MyGO_002",
-                QuestionText: "Look at the picture.",
-                OptionA: "Some students are walking in a corridor.",
-                OptionB: "A few students are standing near the window.",
-                OptionC: "A group of students are sitting together and talking.",
-                OptionD: "Some students are playing outside on the field.",
-                CorrectAnswer: "C",
-                AudioPath: "ListeningTest_Audio/MyGO_002.wav",
-                ImagePath: "ListeningTest_Images/MyGO_002.jpg",
-                TopicID: 5,
-                TopicName: "MyGO!!!!!",
-                OptionA_Chinese: "一些學生正在走廊裡走動。",
-                OptionB_Chinese: "幾位學生正站在窗邊。",
-                OptionC_Chinese: "一群學生正坐在一起聊天。",
-                OptionD_Chinese: "一些學生正在操場上玩耍。"
-            },
-            {
-                QuestionID: 133,
-                QuestionCode: "MyGO_001",
-                QuestionText: "Look at the picture.",
-                OptionA: "A girl is reading a book inside a classroom.",
-                OptionB: "A girl is standing in front of a bus stop.",
-                OptionC: "A girl is writing something on a piece of paper.",
-                OptionD: "A girl is kneeling down and holding another girl’s hand.",
-                CorrectAnswer: "D",
-                AudioPath: "ListeningTest_Audio/MyGO_001.wav",
-                ImagePath: "ListeningTest_Images/MyGO_001.jpg",
-                TopicID: 5,
-                TopicName: "MyGO!!!!!",
-                OptionA_Chinese: "一名女孩正在教室裡讀書。",
-                OptionB_Chinese: "一名女孩正站在公車站前。",
-                OptionC_Chinese: "一名女孩正在紙上寫字。",
-                OptionD_Chinese: "一名女孩正跪著並握著另一名女孩的手。"
-            }
-        ];
+        // 🚩 保留全域陣列，用來儲存AJAX撈到資料
+        const questions = [];
 
         // 測驗狀態
         let currentIndex = 0;  // 目前題號 (0 起算)
@@ -1090,14 +1033,21 @@
             audio.load();
 
             setTimeout(() => {
-                if (isAudioForcedStop) return; // 🚩 確保沒被中斷
+                if (isAudioForcedStop) return;
+
+                const oldVolume = audio.volume;
+                audio.volume = 0; // 🚩 預熱時靜音
+
                 audio.currentTime = 0.1;
                 audio.play().then(() => {
                     setTimeout(() => {
                         audio.pause();
                         audio.currentTime = 0;
+                        audio.volume = oldVolume; // 🚩 恢復音量
                     }, 50);
-                }).catch(() => { /* 瀏覽器阻擋就略過 */ });
+                }).catch(() => {
+                    audio.volume = oldVolume; // 防呆
+                });
             }, 300);
         }
 
@@ -1225,37 +1175,30 @@
             const audio = document.getElementById("audioPlayer");
             const playBtn = document.getElementById("btnPlay");
 
-            if (isAudioForcedStop) return; // 🚩 若已強制停止，直接跳出
+            if (isAudioForcedStop) return;
 
             playBtn.classList.add("disabled");
 
-            // === 預熱：偷偷播 0.01秒再停下 ===
-            audio.currentTime = 0.01; // 避免 0s bug
-            audio.play().then(() => {
-                if (isAudioForcedStop) { // 🚩 再檢查一次
-                    audio.pause();
-                    return;
-                }
-                setTimeout(() => {
-                    if (isAudioForcedStop) { // 🚩 避免延遲執行
-                        audio.pause();
-                        return;
-                    }
-                    audio.pause();
-                    audio.currentTime = 0; // 回到真正開頭
+            const oldVolume = audio.volume;
+            audio.volume = 0; // 🚩 先靜音做預熱
 
-                    // === 正式開始播放 ===
+            audio.currentTime = 0.01;
+            audio.play().then(() => {
+                setTimeout(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+
                     setTimeout(() => {
-                        if (isAudioForcedStop) return; // 🚩
+                        if (isAudioForcedStop) return;
+                        audio.volume = oldVolume; // 🚩 恢復音量
                         audio.play().catch(() => playBtn.classList.remove("disabled"));
                     }, 400);
                 }, 50);
             }).catch(() => {
-                // 如果瀏覽器阻擋自動播放，至少解除禁用按鈕
+                audio.volume = oldVolume;
                 playBtn.classList.remove("disabled");
             });
 
-            // === 播放結束 → 解鎖按鈕 ===
             audio.onended = () => playBtn.classList.remove("disabled");
         }
 
@@ -1450,29 +1393,6 @@
             resetTest();
             document.getElementById("pnlSummary").style.display = "none"; // 隱藏結算
         }
-
-        // 🚩 首題音檔預熱機制(此邏輯不屬於任何函數，首次在載入網頁會自己執行)
-        //window.addEventListener("load", () => {
-        //    const audio = document.getElementById("audioPlayer");
-        //    if (audio) {
-        //        // 指定第一題音檔來源
-        //        audio.src = questions[0].AudioPath;
-        //        audio.load();
-
-        //        // 稍微等一下再做預熱，避免還沒 ready
-        //        setTimeout(() => {
-        //            audio.currentTime = 0.1; // 往後跳避免 0s bug
-        //            audio.play().then(() => {
-        //                setTimeout(() => {
-        //                    audio.pause();
-        //                    audio.currentTime = 0; // 回到真正開頭
-        //                }, 50); // 播放 0.05 秒後停掉
-        //            }).catch(() => {
-        //                // 瀏覽器若阻擋自動播放，忽略即可
-        //            });
-        //        }, 300);
-        //    }
-        //});
 
         //===============================
         // 關閉測驗 Panel（回主畫面）
