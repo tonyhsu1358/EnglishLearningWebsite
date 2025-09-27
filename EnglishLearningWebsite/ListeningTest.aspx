@@ -492,11 +492,16 @@
                     cursor: not-allowed; /* 滑鼠指標變成禁止符號 */
                 }
 
+        .stop-btn {
+            height: 35px;
+        }
+
+
         /* 題目圖片 */
         .test-image {
             display: block;
             margin: 1px auto;
-            max-height:40vh; /* 最大高度佔螢幕一半 */
+            max-height: 40vh; /* 最大高度佔螢幕一半 */
             min-height: 350px; /* 🚩 最小高度，避免小圖縮太小 */
             width: auto;
             max-width: 100%; /* 🚩 保證不會超出 panel */
@@ -551,7 +556,7 @@
             font-size: 16px;
             color: #333;
             display: block; /* 保證整段換行顯示 */
-            margin-left: 10px;
+            margin-left: 11px;
             line-height: 1.4;
         }
 
@@ -823,6 +828,10 @@
                     <div class="play-btn">
                         <img id="btnPlay" src="<%= ResolveUrl("~/images/triangle-filled.svg") %>"
                             alt="播放" onclick="manualPlay()" />
+                        <!-- 🚩 預設隱藏的停止按鈕 -->
+                        <img id="btnStop" class="stop-btn"
+                            src="<%= ResolveUrl("~/images/stop-svgrepo.svg") %>"
+                            alt="停止" onclick="stopAudio()" style="display: none; margin-left: 20px;" />
                         <audio id="audioPlayer" src="<%= ResolveUrl("~/ListeningTest_Audio/TOEIC_001.wav") %>"></audio>
                     </div>
 
@@ -1007,8 +1016,8 @@
         //==== 第一章：聽力測驗多題輪播版邏輯
         //=====================================
 
-        // 🚩 保留全域陣列，用來儲存AJAX撈到資料
-        const questions = [];
+        const questions = [];// 🚩 保留全域陣列，用來儲存AJAX撈到資料
+        const wrongAnswers = []; // 🚩 新增：用來記錄錯題 QuestionID
 
         // 測驗狀態
         let currentIndex = 0;  // 目前題號 (0 起算)
@@ -1059,6 +1068,9 @@
                 finishTest();
                 return;
             }
+
+            const q = questions[index];
+            console.log("🎯 正在作答題目 → QuestionCode:", q.QuestionCode); // 🚩 顯示 QuestionCode 在 F12 console
 
             const panel = document.querySelector(".test-panel"); // 題目外層容器
 
@@ -1120,16 +1132,20 @@
             const img = document.querySelector(".test-image");
             const audio = document.getElementById("audioPlayer");
             const playBtn = document.getElementById("btnPlay");
+            const stopBtn = document.getElementById("btnStop"); // 🚩 新增：取得停止按鈕
             const submitBtn = document.querySelector(".submit-btn");
             const optionWrappers = document.querySelectorAll(".option-wrapper");
 
             // 更新圖片與音檔
             img.src = q.ImagePath;
             audio.src = q.AudioPath;
-            audio.load(); //強制重新載入，確保 oncanplaythrough 正確觸發
+            audio.load(); // 強制重新載入，確保 oncanplaythrough 正確觸發
 
             // 初始化播放按鈕 → 先設為禁用，等自動播放結束後再啟用
             playBtn.classList.add("disabled");
+
+            // 🚩 每次進入新題目 → 隱藏停止按鈕
+            if (stopBtn) stopBtn.style.display = "none";
 
             // 初始化送出按鈕
             submitBtn.textContent = "送出";
@@ -1165,7 +1181,6 @@
                     }
                 };
             });
-
         }
 
         //===============================
@@ -1190,16 +1205,18 @@
 
                     setTimeout(() => {
                         if (isAudioForcedStop) return;
-                        audio.volume = oldVolume; // 🚩 恢復音量
-                        audio.play().catch(() => playBtn.classList.remove("disabled"));
+                        audio.volume = oldVolume;
+                        audio.play().catch(() => {
+                            // ⚠️ 這裡不要解鎖播放鍵
+                        });
                     }, 400);
                 }, 50);
             }).catch(() => {
                 audio.volume = oldVolume;
-                playBtn.classList.remove("disabled");
+                // ⚠️ 這裡也不要解鎖播放鍵
             });
 
-            audio.onended = () => playBtn.classList.remove("disabled");
+            // ⚠️ 移除 audio.onended 解鎖的程式碼
         }
 
         //===============================
@@ -1213,6 +1230,9 @@
 
             stopAudio();
             document.getElementById("btnPlay").classList.remove("disabled");
+
+            // 🚩 顯示停止按鈕（詳解模式才出現）
+            document.getElementById("btnStop").style.display = "inline-block";
 
             const q = questions[currentIndex];
             const optionWrappers = document.querySelectorAll(".option-wrapper");
@@ -1239,9 +1259,12 @@
         `;
             });
 
-            // 🚩 答對才 +1
+            // 🚩 答對才 +1，答錯則將加入錯題陣列
             if (selectedAnswer === q.CorrectAnswer) {
                 correctCount++;
+            } else {
+                wrongAnswers.push(q.QuestionID);
+                console.warn("❌ 答錯 QuestionID:", q.QuestionID, "QuestionCode:", q.QuestionCode);
             }
 
             updateProgress(currentIndex + 1, questions.length);
@@ -1353,6 +1376,10 @@
                 }
                 if (transcript) transcript.textContent = "";
             });
+
+            // 🚩 測驗重置 → 一定要隱藏停止按鈕（避免殘留在畫面上）
+            const stopBtn = document.getElementById("btnStop");
+            if (stopBtn) stopBtn.style.display = "none";
         }
 
         //===============================
