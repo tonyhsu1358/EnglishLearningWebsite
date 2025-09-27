@@ -548,7 +548,7 @@
             font-size: 16px;
             color: #333;
             display: block; /* 保證整段換行顯示 */
-            margin-left: 8px;
+            margin-left: 10px;
             line-height: 1.4;
         }
 
@@ -1430,8 +1430,17 @@
         //===============================
         function abortTest() {
             hideExitModal();
-            resetTest();
-            closeTest();
+            stopAudio();                  // 🚩 強制停音
+            isAudioForcedStop = false;    // 🚩 重置旗標，允許下次播放
+            resetTest();                  // 🚩 清進度與按鈕
+            closeTest();                  // 🚩 關閉面板回主畫面
+
+            // 🚩 額外安全措施：清空音檔
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {
+                audio.src = "";
+                audio.load();
+            }
         }
 
         //===============================
