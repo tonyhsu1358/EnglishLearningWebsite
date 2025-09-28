@@ -884,15 +884,46 @@
     </form>
 
     <!-- Info Modal -->
+    <!-- Info Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content custom-warning-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title">玩法說明</h5>
+                    <h5 class="modal-title">🎧 聽力測驗玩法說明</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    在這裡您可以選擇題數與主題，系統將依照選擇自動生成測驗。
+                <div class="modal-body text-start">
+                    <p><strong>🌟 遊戲流程：</strong></p>
+                    <ul>
+                        <li>選擇 <b>題數</b> 與 <b>主題</b> 後，點擊「開始測驗」。</li>
+                        <li>系統會自動撈取題庫，並逐題播放語音與顯示圖片。</li>
+                        <li>每題共有四個選項 (A~D)，請根據語音與圖片選出正確答案。</li>
+                    </ul>
+
+                    <p><strong>📝 答題規則：</strong></p>
+                    <ul>
+                        <li>點選選項即可作答，再按下「送出」確認答案。</li>
+                        <li>答對的選項會以<span style="color: green; font-weight: bold;">綠色</span>顯示，答錯則以<span style="color: red; font-weight: bold;">紅色</span>標示。</li>
+                        <li>送出後將顯示該選項的 <b>英文逐字稿 + 中文翻譯</b>。</li>
+                    </ul>
+
+                    <p><strong>💎 得分與獎勵：</strong></p>
+                    <ul>
+                        <li>每答對一題可獲得 <b>1 顆魔法鑽石</b>。</li>
+                        <li>結算畫面將顯示您的答對率、正確題數與獲得的鑽石數量。</li>
+                    </ul>
+
+                    <p><strong>⚠️ 注意事項：</strong></p>
+                    <ul>
+                        <li>離開測驗將不會保存本次作答結果。</li>
+                        <li>音檔播放時不可中斷，若中途停止，需重新播放。</li>
+                        <li>請保持專注，避免外部干擾影響作答表現。</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="custom-warning-btn" data-bs-dismiss="modal">
+                        我了解了，開始冒險！ 🚀
+                    </button>
                 </div>
             </div>
         </div>
@@ -1015,9 +1046,8 @@
         //=====================================
         //==== 第一章：聽力測驗多題輪播版邏輯
         //=====================================
-
         const questions = [];// 🚩 保留全域陣列，用來儲存AJAX撈到資料
-        const wrongAnswers = []; // 🚩 新增：用來記錄錯題 QuestionID
+        const wrongAnswers = []; // 🚩 會存成物件 { QuestionID, SelectedAnswer }
 
         // 測驗狀態
         let currentIndex = 0;  // 目前題號 (0 起算)
@@ -1030,6 +1060,14 @@
         //===============================
         function startTest() {
             currentIndex = 0;
+
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {
+                audio.volume = sessionStorage.getItem("userVolume")
+                    ? parseFloat(sessionStorage.getItem("userVolume"))
+                    : 1.0; // 預設 100% 音量
+            }
+
             loadQuestion(currentIndex);
             isAudioForcedStop = false; // 允許音檔播放
             preloadFirstAudio();       // 🚩 新增：只在這裡做預熱
@@ -1230,8 +1268,6 @@
 
             stopAudio();
             document.getElementById("btnPlay").classList.remove("disabled");
-
-            // 🚩 顯示停止按鈕（詳解模式才出現）
             document.getElementById("btnStop").style.display = "inline-block";
 
             const q = questions[currentIndex];
@@ -1252,19 +1288,21 @@
                     btn.classList.add("wrong");
                 }
 
-                // 🚩 顯示「英文 + 中文」逐字稿
                 transcript.innerHTML = `
-            ${q["Option" + key]}<br/>
-            <span class="cn">${q["Option" + key + "_Chinese"]}</span>
-        `;
+               ${q["Option" + key]}<br/>
+               <span class="cn">${q["Option" + key + "_Chinese"]}</span>
+           `;
             });
 
-            // 🚩 答對才 +1，答錯則將加入錯題陣列
             if (selectedAnswer === q.CorrectAnswer) {
                 correctCount++;
             } else {
-                wrongAnswers.push(q.QuestionID);
-                console.warn("❌ 答錯 QuestionID:", q.QuestionID, "QuestionCode:", q.QuestionCode);
+                // 🚩 改存物件：包含 QuestionID + SelectedAnswer
+                wrongAnswers.push({
+                    QuestionID: q.QuestionID,
+                    SelectedAnswer: selectedAnswer
+                });
+                console.warn("❌ 答錯 QuestionID:", q.QuestionID, "選了:", selectedAnswer, "正解:", q.CorrectAnswer);
             }
 
             updateProgress(currentIndex + 1, questions.length);
@@ -1279,34 +1317,84 @@
             }
         }
 
+        //===============================
+        // 結算面板 + 自動送出錯題 + 安全發鑽石
+        //===============================
         function showSummaryPanel() {
-            stopAudio(); // 🚩 進入結算前一定要強制停音
-            // 隱藏測驗面板
+            // 🚩 1. 停止音檔播放，避免殘留
+            stopAudio();
+
+            // 🚩 2. 隱藏測驗面板
             document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";
 
-            // 顯示結算面板
+            // 🚩 3. 顯示結算面板容器
             const pnl = document.getElementById("pnlSummary");
-            pnl.style.display = "flex"; // test-panel 用 flex
+            pnl.style.display = "flex";
             pnl.innerHTML = ""; // 清空舊內容
 
-            // 計算數據
+            // 🚩 4. 計算成績
             const total = questions.length;
             const accuracy = ((correctCount / total) * 100).toFixed(0);
-            const diamonds = correctCount;
 
-            // 動態生成結算內容
+            // 🚩 5. 初始畫面（鑽石由伺服器決定 → 先顯示等待字樣）
             pnl.innerHTML = `
-        <div class="summary-content">
-            <h2>🎧 測驗結束 🎉</h2>
-            <div class="summary-box">答對率：${accuracy}%</div>
-            <div class="summary-box">答對題數：${correctCount} / ${total}</div>
-            <div class="summary-box">
-                獲得鑽石：${diamonds} 顆 
-                <img src="images/diamond.svg" alt="魔法鑽石" />
-            </div>
-            <button class="btn-finish" onclick="finishTest()">完成測驗</button>
-        </div>
+       <div class="summary-content">
+           <h2>🎧 測驗結束 🎉</h2>
+           <div class="summary-box">答對率：${accuracy}%</div>
+           <div class="summary-box">答對題數：${correctCount} / ${total}</div>
+           <div class="summary-box" id="diamondResult">
+               ⏳ 獎勵計算中...
+               <img src="images/diamond.svg" alt="魔法鑽石" />
+           </div>
+           <button type="button" class="btn-finish" onclick="finishTest()">完成測驗</button>
+       </div>
     `;
+
+            // 🚩 6. 儲存錯題（若有）
+            if (wrongAnswers.length > 0) {
+                console.log("📤 準備送出錯題:", wrongAnswers);
+                fetch("ListeningTestService.asmx/SaveWrongAnswers", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ wrongList: wrongAnswers })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("✅ 錯題已送出，後端回應:", data.d);
+                    })
+                    .catch(err => console.error("❌ 錯題送出失敗:", err));
+            } else {
+                console.log("🎉 沒有錯題，不需要存入資料庫");
+            }
+
+            // 🚩 7. 呼叫安全的「儲存聽力結果」API，讓後端決定鑽石
+            fetch("ListeningTestService.asmx/SaveListeningResult", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    result: {
+                        CorrectCount: correctCount, // 答對題數
+                        TotalCount: total           // 總題數
+                    }
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("✅ 後端回應:", data.d);
+
+                    // 🚩 更新結算面板的獎勵顯示
+                    document.getElementById("diamondResult").innerHTML =
+                        `獲得鑽石：${data.d.diamondsAwarded} 顆 (目前總計鑽石數量：${data.d.newDiamonds})
+                 <img src="images/diamond.svg" alt="魔法鑽石" />`;
+
+                    // 🚩 UI 即時更新頁首顯示的鑽石數
+                    const lbl = document.getElementById("lblDiamonds");
+                    if (lbl) lbl.textContent = data.d.newDiamonds;
+                })
+                .catch(err => {
+                    console.error("❌ 儲存測驗結果失敗:", err);
+                    document.getElementById("diamondResult").innerText = "⚠️ 鑽石計算失敗";
+                });
         }
 
         //===============================
@@ -1411,7 +1499,13 @@
                 audio.src = "";
                 audio.load();
             }
+            // 🚩 新增：F12 Console 輸出中斷訊息
+            console.warn("⚠️ 使用者中斷測驗：currentIndex = " + currentIndex +
+                ", 已答對題數 = " + correctCount +
+                ", 已答錯題數 = " + wrongAnswers.length);
         }
+
+
 
         //===============================
         // 測驗完成 → finishTest()
@@ -1419,6 +1513,25 @@
         function finishTest() {
             resetTest();
             document.getElementById("pnlSummary").style.display = "none"; // 隱藏結算
+
+            // 🚩 勝利音效 → 直接從頭播放，不做預熱、不受 isAudioForcedStop 影響
+            const victoryAudio = new Audio("sounds/victory2.mp3");
+            victoryAudio.currentTime = 0; // 保證每次都從頭開始
+            victoryAudio.volume = 1.0;    // 最大音量
+            victoryAudio.play().catch(err => {
+                console.error("⚠️ 勝利音效播放失敗:", err);
+            });
+
+            // 🚩 額外補上：切回初始主畫面（避免完成後畫面空掉）
+            document.getElementById("<%= pnlDoTest.ClientID %>").style.display = "none";   // 測驗面板保持關閉
+            document.getElementById("<%= pnlListeningMenu.ClientID %>").style.display = "block"; // 顯示主選單
+            document.getElementById("btnStart").style.display = "block"; // 讓開始按鈕回來
+
+            // 🚩 確保「全選/勾選狀態」重置
+            document.querySelectorAll(".topicCheck").forEach(cb => cb.checked = false);
+            document.querySelectorAll(".check-box").forEach(box => box.classList.remove("checked"));
+            document.getElementById("chkAll").checked = false;
+            document.getElementById("chkAllBox").classList.remove("checked");
         }
 
         //===============================
