@@ -170,7 +170,7 @@
 
             .hero-section img {
                 width: 100%; /* 讓圖片填滿容器 */
-                height: 230px; /* 設定固定高度為230px */
+                height: 200px; /* 設定固定高度為230px */
                 display: block; /* 設定為區塊級元素 */
                 border-radius: 12px; /* 設定圖片圓角 */
             }
@@ -418,7 +418,7 @@
         <section class="hero-section">
             <div class="container">
                 <div class="text-center">
-                    <img src="images\herosection.jpg" class="d-block w-100 course-img" alt="Hero 圖片">
+                    <img src="images\herosection.jpg" class="d-block w-100 course-img" alt="Hero 圖片"/>
                 </div>
             </div>
         </section>

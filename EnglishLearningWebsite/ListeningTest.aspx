@@ -18,9 +18,9 @@
             z-index: 100;
         }
 
-        /** 鑽石數量樣式 **/
         .resource {
             margin-right: 150px; /* 控制靠左或靠右 */
+            font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; /* ✅ 強制字型 */
             font-weight: bold;
             font-size: 18px;
             background: rgba(255, 255, 255, 0.6);
@@ -883,7 +883,6 @@
         </div>
     </form>
 
-    <!-- Info Modal -->
     <!-- Info Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">

@@ -186,7 +186,7 @@ public partial class HomePage : System.Web.UI.Page
         return receivedEnergy;
     }
 
-    // 🔹 點擊「開始遊玩」按鈕時
+    // 點擊「開始遊玩」按鈕時
     protected void btnCourse_Click(object sender, EventArgs e)
     {
         if (Session["UserEmail"] == null) // ✅ 未登入
@@ -208,6 +208,10 @@ public partial class HomePage : System.Web.UI.Page
             else if (courseId == "2") // ✅ 聽力測驗
             {
                 Response.Redirect("ListeningTest.aspx?courseId=2");
+            }
+            else if (courseId == "3") // ✅ 連連看遊戲
+            {
+                Response.Redirect("MatchingGame.aspx?courseId=3");
             }
             else
             {

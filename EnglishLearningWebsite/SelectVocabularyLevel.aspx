@@ -58,7 +58,7 @@
             gap: 10px;
         }
 
-        /* ✅ 莫蘭迪色調按鈕 */
+        /* ✅ 莫蘭迪色調按鈕 按鈕：靠左對齊 + 統一縮排 */
         .level-button {
             display: block;
             width: 100%;
@@ -72,6 +72,8 @@
             transition: all 0.3s ease-in-out;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-transform: uppercase;
+            text-align: left; /* 改為靠左對齊 */
+            padding-left: 100px; /* 左邊統一 30px（可依需求調整） */
         }
 
         /* ✅ 莫蘭迪色系 */
@@ -250,13 +252,13 @@
             </div>
 
             <!-- LEVEL 按鈕 -->
-            <asp:Button ID="btnLevel1" runat="server" CssClass="level-button level-1" Text="晨曦林地" OnClick="btnLevel_Click" CommandArgument="1" />
-            <asp:Button ID="btnLevel2" runat="server" CssClass="level-button level-2" Text="神秘林間" OnClick="btnLevel_Click" CommandArgument="2" />
-            <asp:Button ID="btnLevel3" runat="server" CssClass="level-button level-3" Text="低語之谷" OnClick="btnLevel_Click" CommandArgument="3" />
-            <asp:Button ID="btnLevel4" runat="server" CssClass="level-button level-4" Text="長老荒野" OnClick="btnLevel_Click" CommandArgument="4" />
-            <asp:Button ID="btnLevel5" runat="server" CssClass="level-button level-5" Text="天穹密林" OnClick="btnLevel_Click" CommandArgument="5" />
-            <asp:Button ID="btnLevel6" runat="server" CssClass="level-button level-6" Text="虛幻樹海" OnClick="btnLevel_Click" CommandArgument="6" />
-            <asp:Button ID="btnLevel7" runat="server" CssClass="level-button level-7" Text="秘法之核" OnClick="btnLevel_Click" CommandArgument="7" />
+            <asp:Button ID="btnLevel1" runat="server" CssClass="level-button level-1" Text="晨曦林地（初級1）" OnClick="btnLevel_Click" CommandArgument="1" />
+            <asp:Button ID="btnLevel2" runat="server" CssClass="level-button level-2" Text="神秘林間（初級2）" OnClick="btnLevel_Click" CommandArgument="2" />
+            <asp:Button ID="btnLevel3" runat="server" CssClass="level-button level-3" Text="低語之谷（中級1）" OnClick="btnLevel_Click" CommandArgument="3" />
+            <asp:Button ID="btnLevel4" runat="server" CssClass="level-button level-4" Text="長老荒野（中級2）" OnClick="btnLevel_Click" CommandArgument="4" />
+            <asp:Button ID="btnLevel5" runat="server" CssClass="level-button level-5" Text="天穹密林（中高級1）" OnClick="btnLevel_Click" CommandArgument="5" />
+            <asp:Button ID="btnLevel6" runat="server" CssClass="level-button level-6" Text="虛幻樹海（中高級2）" OnClick="btnLevel_Click" CommandArgument="6" />
+            <asp:Button ID="btnLevel7" runat="server" CssClass="level-button level-7" Text="秘法之核（中高級3）" OnClick="btnLevel_Click" CommandArgument="7" />
         </div>
         <!-- ✅ 這裡是 .container 的結束 -->
 
