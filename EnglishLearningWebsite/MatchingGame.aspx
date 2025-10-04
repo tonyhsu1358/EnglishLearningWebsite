@@ -257,8 +257,9 @@
 
         /* ==================== PANEL：挑戰進行中 ==================== */
         .panel-game {
+            margin-top: -30px;
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             background: linear-gradient(145deg, #ffffff, #f0f0f0);
             border: 5px solid #4a90e2;
             border-radius: 20px;
@@ -268,6 +269,409 @@
             font-family: "Segoe UI", sans-serif;
             display: none; /* ✅ 預設隱藏 */
         }
+
+        /* 頂部工具列 */
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        /* 倒數 ICON 外層 */
+        .timer {
+            position: relative; /* 讓內部定位生效 */
+            width: 40px; /* 和圖片一樣大 */
+            height: 40px;
+        }
+
+            /* 圓圈 */
+            .timer img {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            /* 數字覆蓋在圓圈正中間 */
+            .timer span {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-weight: bold;
+                font-size: 17px;
+                color: #333; /* 可換白色 #fff 看對比 */
+                pointer-events: none;
+            }
+
+        /* 進度條 */
+        .progress-bar-container {
+            flex-grow: 1;
+            margin: 0 15px;
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #4a90e2, #66aef5);
+            transition: width 1s linear;
+        }
+
+        /* 右側關閉 */
+        .close-btn {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+            .close-btn:hover {
+                transform: scale(1.2);
+            }
+
+        /* 🚩 提示是否中斷遊戲Modal 共用樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-panel {
+            background: #fff;
+            border-radius: 18px;
+            padding: 30px 26px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+            text-align: center;
+            min-width: 320px;
+            max-width: 90vw;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .modal-subtitle {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 22px;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .exit-yes, .exit-no {
+            width: 220px;
+            padding: 12px 0;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .exit-yes {
+            background: #fa2e50;
+            color: #fff;
+        }
+
+            .exit-yes:hover {
+                background: #d0203b;
+            }
+
+        .exit-no {
+            background: #f5f5f5;
+            color: #777;
+        }
+
+            .exit-no:hover {
+                background: #e1e1e1;
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        /* 單字配對容器：維持 grid 兩欄 */
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 20px;
+        }
+
+        /* 左側英文 */
+        .word-box {
+            background: #fff;
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 2px;
+            min-height: 42px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .word-box:active {
+                cursor: grabbing;
+            }
+
+        /* 已使用的左側英文（被拖曳走後） */
+        .word-used {
+            border: 2px solid #ccc !important;
+            color: #aaa !important;
+            background: #f5f5f5 !important;
+            cursor: not-allowed !important;
+        }
+
+        /* 右側中文容器 */
+        .meaning-box {
+            display: flex;
+            gap: 10px; /* 答案框和中文的間距 */
+            align-items: center;
+        }
+
+        /* 答案框（待填入區） */
+        .answer-slot {
+            flex: 1;
+            min-height: 42px;
+            border: 2px dashed #2ecc71; /* 綠色虛線框 */
+            border-radius: 6px;
+            background: #f9fff9; /* 淡綠背景 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 中文意思 */
+        .meaning-text {
+            flex: 1;
+            min-height: 42px;
+            background: #2ecc71;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* 提交答案按鈕（跟開始挑戰一樣樣式） */
+        .submit-btn {
+            background-color: #4a90e2;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px; /* ✅ 與遊戲面板保持間距 */
+            display: none; /* ✅ 預設隱藏 */
+        }
+
+            .submit-btn:hover {
+                background-color: #66aef5;
+                transform: scale(1.05);
+            }
+
+            .submit-btn:active {
+                background-color: #3a78c2;
+                transform: scale(0.98);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            }
+
+        /* 答對樣式 */
+        .answer-correct {
+            border: 2px solid #1e8449 !important; /* 深綠實線 */
+            background: #eafaf1 !important; /* 淡綠背景 */
+            color: #1e8449 !important;
+        }
+
+        /* 答錯樣式 */
+        .answer-wrong {
+            border: 2px solid #e74c3c !important; /* 紅色實線 */
+            background: #fdecea !important; /* 淡紅背景 */
+            color: #e74c3c !important;
+        }
+
+        /* 未作答樣式 */
+        .answer-unanswered {
+            border: 2px solid #7f8c8d !important;
+            background: #ecf0f1 !important;
+            color: #7f8c8d !important;
+        }
+
+        /* ✅ 外層容器：置中整塊「查看結果 + 統計」 */
+        .result-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            margin-left: 335px;
+            gap: 15px;
+        }
+
+        /* ✅ 查看結果按鈕 */
+        .result-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 10px;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+            .result-btn:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+            }
+
+        /* ✅ 統計資訊區塊（加外框 + 底色） */
+        .result-summary {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            gap: 20px;
+            padding: 8px 15px;
+            border: 2px solid #ccc; /* 外框 */
+            border-radius: 10px; /* 圓角 */
+            background: #fafafa; /* 淡灰底色 */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 小陰影 */
+        }
+
+            /* ✅ 正確 = 綠色 */
+            .result-summary .correct {
+                color: #27ae60;
+            }
+
+            /* ✅ 錯誤 = 紅色 */
+            .result-summary .wrong {
+                color: #e74c3c;
+            }
+
+            /* ✅ 未作答 = 灰色 */
+            .result-summary .unanswered {
+                color: #7f8c8d;
+            }
+
+        /* ==================== 查看結果 PANEL ==================== */
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #ffffff, #f4f6fa);
+            border: 5px solid #4a90e2;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+            margin: 0; /* ✅ 不要繼承 panel-game 的 margin */
+        }
+
+        /* 標題樣式 */
+        .result-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+            /* 勝利與失敗顏色 */
+            .result-title.success {
+                color: #27ae60;
+            }
+
+            .result-title.fail {
+                color: #e74c3c;
+            }
+
+        /* 中間訊息 */
+        .result-message {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        /* 統計資訊 */
+        .result-stats {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        /* 結束挑戰按鈕 */
+        .end-btn {
+            background: linear-gradient(135deg, #4a90e2, #66aef5);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .end-btn:hover {
+                background: #3a78c2;
+                transform: scale(1.05);
+            }
+
+        /* 結束挑戰淡出動畫 */
+        #pnlResult {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+            #pnlResult.hide {
+                opacity: 0;
+                transform: scale(0.95);
+                pointer-events: none;
+            }
     </style>
 </head>
 <body>
@@ -282,7 +686,7 @@
         </div>
 
         <!-- ==================== PANEL：挑戰模式 ==================== -->
-        <asp:Panel ID="pnlChallenge" runat="server" CssClass="panel-container">
+        <asp:Panel ID="pnlChallenge" runat="server" CssClass="panel-container" Style="display: flex;" EnableViewState="false">
             <div class="panel-card">
                 <!-- 左上角返回首頁 ICON -->
                 <img src="images/back-arrow-blue.svg" class="icon-left"
@@ -324,18 +728,18 @@
                 <div class="form-group">
                     <label for="duration">挑戰時間：</label>
                     <select id="duration">
-                        <option value="1.1">60 秒 (x1.1)</option>
-                        <option value="1.2">40 秒 (x1.2)</option>
-                        <option value="1.3">30 秒 (x1.3)</option>
-                        <option value="1.4">20 秒 (x1.4)</option>
-                        <option value="1.5">15 秒 (x1.5)</option>
+                        <option value="1.1" data-seconds="60">60 秒 (x1.1)</option>
+                        <option value="1.2" data-seconds="40">40 秒 (x1.2)</option>
+                        <option value="1.3" data-seconds="30">30 秒 (x1.3)</option>
+                        <option value="1.4" data-seconds="20">20 秒 (x1.4)</option>
+                        <option value="1.5" data-seconds="15">15 秒 (x1.5)</option>
                     </select>
                 </div>
 
                 <!-- 動態資訊 -->
                 <div class="diamond-info">
                     <p id="rateInfo">賠率試算：x1.21</p>
-                    <p id="rewardInfo">勝利後可得：0 顆鑽石(答對率高於90%才算勝利喔)</p>
+                    <p id="rewardInfo">勝利後可得：0 顆鑽石(答對率高於80%才算勝利喔)</p>
                 </div>
 
                 <!-- 開始挑戰按鈕 -->
@@ -346,10 +750,69 @@
         <!-- ==================== PANEL：挑戰進行中 ==================== -->
         <asp:Panel ID="pnlGame" runat="server" CssClass="panel-container">
             <div class="panel-game">
-                <h2 class="challenge-title">🔥 挑戰開始！</h2>
-                <p class="challenge-description">這裡將顯示遊戲內容...</p>
+                <!-- 頂部工具列 -->
+                <div class="game-header">
+                    <div class="timer">
+                        <img src="images/circle-svgrepo.svg" alt="timer" />
+                        <span id="timeLeft">60</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progressBar" class="progress-bar-fill"></div>
+                    </div>
+                    <!-- 🚩 改為呼叫 showExitModal() -->
+                    <img src="images/close-blue.svg" class="close-btn" alt="close" onclick="showExitModal()" />
+                </div>
+
+                <!-- 單字配對內容 -->
+                <div class="matching-container"></div>
+
+                <!-- ✅ 提交答案按鈕 -->
+                <button id="btnSubmit" type="button" class="submit-btn" onclick="submitAnswers()">提交答案</button>
+                <!-- ✅ 外層容器：包住按鈕與統計 -->
+                <div id="resultWrapper" class="result-wrapper" style="display: none;">
+                    <!-- 查看結果按鈕 -->
+                    <button id="btnViewResult" type="button" class="result-btn" onclick="goToResult()" style="display: none;">
+                        查看結果
+                    </button>
+
+                    <!-- 統計資訊 -->
+                    <div id="resultSummary" class="result-summary" style="display: none;">
+                        <span id="correctCount" class="correct">正確：0 題</span>
+                        <span id="wrongCount" class="wrong">錯誤：0 題</span>
+                        <span id="unansweredCount" class="unanswered">未作答：0 題</span>
+                    </div>
+                </div>
+
             </div>
         </asp:Panel>
+
+        <!-- ==================== 查看結果 PANEL ==================== -->
+        <asp:Panel ID="pnlResult" runat="server" CssClass="panel-container" Style="display: none;">
+            <div class="result-panel">
+                <h2 id="resultTitle" class="result-title">挑戰結果</h2>
+                <div id="resultMessage" class="result-message"></div>
+
+                <div id="resultStats" class="result-stats">
+                    <p id="resultRate"></p>
+                    <p id="resultReward"></p>
+                </div>
+
+                <button type="button" class="end-btn" onclick="endChallenge()">結束挑戰</button>
+            </div>
+        </asp:Panel>
+
+
+        <!-- 🚩 離開確認 Modal -->
+        <div id="exitGameModal" class="modal-overlay" style="display: none;">
+            <div class="modal-panel">
+                <div class="modal-title">是否確定離開挑戰？</div>
+                <div class="modal-subtitle">(本次作答將不會被記錄)</div>
+                <div class="modal-actions">
+                    <button type="button" class="exit-yes" onclick="abortGame()">是，離開挑戰</button>
+                    <button type="button" class="exit-no" onclick="hideExitModal()">否，繼續挑戰</button>
+                </div>
+            </div>
+        </div>
 
     </form>
 
@@ -461,13 +924,13 @@
         });
 
         /* ==================== 按下開始挑戰 ==================== */
+        /* ==================== 按下開始挑戰（修正版） ==================== */
         function startChallenge() {
             let bet = document.getElementById("bet").value;
             let betAmount = (bet === "custom")
                 ? parseInt(document.getElementById("customBet").value) || 0
                 : parseInt(bet);
 
-            // ❌ 檢查不合法輸入
             if (isNaN(betAmount) || betAmount <= 0) {
                 showErrorModal("下注金額必須大於 0！");
                 return;
@@ -477,17 +940,30 @@
                 return;
             }
 
-            // ✅ 合法才繼續
-            // alert("開始挑戰！後端將檢查鑽石是否足夠並進行扣款。");
+            // 1) 關掉設定面板
+            const pnlChallenge = document.getElementById("<%= pnlChallenge.ClientID %>");
+            if (pnlChallenge) pnlChallenge.style.display = "none";
 
-            // 隱藏挑戰設定的 Panel
-            document.getElementById("<%= pnlChallenge.ClientID %>").style.display = "none";
+            // 2) **關鍵**：把外層 ASP:Panel 顯示回來（第二輪一定要做）
+            const pnlGameOuter = document.getElementById("<%= pnlGame.ClientID %>");
+            if (pnlGameOuter) pnlGameOuter.style.display = "flex"; // 和 .panel-container 一致
 
-            // 顯示挑戰進行中的 Panel
-            document.querySelector(".panel-game").style.display = "block";
+            // 3) 內層遊戲面板顯示
+            const pnlGameInner = document.querySelector("[id$='pnlGame'] .panel-game");
+            if (pnlGameInner) pnlGameInner.style.display = "block";
 
-            // 🚀 呼叫第一章邏輯 → 載入挑戰單字
+            // 4) 顯示提交與關閉
+            const btnSubmit = document.getElementById("btnSubmit");
+            if (btnSubmit) btnSubmit.style.display = "inline-block";
+            const closeBtn = document.querySelector(".close-btn");
+            if (closeBtn) closeBtn.style.display = "block";
+
+            // 5) 載入題目 + 倒數
             loadChallengeWords();
+
+            const durationSelect = document.getElementById("duration");
+            const totalSeconds = parseInt(durationSelect.selectedOptions[0].dataset.seconds);
+            startCountdown(totalSeconds);
         }
     </script>
 
@@ -495,8 +971,11 @@
         //==========================================
         //========== 第一章：挑戰開始邏輯 ==========
         //==========================================
+        let shuffledMeanings = [];  //用來存放打亂後的對應 
+        let isPaused = false; // ✅ 紀錄倒數是否暫停
+        let pausedTimeLeft = 0; // ✅ 暫存剩餘秒數
 
-        /* ==================== 假資料（模擬從資料庫撈出） ==================== */
+        /* 假資料（模擬撈 DB） */
         const mockWords = [
             { word: "black", part: "n.", meaning: "黑色" },
             { word: "bottom", part: "n.", meaning: "底部" },
@@ -510,21 +989,421 @@
             { word: "team", part: "n.", meaning: "隊伍" }
         ];
 
-        /* ==================== 載入挑戰單字 ==================== */
+        /* 載入挑戰 */
         function loadChallengeWords() {
-            let container = document.querySelector(".panel-game");
+            let container = document.querySelector(".matching-container");
+            container.innerHTML = "";
 
-            let html = "<h2 class='challenge-title'>🔥 挑戰開始！</h2>";
-            html += "<p class='challenge-description'>以下是本次挑戰的 10 個單字：</p>";
-            html += "<ul style='text-align:left; font-size:1.1rem; line-height:1.8;'>";
+            // ✅ 打亂右側中文，但保留正確索引
+            shuffledMeanings = mockWords
+                .map((w, idx) => ({ ...w, originalIndex: idx })) // 加入原始位置
+                .sort(() => Math.random() - 0.5);
 
-            mockWords.forEach(w => {
-                html += `<li><strong>${w.word}</strong> (${w.part}) — ${w.meaning}</li>`;
+            mockWords.forEach((w, i) => {
+                // ================== 左側：單字 ==================
+                let wordDiv = document.createElement("div");
+                wordDiv.className = "word-box";
+                wordDiv.textContent = `${w.word} (${w.part})`;
+                wordDiv.draggable = true;
+                wordDiv.dataset.index = i;
+
+                // ⛔ 防呆：若單字已被標記為已使用，則禁止拖曳
+                wordDiv.addEventListener("dragstart", e => {
+                    if (wordDiv.classList.contains("word-used")) {
+                        e.preventDefault();
+                        return;
+                    }
+                    e.dataTransfer.setData("wordIndex", i);
+                    e.dataTransfer.setData("from", "wordList");
+                });
+
+                // ================== 右側：答案區 + 中文 ==================
+                let meaningDiv = document.createElement("div");
+                meaningDiv.className = "meaning-box";
+
+                let answerSlot = document.createElement("div");
+                answerSlot.className = "answer-slot";
+                answerSlot.dataset.index = i;
+                answerSlot.draggable = true;
+
+                // 從答案區開始拖曳
+                answerSlot.addEventListener("dragstart", e => {
+                    if (answerSlot.textContent.trim() !== "") {
+                        e.dataTransfer.setData("wordText", answerSlot.textContent);
+                        e.dataTransfer.setData("wordIndex", answerSlot.dataset.wordIndex || "");
+                        e.dataTransfer.setData("from", "answerSlot");
+                        e.dataTransfer.setData("slotIndex", i);
+                    }
+                });
+
+                // 允許放置
+                answerSlot.addEventListener("dragover", e => e.preventDefault());
+
+                // ================== 放下處理邏輯 ==================
+                answerSlot.addEventListener("drop", e => {
+                    e.preventDefault();
+                    let from = e.dataTransfer.getData("from");
+                    let draggedIndex = e.dataTransfer.getData("wordIndex");
+                    let draggedText = e.dataTransfer.getData("wordText");
+                    let slotIndex = e.dataTransfer.getData("slotIndex");
+
+                    // ========== 情境①：從左側拖曳 ==========
+                    if (from === "wordList") {
+                        let draggedWord = mockWords[draggedIndex];
+                        answerSlot.textContent = `${draggedWord.word} (${draggedWord.part})`;
+                        answerSlot.dataset.wordIndex = draggedIndex;
+
+                        // ✅ 標記左側單字為「已使用」
+                        let usedWord = document.querySelector(`.word-box[data-index='${draggedIndex}']`);
+                        if (usedWord) {
+                            usedWord.classList.add("word-used");
+                            usedWord.setAttribute("draggable", "false");
+                        }
+                    }
+
+                    // ========== 情境②：從另一個答案區互換 ==========
+                    if (from === "answerSlot") {
+                        let fromSlot = document.querySelector(`.answer-slot[data-index='${slotIndex}']`);
+                        if (!fromSlot || fromSlot === answerSlot) return;
+
+                        let tempText = answerSlot.textContent;
+                        let tempIndex = answerSlot.dataset.wordIndex;
+
+                        // ✅ 交換內容
+                        answerSlot.textContent = draggedText;
+                        answerSlot.dataset.wordIndex = draggedIndex;
+                        fromSlot.textContent = tempText;
+                        fromSlot.dataset.wordIndex = tempIndex;
+                    }
+
+                    // ========== 自動恢復左側未使用單字 ==========
+                    document.querySelectorAll(".word-box").forEach(box => {
+                        let index = box.dataset.index;
+                        let stillUsed = Array.from(document.querySelectorAll(".answer-slot"))
+                            .some(s => s.dataset.wordIndex === index);
+
+                        if (stillUsed) {
+                            box.classList.add("word-used");
+                            box.setAttribute("draggable", "false");
+                        } else {
+                            box.classList.remove("word-used");
+                            box.setAttribute("draggable", "true");
+                        }
+                    });
+                });
+
+                // ✅ 使用「打亂後」的中文意思
+                let meaningText = document.createElement("div");
+                meaningText.className = "meaning-text";
+                meaningText.textContent = shuffledMeanings[i].meaning;
+
+                meaningDiv.appendChild(answerSlot);
+                meaningDiv.appendChild(meaningText);
+                container.append(wordDiv, meaningDiv);
+            });
+        }
+
+        /* ==================== 倒數計時 + 進度條 ==================== */
+        let countdown;
+        let endTime; // ✅ 記錄結束時間 (毫秒)
+
+        function startCountdown(totalSeconds) {
+            let timeDisplay = document.getElementById("timeLeft");
+            let progressBar = document.getElementById("progressBar");
+            progressBar.dataset.total = totalSeconds;
+
+            // 1️⃣ 初始化結束時間
+            endTime = Date.now() + totalSeconds * 1000;
+            isPaused = false;
+
+            // 2️⃣ 清除舊倒數
+            clearInterval(countdown);
+            timeDisplay.textContent = totalSeconds;
+            progressBar.style.width = "100%";
+
+            // 3️⃣ 啟動倒數（每 0.1 秒更新）
+            countdown = setInterval(() => {
+                if (isPaused) return;
+
+                let remainingMs = endTime - Date.now();
+                let remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+                let percent = Math.max(0, (remainingMs / (totalSeconds * 1000)) * 100);
+
+                // 更新顯示
+                timeDisplay.textContent = remainingSeconds;
+                progressBar.style.width = percent + "%";
+
+                // ✅ 時間到 → 自動提交
+                if (remainingMs <= 0) {
+                    clearInterval(countdown);
+                    if (document.getElementById("btnSubmit").style.display !== "none") {
+                        submitAnswers(true);
+                    }
+                }
+            }, 100);
+        }
+
+        /* ==================== 提交答案檢查 ==================== */
+        function submitAnswers(auto = false) {
+            let answerSlots = document.querySelectorAll(".answer-slot");
+            let filledCount = Array.from(answerSlots).filter(s => s.textContent.trim() !== "").length;
+
+            if (!auto && filledCount < mockWords.length) {
+                if (!confirm("仍有未配對的單字，確定要交卷嗎？")) return;
+            }
+
+            clearInterval(countdown); // 停止倒數
+            document.querySelector(".close-btn").style.display = "none"; // 隱藏叉叉
+
+            let correctCount = 0;
+            let wrongCount = 0;
+            let unansweredCount = 0;
+
+            answerSlots.forEach((slot, i) => {
+                let chosenIndex = slot.dataset.wordIndex;
+                let correctIndex = shuffledMeanings[i].originalIndex;
+                let correctWord = mockWords[correctIndex];
+
+                if (!chosenIndex || slot.textContent.trim() === "") {
+                    // 🔸 未作答 → 灰色 + 顯示正確答案
+                    slot.classList.remove("answer-correct", "answer-wrong");
+                    slot.classList.add("answer-unanswered");
+                    slot.textContent = `${correctWord.word} (${correctWord.part})`;
+                    slot.dataset.wordIndex = correctIndex;
+                    unansweredCount++;
+                } else if (parseInt(chosenIndex) === correctIndex) {
+                    // ✅ 答對
+                    slot.classList.remove("answer-wrong", "answer-unanswered");
+                    slot.classList.add("answer-correct");
+                    correctCount++;
+                } else {
+                    // ❌ 答錯
+                    slot.classList.remove("answer-correct", "answer-unanswered");
+                    slot.classList.add("answer-wrong");
+                    slot.textContent = `${correctWord.word} (${correctWord.part})`;
+                    slot.dataset.wordIndex = correctIndex;
+                    wrongCount++;
+                }
             });
 
-            html += "</ul>";
-            container.innerHTML = html;
+            // 隱藏提交按鈕
+            document.getElementById("btnSubmit").style.display = "none";
+
+            // 禁止拖曳但不破壞 DOM 結構
+            document.querySelectorAll(".word-box, .answer-slot").forEach(el => {
+                el.setAttribute("draggable", "false");
+            });
+
+            // 顯示統計
+            setTimeout(() => {
+                const wrapper = document.getElementById("resultWrapper");
+                const btnResult = document.getElementById("btnViewResult");
+                const summary = document.getElementById("resultSummary");
+
+                document.getElementById("correctCount").textContent = `正確：${correctCount} 題`;
+                document.getElementById("wrongCount").textContent = `錯誤：${wrongCount} 題`;
+                document.getElementById("unansweredCount").textContent = `未作答：${unansweredCount} 題`;
+
+                wrapper.style.display = "flex";
+                btnResult.style.display = "inline-block";
+                summary.style.display = "inline-flex";
+            }, 500);
+        }
+
+        /* ==================== 查看結果（切換面板） ==================== */
+        function goToResult() {
+            // ✅ 只關內層，不關外層 Panel（避免第二輪還要再把外層救回來）
+            const pnlGameInner = document.querySelector("[id$='pnlGame'] .panel-game");
+            if (pnlGameInner) pnlGameInner.style.display = "none";
+
+            // 顯示結果面板
+            const pnlResult = document.getElementById("<%= pnlResult.ClientID %>");
+            if (pnlResult) pnlResult.style.display = "flex";
+
+            // 取統計結果
+            const correctText = document.getElementById("correctCount").textContent;
+            const total = mockWords.length;
+            const correctCount = parseInt(correctText.replace(/\D/g, "")) || 0;
+            const accuracy = (correctCount / total) * 100;
+
+            // 計算獎勵
+            let bet = document.getElementById("bet").value;
+            let betAmount = (bet === "custom")
+                ? parseInt(document.getElementById("customBet").value) || 0
+                : parseInt(bet);
+            let difficulty = parseFloat(document.getElementById("difficulty").value);
+            let duration = parseFloat(document.getElementById("duration").value);
+            let rate = 1.0 * difficulty * duration;
+            let reward = Math.floor(betAmount * rate);
+
+            // 更新結果內容
+            const title = document.getElementById("resultTitle");
+            const msg = document.getElementById("resultMessage");
+            const rateText = document.getElementById("resultRate");
+            const rewardText = document.getElementById("resultReward");
+
+            if (accuracy >= 80) {
+                if (title) { title.textContent = "🎉 恭喜勝利！"; title.className = "result-title success"; }
+                if (msg) msg.textContent = "您的答對率超過 80%，贏得本次挑戰！";
+                if (rateText) rateText.textContent = `答對率：${accuracy.toFixed(1)}%`;
+                if (rewardText) rewardText.innerHTML =
+                    `<img src="images/diamond.svg" alt="diamond" style="width:24px; height:24px; vertical-align:middle; margin-right:6px;">
+             獲得獎勵：${reward} 顆鑽石`;
+            } else {
+                if (title) { title.textContent = "❌ 挑戰失敗"; title.className = "result-title fail"; }
+                if (msg) msg.textContent = "未達 80% 答對率，下次再接再厲吧！";
+                if (rateText) rateText.textContent = `答對率：${accuracy.toFixed(1)}%`;
+                if (rewardText) rewardText.innerHTML =
+                    `<img src="images/diamond.svg" alt="diamond" style="width:24px; height:24px; filter: grayscale(100%); vertical-align:middle; margin-right:6px;">
+             無法獲得獎勵`;
+            }
+        }
+
+        /* ==================== 結束挑戰（原邏輯保留，小補強） ==================== */
+        function endChallenge() {
+            const pnl = document.getElementById("<%= pnlResult.ClientID %>");
+            if (!pnl) return;
+
+            pnl.classList.add("hide");
+
+            setTimeout(() => {
+                pnl.classList.remove("hide");
+                pnl.style.display = "none";
+
+                // 回設定面板
+                const pnlChallenge = document.querySelector("[id$='pnlChallenge']");
+                if (pnlChallenge) pnlChallenge.style.display = "flex";
+
+                // 關內層遊戲面板（外層是否關閉都可，但你現在第二輪會自己開外層了）
+                const pnlGameInner = document.querySelector("[id$='pnlGame'] .panel-game");
+                if (pnlGameInner) pnlGameInner.style.display = "none";
+
+                const btnSubmit = document.getElementById("btnSubmit");
+                if (btnSubmit) btnSubmit.style.display = "none";
+                const closeBtn = document.querySelector(".close-btn");
+                if (closeBtn) closeBtn.style.display = "none";
+                const resultWrapper = document.getElementById("resultWrapper");
+                if (resultWrapper) resultWrapper.style.display = "none";
+
+                const container = document.querySelector(".matching-container");
+                if (container) container.innerHTML = "";
+
+                const progressBar = document.getElementById("progressBar");
+                const timeLeft = document.getElementById("timeLeft");
+                if (progressBar) progressBar.style.width = "100%";
+                if (timeLeft) timeLeft.textContent = "—";
+
+                document.querySelectorAll(".answer-slot").forEach(slot => {
+                    slot.textContent = "";
+                    slot.className = "answer-slot";
+                    delete slot.dataset.wordIndex;
+                });
+                document.querySelectorAll(".word-box").forEach(word => {
+                    word.classList.remove("word-used");
+                    word.setAttribute("draggable", "true");
+                });
+
+                const title = document.getElementById("resultTitle");
+                const msg = document.getElementById("resultMessage");
+                const rate = document.getElementById("resultRate");
+                const reward = document.getElementById("resultReward");
+                if (title) title.textContent = "";
+                if (msg) msg.textContent = "";
+                if (rate) rate.textContent = "";
+                if (reward) reward.textContent = "";
+
+                shuffledMeanings = [];
+                pausedTimeLeft = 0;
+                clearInterval(countdown);
+                isPaused = false;
+
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }, 300);
+        }
+
+    </script>
+
+    <script>
+        /* 🚩 暫停倒數（例如按叉叉） */
+        function showExitModal() {
+            if (!isPaused) {
+                isPaused = true;
+                clearInterval(countdown);
+                // 暫存剩餘時間（以秒為單位）
+                pausedTimeLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            }
+            document.getElementById("exitGameModal").style.display = "flex";
+        }
+
+        /* 🚩 隱藏退出確認 Modal */
+        function hideExitModal() {
+            document.getElementById("exitGameModal").style.display = "none";
+            if (isPaused && pausedTimeLeft > 0) resumeCountdown();
+        }
+
+        /* 🚩 Modal 點擊背景關閉 */
+        document.getElementById("exitGameModal").addEventListener("click", e => {
+            if (e.target.id === "exitGameModal") hideExitModal();
+        });
+
+        /* 🚩 恢復倒數（統一用 endTime 控制） */
+        function resumeCountdown() {
+            let timeDisplay = document.getElementById("timeLeft");
+            let progressBar = document.getElementById("progressBar");
+            const totalSeconds = parseInt(progressBar.dataset.total) || pausedTimeLeft;
+
+            // 重新設定結束時間
+            endTime = Date.now() + pausedTimeLeft * 1000;
+            isPaused = false;
+
+            clearInterval(countdown);
+            countdown = setInterval(() => {
+                if (isPaused) return;
+
+                let remainingMs = endTime - Date.now();
+                let remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+                let percent = Math.max(0, (remainingMs / (totalSeconds * 1000)) * 100);
+
+                pausedTimeLeft = remainingSeconds;
+                timeDisplay.textContent = remainingSeconds;
+                progressBar.style.width = percent + "%";
+
+                if (remainingMs <= 0) {
+                    clearInterval(countdown);
+                    if (document.getElementById("btnSubmit").style.display !== "none") {
+                        submitAnswers(true);
+                    }
+                }
+            }, 100);
+        }
+
+        /* 🚩 中斷挑戰邏輯（確認離開 → 回到主畫面） */
+        function abortGame() {
+            hideExitModal();
+            clearInterval(countdown);
+            isPaused = false;
+            pausedTimeLeft = 0;
+
+            document.getElementById("timeLeft").textContent = "0";
+            document.getElementById("progressBar").style.width = "0%";
+
+            // 清空所有遊戲內容
+            const container = document.querySelector(".matching-container");
+            if (container) container.innerHTML = "";
+
+            // 隱藏挑戰面板
+            const gamePanel = document.querySelector(".panel-game");
+            if (gamePanel) gamePanel.style.display = "none";
+
+            // 顯示挑戰設定面板
+            const pnlChallenge = document.getElementById("<%= pnlChallenge.ClientID %>");
+            if (pnlChallenge) {
+                pnlChallenge.style.removeProperty("display"); // 移除 ASP.NET 強加的 inline style
+                pnlChallenge.style.display = "flex";
+            }
+
         }
     </script>
+
 </body>
 </html>
