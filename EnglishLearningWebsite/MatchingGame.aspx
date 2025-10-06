@@ -136,7 +136,7 @@
         /* 描述文字 */
         .challenge-description {
             font-size: 1rem;
-            margin-bottom: 25px;
+            margin-bottom: 0px;
             color: #555;
         }
 
@@ -607,7 +607,7 @@
             max-width: 800px;
             text-align: center;
             font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-            margin: 0; /* ✅ 不要繼承 panel-game 的 margin */
+            margin-top: 140px;
         }
 
         /* 標題樣式 */
@@ -697,7 +697,10 @@
 
                 <h2 class="challenge-title">🎯 連連看挑戰</h2>
                 <p class="challenge-description">
-                    請選擇下注鑽石數量、難度與時間後開始挑戰！成功將獲得額外鑽石獎勵！
+                    請選擇下注鑽石數量、難度與時間後開始挑戰！
+                </p>
+                <p class="challenge-description" style="margin-bottom: 15px;" >
+                    成功將獲得額外鑽石獎勵！
                 </p>
 
                 <!-- 下注金額選擇 -->
@@ -846,7 +849,7 @@
 
                     <p><strong>💎 獎勵規則：</strong></p>
                     <ul>
-                        <li>難度越大、時間越短，獎勵倍率也會更高。</li>
+                        <li>難度越高、時間越短，獎勵倍率也會更高。</li>
                         <li>僅答對率達標才會獲得獎勵，否則失去下注的鑽石。</li>
                     </ul>
 
@@ -924,19 +927,27 @@
         });
 
         /* ==================== 按下開始挑戰 ==================== */
-        /* ==================== 按下開始挑戰（修正版） ==================== */
         function startChallenge() {
             let bet = document.getElementById("bet").value;
             let betAmount = (bet === "custom")
                 ? parseInt(document.getElementById("customBet").value) || 0
                 : parseInt(bet);
 
+            // 🧩 取得目前玩家擁有的鑽石數
+            const lblDiamonds = document.getElementById("lblDiamonds");
+            let currentDiamonds = parseInt(lblDiamonds?.textContent.trim()) || 0;
+
+            // ======= ✅ 驗證下注金額 =======
             if (isNaN(betAmount) || betAmount <= 0) {
                 showErrorModal("下注金額必須大於 0！");
                 return;
             }
             if (betAmount > 100) {
                 showErrorModal("下注金額不能超過 100 顆鑽石！");
+                return;
+            }
+            if (betAmount > currentDiamonds) {
+                showErrorModal(`下注金額 (${betAmount} 顆) 不可超過您目前持有的 ${currentDiamonds} 顆鑽石！`);
                 return;
             }
 
@@ -975,132 +986,144 @@
         let isPaused = false; // ✅ 紀錄倒數是否暫停
         let pausedTimeLeft = 0; // ✅ 暫存剩餘秒數
 
-        /* 假資料（模擬撈 DB） */
-        const mockWords = [
-            { word: "black", part: "n.", meaning: "黑色" },
-            { word: "bottom", part: "n.", meaning: "底部" },
-            { word: "haircut", part: "n.", meaning: "理髮" },
-            { word: "newspaper", part: "n.", meaning: "報紙" },
-            { word: "November", part: "n.", meaning: "十一月" },
-            { word: "pencil", part: "n.", meaning: "鉛筆" },
-            { word: "ride", part: "v.", meaning: "騎" },
-            { word: "spread", part: "n.", meaning: "範圍" },
-            { word: "stomach", part: "n.", meaning: "胃" },
-            { word: "team", part: "n.", meaning: "隊伍" }
-        ];
+        /* ✅ 改為從後端撈資料（取代 mockWords） */
+        let mockWords = []; //先宣告空陣列，後續由後端填入
 
-        /* 載入挑戰 */
+        /* ✅ 修改這裡：載入挑戰時改用 fetch 後端資料 */
         function loadChallengeWords() {
             let container = document.querySelector(".matching-container");
             container.innerHTML = "";
 
-            // ✅ 打亂右側中文，但保留正確索引
-            shuffledMeanings = mockWords
-                .map((w, idx) => ({ ...w, originalIndex: idx })) // 加入原始位置
-                .sort(() => Math.random() - 0.5);
+            // 取得使用者選擇的難度（初級/中級/中高級）
+            const difficultySelect = document.getElementById("difficulty");
+            const difficultyValue = difficultySelect.options[difficultySelect.selectedIndex].text.split(" ")[0];
+            // e.g. "初級 (x1.1)" → 取 "初級"
 
-            mockWords.forEach((w, i) => {
-                // ================== 左側：單字 ==================
-                let wordDiv = document.createElement("div");
-                wordDiv.className = "word-box";
-                wordDiv.textContent = `${w.word} (${w.part})`;
-                wordDiv.draggable = true;
-                wordDiv.dataset.index = i;
-
-                // ⛔ 防呆：若單字已被標記為已使用，則禁止拖曳
-                wordDiv.addEventListener("dragstart", e => {
-                    if (wordDiv.classList.contains("word-used")) {
-                        e.preventDefault();
+            // 🔸 從後端撈取單字資料
+            fetch("MatchingGameService.asmx/GetMatchingWords", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({ difficulty: difficultyValue })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    // ✅ 驗證回傳狀態
+                    if (data.d.status !== "OK") {
+                        alert("題目載入失敗：" + (data.d.message || "未知錯誤"));
                         return;
                     }
-                    e.dataTransfer.setData("wordIndex", i);
-                    e.dataTransfer.setData("from", "wordList");
-                });
 
-                // ================== 右側：答案區 + 中文 ==================
-                let meaningDiv = document.createElement("div");
-                meaningDiv.className = "meaning-box";
+                    // ✅ 將資料儲存進 mockWords
+                    mockWords = data.d.data.map(item => ({
+                        word: item.word,
+                        part: "n.", // ❗暫時給固定詞性（後端若要可一併傳）
+                        meaning: item.meaning
+                    }));
 
-                let answerSlot = document.createElement("div");
-                answerSlot.className = "answer-slot";
-                answerSlot.dataset.index = i;
-                answerSlot.draggable = true;
+                    // ✅ 打亂右側中文，但保留正確索引
+                    shuffledMeanings = mockWords
+                        .map((w, idx) => ({ ...w, originalIndex: idx }))
+                        .sort(() => Math.random() - 0.5);
 
-                // 從答案區開始拖曳
-                answerSlot.addEventListener("dragstart", e => {
-                    if (answerSlot.textContent.trim() !== "") {
-                        e.dataTransfer.setData("wordText", answerSlot.textContent);
-                        e.dataTransfer.setData("wordIndex", answerSlot.dataset.wordIndex || "");
-                        e.dataTransfer.setData("from", "answerSlot");
-                        e.dataTransfer.setData("slotIndex", i);
-                    }
-                });
+                    // ✅ 用撈到的資料生成畫面
+                    mockWords.forEach((w, i) => {
+                        // ================== 左側：單字 ==================
+                        let wordDiv = document.createElement("div");
+                        wordDiv.className = "word-box";
+                        wordDiv.textContent = `${w.word} (${w.part})`;
+                        wordDiv.draggable = true;
+                        wordDiv.dataset.index = i;
 
-                // 允許放置
-                answerSlot.addEventListener("dragover", e => e.preventDefault());
+                        wordDiv.addEventListener("dragstart", e => {
+                            if (wordDiv.classList.contains("word-used")) {
+                                e.preventDefault();
+                                return;
+                            }
+                            e.dataTransfer.setData("wordIndex", i);
+                            e.dataTransfer.setData("from", "wordList");
+                        });
 
-                // ================== 放下處理邏輯 ==================
-                answerSlot.addEventListener("drop", e => {
-                    e.preventDefault();
-                    let from = e.dataTransfer.getData("from");
-                    let draggedIndex = e.dataTransfer.getData("wordIndex");
-                    let draggedText = e.dataTransfer.getData("wordText");
-                    let slotIndex = e.dataTransfer.getData("slotIndex");
+                        // ================== 右側：答案區 + 中文 ==================
+                        let meaningDiv = document.createElement("div");
+                        meaningDiv.className = "meaning-box";
 
-                    // ========== 情境①：從左側拖曳 ==========
-                    if (from === "wordList") {
-                        let draggedWord = mockWords[draggedIndex];
-                        answerSlot.textContent = `${draggedWord.word} (${draggedWord.part})`;
-                        answerSlot.dataset.wordIndex = draggedIndex;
+                        let answerSlot = document.createElement("div");
+                        answerSlot.className = "answer-slot";
+                        answerSlot.dataset.index = i;
+                        answerSlot.draggable = true;
 
-                        // ✅ 標記左側單字為「已使用」
-                        let usedWord = document.querySelector(`.word-box[data-index='${draggedIndex}']`);
-                        if (usedWord) {
-                            usedWord.classList.add("word-used");
-                            usedWord.setAttribute("draggable", "false");
-                        }
-                    }
+                        answerSlot.addEventListener("dragstart", e => {
+                            if (answerSlot.textContent.trim() !== "") {
+                                e.dataTransfer.setData("wordText", answerSlot.textContent);
+                                e.dataTransfer.setData("wordIndex", answerSlot.dataset.wordIndex || "");
+                                e.dataTransfer.setData("from", "answerSlot");
+                                e.dataTransfer.setData("slotIndex", i);
+                            }
+                        });
 
-                    // ========== 情境②：從另一個答案區互換 ==========
-                    if (from === "answerSlot") {
-                        let fromSlot = document.querySelector(`.answer-slot[data-index='${slotIndex}']`);
-                        if (!fromSlot || fromSlot === answerSlot) return;
+                        answerSlot.addEventListener("dragover", e => e.preventDefault());
 
-                        let tempText = answerSlot.textContent;
-                        let tempIndex = answerSlot.dataset.wordIndex;
+                        answerSlot.addEventListener("drop", e => {
+                            e.preventDefault();
+                            let from = e.dataTransfer.getData("from");
+                            let draggedIndex = e.dataTransfer.getData("wordIndex");
+                            let draggedText = e.dataTransfer.getData("wordText");
+                            let slotIndex = e.dataTransfer.getData("slotIndex");
 
-                        // ✅ 交換內容
-                        answerSlot.textContent = draggedText;
-                        answerSlot.dataset.wordIndex = draggedIndex;
-                        fromSlot.textContent = tempText;
-                        fromSlot.dataset.wordIndex = tempIndex;
-                    }
+                            if (from === "wordList") {
+                                let draggedWord = mockWords[draggedIndex];
+                                answerSlot.textContent = `${draggedWord.word} (${draggedWord.part})`;
+                                answerSlot.dataset.wordIndex = draggedIndex;
 
-                    // ========== 自動恢復左側未使用單字 ==========
-                    document.querySelectorAll(".word-box").forEach(box => {
-                        let index = box.dataset.index;
-                        let stillUsed = Array.from(document.querySelectorAll(".answer-slot"))
-                            .some(s => s.dataset.wordIndex === index);
+                                let usedWord = document.querySelector(`.word-box[data-index='${draggedIndex}']`);
+                                if (usedWord) {
+                                    usedWord.classList.add("word-used");
+                                    usedWord.setAttribute("draggable", "false");
+                                }
+                            }
 
-                        if (stillUsed) {
-                            box.classList.add("word-used");
-                            box.setAttribute("draggable", "false");
-                        } else {
-                            box.classList.remove("word-used");
-                            box.setAttribute("draggable", "true");
-                        }
+                            if (from === "answerSlot") {
+                                let fromSlot = document.querySelector(`.answer-slot[data-index='${slotIndex}']`);
+                                if (!fromSlot || fromSlot === answerSlot) return;
+
+                                let tempText = answerSlot.textContent;
+                                let tempIndex = answerSlot.dataset.wordIndex;
+
+                                answerSlot.textContent = draggedText;
+                                answerSlot.dataset.wordIndex = draggedIndex;
+                                fromSlot.textContent = tempText;
+                                fromSlot.dataset.wordIndex = tempIndex;
+                            }
+
+                            document.querySelectorAll(".word-box").forEach(box => {
+                                let index = box.dataset.index;
+                                let stillUsed = Array.from(document.querySelectorAll(".answer-slot"))
+                                    .some(s => s.dataset.wordIndex === index);
+
+                                if (stillUsed) {
+                                    box.classList.add("word-used");
+                                    box.setAttribute("draggable", "false");
+                                } else {
+                                    box.classList.remove("word-used");
+                                    box.setAttribute("draggable", "true");
+                                }
+                            });
+                        });
+
+                        // ✅ 使用打亂後的中文意思
+                        let meaningText = document.createElement("div");
+                        meaningText.className = "meaning-text";
+                        meaningText.textContent = shuffledMeanings[i].meaning;
+
+                        meaningDiv.appendChild(answerSlot);
+                        meaningDiv.appendChild(meaningText);
+                        container.append(wordDiv, meaningDiv);
                     });
+                })
+                .catch(err => {
+                    console.error("Fetch Error:", err);
+                    alert("載入挑戰資料失敗，請稍後再試。");
                 });
-
-                // ✅ 使用「打亂後」的中文意思
-                let meaningText = document.createElement("div");
-                meaningText.className = "meaning-text";
-                meaningText.textContent = shuffledMeanings[i].meaning;
-
-                meaningDiv.appendChild(answerSlot);
-                meaningDiv.appendChild(meaningText);
-                container.append(wordDiv, meaningDiv);
-            });
         }
 
         /* ==================== 倒數計時 + 進度條 ==================== */
@@ -1248,15 +1271,54 @@
                 if (rateText) rateText.textContent = `答對率：${accuracy.toFixed(1)}%`;
                 if (rewardText) rewardText.innerHTML =
                     `<img src="images/diamond.svg" alt="diamond" style="width:24px; height:24px; vertical-align:middle; margin-right:6px;">
-             獲得獎勵：${reward} 顆鑽石`;
+             獲得獎勵：${reward} 顆鑽石（您原先下注的鑽石為：${betAmount}顆）`;
             } else {
                 if (title) { title.textContent = "❌ 挑戰失敗"; title.className = "result-title fail"; }
                 if (msg) msg.textContent = "未達 80% 答對率，下次再接再厲吧！";
                 if (rateText) rateText.textContent = `答對率：${accuracy.toFixed(1)}%`;
                 if (rewardText) rewardText.innerHTML =
-                    `<img src="images/diamond.svg" alt="diamond" style="width:24px; height:24px; filter: grayscale(100%); vertical-align:middle; margin-right:6px;">
-             無法獲得獎勵`;
+                    `<img src="images/diamond.svg" alt="diamond" 
+            style="width:24px; height:24px; filter: grayscale(100%); vertical-align:middle; margin-right:6px;">
+         無法獲得獎勵，並扣除原先下注的 ${betAmount} 顆鑽石。`;
             }
+
+            // ✅ 呼叫後端 Web API 更新鑽石
+            fetch("MatchingGameService.asmx/UpdateMatchingResult", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify({
+                    betAmount: betAmount,
+                    rate: rate,
+                    accuracy: accuracy
+                })
+            })
+                .then(res => res.json())
+                .then(resData => {
+                    if (resData.d.status === "OK") {
+                        console.log("💎 鑽石更新成功：", resData.d);
+
+                        // ✅ 即時更新頁首顯示（優先顯示 newDiamonds，否則 fallback 為 newTotal）
+                        const lblDiamonds = document.getElementById("lblDiamonds");
+                        if (lblDiamonds) {
+                            lblDiamonds.textContent = resData.d.newDiamonds ?? resData.d.newTotal ?? "—";
+                        }
+
+                        // ✅ 顯示在 console 以方便除錯或驗證下注結果
+                        const outcomeText = accuracy >= 80 ? "🏆 勝利" : "💀 失敗";
+                        console.log(
+                            `🎯 ${outcomeText}｜下注：${betAmount} 顆｜回報倍率：x${rate.toFixed(2)}｜當前鑽石餘額：${resData.d.newDiamonds ?? resData.d.newTotal}`
+                        );
+
+                    } else if (resData.d.status === "NOT_LOGGED_IN") {
+                        alert("⚠️ 使用者尚未登入，無法更新鑽石。");
+                    } else {
+                        console.warn("❗更新失敗：", resData.d.message || resData.d.status);
+                    }
+                })
+                .catch(err => {
+                    console.error("🚨 Fetch Error:", err);
+                    alert("伺服器連線異常，請稍後再試。");
+                });
         }
 
         /* ==================== 結束挑戰（原邏輯保留，小補強） ==================== */
