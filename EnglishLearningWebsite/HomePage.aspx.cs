@@ -220,6 +220,21 @@ public partial class HomePage : System.Web.UI.Page
         }
     }
 
+    // 🔹 點擊「前往兌換商城」
+    protected void btnGoStore_Click(object sender, EventArgs e)
+    {
+        Debug.WriteLine("🔹 btnGoStore_Click() - 使用者嘗試進入兌換商城");
+
+        if (Session["UserEmail"] == null) // ✅ 未登入 → 導向登入頁
+        {
+            Response.Redirect("UserLogin.aspx?returnUrl=HomePage.aspx");
+            return;
+        }
+
+        // ✅ 已登入 → 直接導向商城頁面
+        Response.Redirect("DiamondStore.aspx");
+    }
+
     // 🔹 點擊「登出」按鈕時，清除 Session，返回首頁
     protected void btnLogout_Click(object sender, EventArgs e)
     {

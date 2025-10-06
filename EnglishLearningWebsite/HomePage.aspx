@@ -128,6 +128,104 @@
                 visibility: visible; /* 使其可見 */
             }
 
+        /* ===== 鑽石 Popover ===== */
+        .diamond-trigger {
+            position: relative;
+        }
+
+        .diamond-popover {
+            position: absolute;
+            top: 125%;
+            right: 0;
+            width: 260px;
+            background: #ffffff;
+            border: 2px solid #4a90e2;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+            padding: 14px 14px 16px;
+            display: none;
+            z-index: 1100;
+            animation: pop-fade-in 120ms ease-out;
+        }
+
+            .diamond-popover::before {
+                content: "";
+                position: absolute;
+                top: -10px;
+                right: 32px;
+                border-width: 0 10px 10px 10px;
+                border-style: solid;
+                border-color: transparent transparent #4a90e2 transparent;
+            }
+
+            .diamond-popover::after {
+                content: "";
+                position: absolute;
+                top: -8px;
+                right: 33px;
+                border-width: 0 9px 9px 9px;
+                border-style: solid;
+                border-color: transparent transparent #ffffff transparent;
+            }
+
+        .diamond-popover-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #2b2b2b;
+            margin-bottom: 6px;
+        }
+
+            .diamond-popover-header img {
+                width: 20px;
+                height: 20px;
+            }
+
+        .diamond-trigger:hover .diamond-popover {
+            display: block;
+        }
+
+        .diamond-popover-desc {
+            font-size: 14px;
+            color: #555;
+            margin: 6px 0 12px;
+        }
+
+        .btn-go-store {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #4a90e2, #66aef5);
+            color: #fff;
+            transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+        }
+
+            .btn-go-store:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 14px rgba(74,144,226,.35);
+            }
+
+            .btn-go-store:active {
+                transform: translateY(0);
+                opacity: .9;
+            }
+
+        @keyframes pop-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* 美化登入/註冊按鈕 */
         .btn-login {
             font-size: 16px; /* 增加字體大小 */
@@ -392,18 +490,29 @@
 
                             <!-- 體力 -->
                             <div id="energyContainer" runat="server" class="energy">
-                                <span class="tooltip-container" data-tooltip="魔法能量：可用於參加學習挑戰">
-                                    <img src="images/energy.svg" class="resource-icon" alt="Energy">
+                                <span class="tooltip-container" data-tooltip="魔法能量：可用於背單字遊戲中的祭壇攻略">
+                                    <img src="images/energy.svg" class="resource-icon" alt="Energy" />
                                 </span>
                                 <asp:Label ID="lblEnergy" runat="server" CssClass="text-white fw-bold"></asp:Label>
                             </div>
 
                             <!-- 鑽石 -->
-                            <div id="diamondsContainer" runat="server" class="diamonds">
-                                <span class="tooltip-container" data-tooltip="魔法鑽石：可用於兌換特殊物品">
-                                    <img src="images/diamond.svg" class="resource-icon" alt="Diamonds">
+                            <div id="diamondsContainer" runat="server" class="diamonds diamond-trigger">
+                                <span <%--class="tooltip-container"--%>>
+                                    <img src="images/diamond.svg" class="resource-icon" alt="Diamonds" />
                                 </span>
                                 <asp:Label ID="lblDiamonds" runat="server" CssClass="text-white fw-bold"></asp:Label>
+
+                                <!-- 🔵 新增：Hover 彈出卡片 -->
+                                <div class="diamond-popover" role="dialog" aria-hidden="true">
+                                    <div class="diamond-popover-header">
+                                        <img src="images/diamond.svg" alt="" />
+                                        <span>鑽石中心</span>
+                                    </div>
+                                    <p class="diamond-popover-desc">前往兌換商城，使用鑽石兌換實體或虛擬獎勵。</p>
+                                    <asp:Button ID="btnGoStore" runat="server" CssClass="btn-go-store"
+                                        Text="前往兌換商城 →" OnClick="btnGoStore_Click" />
+                                </div>
                             </div>
                 </div>
 
@@ -418,7 +527,7 @@
         <section class="hero-section">
             <div class="container">
                 <div class="text-center">
-                    <img src="images\herosection.jpg" class="d-block w-100 course-img" alt="Hero 圖片"/>
+                    <img src="images\herosection.jpg" class="d-block w-100 course-img" alt="Hero 圖片" />
                 </div>
             </div>
         </section>
@@ -496,6 +605,11 @@
 </body>
 <!-- ✅ 確保載入 Bootstrap 5 JavaScript (解決輪播無法運行的問題) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.isLoggedIn = <%= (Session["UserEmail"] != null ? "true" : "false") %>;
+</script>
+
 <script>
     function showEnergyTooltip() {
         console.log("🔹 showEnergyTooltip() 被執行！");
@@ -546,6 +660,47 @@
 }
     `;
     document.head.appendChild(style);
+</script>
+
+<script>
+    // ✅ Hover + 點擊共存邏輯：hover 顯示、點擊可固定、點外部關閉
+    (function () {
+        const trigger = document.querySelector('.diamond-trigger');
+        const popover = document.querySelector('.diamond-popover');
+        let isPinned = false; // 是否固定顯示
+
+        if (!trigger || !popover) return;
+
+        // --- Hover 顯示 ---
+        trigger.addEventListener('mouseenter', () => {
+            if (!isPinned) {
+                popover.style.display = 'block';
+            }
+        });
+
+        trigger.addEventListener('mouseleave', (e) => {
+            // 若沒有被固定且滑鼠離開整個 trigger 範圍，就隱藏
+            if (!isPinned && !trigger.contains(e.relatedTarget)) {
+                popover.style.display = 'none';
+            }
+        });
+
+        // --- 點擊切換固定狀態 ---
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation(); // 避免冒泡
+            isPinned = !isPinned;
+            popover.style.display = isPinned ? 'block' : 'none';
+        });
+
+        // --- 點擊外部關閉 ---
+        document.addEventListener('click', (e) => {
+            if (isPinned && !trigger.contains(e.target) && !popover.contains(e.target)) {
+                popover.style.display = 'none';
+                isPinned = false;
+            }
+        });
+    })();
+
 </script>
 
 </html>
