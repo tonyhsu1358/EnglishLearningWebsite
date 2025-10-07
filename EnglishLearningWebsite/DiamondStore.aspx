@@ -3,8 +3,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>魔法兌換商城</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>鑽石兌換商城</title>
 
     <!-- ✅ 引入 Bootstrap 與 Font Awesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -17,7 +17,7 @@
             font-family: "Microsoft JhengHei", sans-serif;
         }
 
-        /* 🌈 透明導覽列 */
+        /* 🌈 導覽列設定 */
         .navbar {
             background-color: transparent !important;
             box-shadow: none !important;
@@ -27,11 +27,14 @@
             z-index: 1000;
         }
 
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 22px;
-            color: #000 !important;
+        /* 🌈 導覽列標題置中、水藍色、粗體 */
+        .store-title {
+            font-weight: 800;
+            font-size: 40px;
+            color: #66B3FF !important;
             letter-spacing: 1px;
+            margin-top: 12px; /* 🎯 下移標題 */
+            align-self: flex-start; /* ✅ 讓它不受 align-items-center 控制 */
         }
 
         /* 💎 鑽石數量顯示區 */
@@ -45,10 +48,15 @@
             color: #000;
             display: flex;
             align-items: center;
-            margin-right: 150px;
-            gap: 5px;
-            z-index: 100;
+            gap: 6px;
+            position: absolute;
+            right: 50px;
         }
+
+            .resource img {
+                width: 22px;
+                height: 22px;
+            }
 
         /* 🏪 商城主容器 */
         .store-container {
@@ -60,19 +68,51 @@
         .sort-bar {
             display: flex;
             align-items: center;
+            justify-content: flex-start;
             margin-bottom: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 10px 18px;
+            transition: all 0.3s ease;
         }
 
-        .sort-bar label {
-            font-weight: bold;
-            margin-right: 10px;
-        }
+            /* 🎨 標籤樣式 */
+            .sort-bar label {
+                font-weight: 700;
+                margin-right: 12px;
+                font-size: 17px;
+                color: #555;
+            }
 
-        .sort-bar select {
-            border-radius: 10px;
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-        }
+            /* 🎨 下拉選單樣式 */
+            .sort-bar select {
+                border-radius: 10px;
+                padding: 8px 32px 8px 14px; /* ✅ 增加右側空間，避免箭頭壓文字 */
+                border: 1.5px solid #cdd6e0;
+                background-color: #f9fafc;
+                background-position: right 10px center; /* ✅ 控制箭頭位置 */
+                color: #333;
+                font-weight: 500;
+                font-size: 15px;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+                /* ✨ hover 效果：輕灰變色＋陰影 */
+                .sort-bar select:hover {
+                    background-color: #f1f3f5;
+                    border-color: #a9b4c3;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+
+                /* 🔘 focus 效果（點擊選單時） */
+                .sort-bar select:focus {
+                    outline: none;
+                    border-color: #66b3ff;
+                    box-shadow: 0 0 6px rgba(102, 179, 255, 0.6);
+                }
 
         /* 🧱 商品卡片 */
         .product-card {
@@ -84,16 +124,21 @@
             overflow: hidden;
         }
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-        }
+            .product-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            }
 
-        .product-card img {
+        /* ❌ 原本這段會害所有 img（包含鑽石圖）都被設為 block + margin auto
+   ✅ 改成只套用在商品主圖，並新增 class 名為 product-image */
+        .product-image {
             width: 100%;
-            aspect-ratio: 5 / 4;
-            object-fit: cover;
-            background: #fff;
+            height: 180px; /* ✅ 固定高度，避免卡片大小不一致 */
+            object-fit: contain; /* ✅ 保持完整圖片不被裁切 */
+            background-color: #fff;
+            border-radius: 10px 10px 0 0;
+            display: block;
+            margin: 0 auto; /* ✅ 僅商品主圖置中，不影響鑽石 */
         }
 
         .product-info {
@@ -107,16 +152,26 @@
             color: #333;
         }
 
+        /* ✅ 加 gap 控制圖與文字間距，不靠 margin-right */
         .product-price {
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
             font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 6px;
+            gap: 10px; /* ✅ 關鍵：這取代 margin-right 的功能 */
         }
 
-        .product-price i {
-            color: #0099ff;
+        /* ✅ 拔掉 margin-right，交給 flex gap 控制 */
+        .diamond-icon {
+            width: 20px !important;
+            height: 20px !important;
+            object-fit: contain;
+            vertical-align: middle;
+            display: inline-block; /* ✅ 改為 inline-block，不受 block 影響 */
+            margin: 0;
         }
 
         /* ⬆️ 回頂按鈕 */
@@ -136,21 +191,23 @@
             z-index: 999;
         }
 
-        #btnScrollTop:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
+            #btnScrollTop:hover {
+                background-color: rgba(0, 0, 0, 0.8);
+            }
     </style>
 </head>
 
 <body>
     <form id="form1" runat="server">
-
         <!-- 🌈 導覽列 -->
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid justify-content-between">
-                <a class="navbar-brand" href="#">💎 魔法兌換商城</a>
+        <nav class="navbar navbar-expand-lg justify-content-center">
+            <div class="container-fluid d-flex justify-content-center align-items-center position-relative">
+                <!-- 導覽標題置中 -->
+                <span class="store-title">鑽石兌換商城</span>
+
+                <!-- 鑽石數量顯示區 -->
                 <div class="resource">
-                    <i class="fa-solid fa-gem text-info"></i>
+                    <img src="images/diamond.svg" alt="Diamond" />
                     <asp:Label ID="lblDiamonds" runat="server" Text="0"></asp:Label>
                 </div>
             </div>
@@ -179,7 +236,6 @@
 
     <!-- ✅ Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         // ===============================
         // 💎 假資料模擬（日後改 ASMX）
@@ -203,20 +259,23 @@
             container.innerHTML = "";
             list.forEach(p => {
                 const card = `
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-                        <div class="product-card">
-                            <img src="${p.image}" alt="${p.name}">
-                            <div class="product-info">
-                                <div class="product-name">${p.name}</div>
-                                <div class="product-price">
-                                    <i class="fa-solid fa-gem"></i> ${p.price}
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="product-card">
+                <!-- ✅ 新增 class="product-image" 只給主圖 -->
+                <img src="${p.image}" alt="${p.name}" class="product-image">
+                <div class="product-info">
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">
+                        <img src="images/diamond.svg" class="diamond-icon" alt="diamond" />
+                        ${p.price}
+                    </div>
+                </div>
+            </div>
+        </div>`;
                 container.insertAdjacentHTML("beforeend", card);
             });
         }
+
 
         // 🔁 排序
         document.getElementById("sortSelect").addEventListener("change", function () {
