@@ -10,31 +10,33 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+    <!-- ===============================
+         🎨 頁面樣式
+         =============================== -->
     <style>
-        /* 🎨 主體背景與字型 */
+        /* 🌿 主體設定 */
         body {
             background-color: #f4f6f8;
             font-family: "Microsoft JhengHei", sans-serif;
         }
 
-        /* 🌈 導覽列設定 */
+        /* 🌈 導覽列設定（不固定在上方） */
         .navbar {
             background-color: transparent !important;
             box-shadow: none !important;
             padding: 15px 50px;
-            position: sticky;
-            top: 0;
+            position: static;
             z-index: 1000;
         }
 
-        /* 🌈 導覽列標題置中、水藍色、粗體 */
+        /* 🌈 導覽列標題 */
         .store-title {
             font-weight: 800;
             font-size: 40px;
             color: #66B3FF !important;
             letter-spacing: 1px;
-            margin-top: 12px; /* 🎯 下移標題 */
-            align-self: flex-start; /* ✅ 讓它不受 align-items-center 控制 */
+            margin-top: 12px;
+            align-self: flex-start;
         }
 
         /* 💎 鑽石數量顯示區 */
@@ -53,10 +55,10 @@
             right: 50px;
         }
 
-            .resource img {
-                width: 22px;
-                height: 22px;
-            }
+        .resource img {
+            width: 22px;
+            height: 22px;
+        }
 
         /* 🏪 商城主容器 */
         .store-container {
@@ -64,7 +66,7 @@
             margin: 40px auto;
         }
 
-        /* 🔽 排序欄 */
+        /* 🔽 排序列 */
         .sort-bar {
             display: flex;
             align-items: center;
@@ -74,47 +76,39 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             padding: 10px 18px;
-            transition: all 0.3s ease;
         }
 
-            /* 🎨 標籤樣式 */
-            .sort-bar label {
-                font-weight: 700;
-                margin-right: 12px;
-                font-size: 17px;
-                color: #555;
-            }
+        .sort-bar label {
+            font-weight: 700;
+            margin-right: 12px;
+            font-size: 17px;
+            color: #555;
+        }
 
-            /* 🎨 下拉選單樣式 */
-            .sort-bar select {
-                border-radius: 10px;
-                padding: 8px 32px 8px 14px; /* ✅ 增加右側空間，避免箭頭壓文字 */
-                border: 1.5px solid #cdd6e0;
-                background-color: #f9fafc;
-                background-position: right 10px center; /* ✅ 控制箭頭位置 */
-                color: #333;
-                font-weight: 500;
-                font-size: 15px;
-                cursor: pointer;
-                transition: all 0.25s ease;
-                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-            }
+        .sort-bar select {
+            border-radius: 10px;
+            padding: 8px 32px 8px 14px;
+            border: 1.5px solid #cdd6e0;
+            background-color: #f9fafc;
+            color: #333;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
 
-                /* ✨ hover 效果：輕灰變色＋陰影 */
-                .sort-bar select:hover {
-                    background-color: #f1f3f5;
-                    border-color: #a9b4c3;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                }
+        .sort-bar select:hover {
+            background-color: #f1f3f5;
+            border-color: #a9b4c3;
+        }
 
-                /* 🔘 focus 效果（點擊選單時） */
-                .sort-bar select:focus {
-                    outline: none;
-                    border-color: #66b3ff;
-                    box-shadow: 0 0 6px rgba(102, 179, 255, 0.6);
-                }
+        .sort-bar select:focus {
+            outline: none;
+            border-color: #66b3ff;
+            box-shadow: 0 0 6px rgba(102, 179, 255, 0.6);
+        }
 
-        /* 🧱 商品卡片 */
+        /* 🧱 商品卡片外觀 */
         .product-card {
             background: #fff;
             border-radius: 15px;
@@ -124,35 +118,39 @@
             overflow: hidden;
         }
 
-            .product-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-            }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
 
-        /* ❌ 原本這段會害所有 img（包含鑽石圖）都被設為 block + margin auto
-   ✅ 改成只套用在商品主圖，並新增 class 名為 product-image */
+        /* ✅ 商品圖片樣式 */
         .product-image {
             width: 100%;
-            height: 180px; /* ✅ 固定高度，避免卡片大小不一致 */
-            object-fit: contain; /* ✅ 保持完整圖片不被裁切 */
+            height: 180px;
+            object-fit: contain;
             background-color: #fff;
             border-radius: 10px 10px 0 0;
             display: block;
-            margin: 0 auto; /* ✅ 僅商品主圖置中，不影響鑽石 */
+            margin: 0 auto;
         }
 
+        /* ✅ 商品資訊 */
         .product-info {
             padding: 12px 15px;
         }
 
+        /* ✅ 商品名稱一行省略 */
         .product-name {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 8px;
             color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* ✅ 加 gap 控制圖與文字間距，不靠 margin-right */
+        /* ✅ 價格區塊 */
         .product-price {
             display: flex;
             align-items: center;
@@ -160,18 +158,19 @@
             font-size: 15px;
             font-weight: 600;
             color: #333;
-            margin-top: 6px;
-            gap: 10px; /* ✅ 關鍵：這取代 margin-right 的功能 */
+            gap: 10px;
         }
 
-        /* ✅ 拔掉 margin-right，交給 flex gap 控制 */
         .diamond-icon {
             width: 20px !important;
             height: 20px !important;
             object-fit: contain;
-            vertical-align: middle;
-            display: inline-block; /* ✅ 改為 inline-block，不受 block 影響 */
-            margin: 0;
+            display: inline-block;
+        }
+
+        /* ✅ 模板卡片（JS 用來複製） */
+        .product-card-template {
+            display: none;
         }
 
         /* ⬆️ 回頂按鈕 */
@@ -191,9 +190,9 @@
             z-index: 999;
         }
 
-            #btnScrollTop:hover {
-                background-color: rgba(0, 0, 0, 0.8);
-            }
+        #btnScrollTop:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
     </style>
 </head>
 
@@ -202,10 +201,8 @@
         <!-- 🌈 導覽列 -->
         <nav class="navbar navbar-expand-lg justify-content-center">
             <div class="container-fluid d-flex justify-content-center align-items-center position-relative">
-                <!-- 導覽標題置中 -->
                 <span class="store-title">鑽石兌換商城</span>
 
-                <!-- 鑽石數量顯示區 -->
                 <div class="resource">
                     <img src="images/diamond.svg" alt="Diamond" />
                     <asp:Label ID="lblDiamonds" runat="server" Text="0"></asp:Label>
@@ -215,6 +212,7 @@
 
         <!-- 🏪 商城內容 -->
         <div class="store-container">
+            <!-- 排序列 -->
             <div class="sort-bar">
                 <label for="sortSelect">排序：</label>
                 <select id="sortSelect" class="form-select w-auto">
@@ -223,9 +221,22 @@
                 </select>
             </div>
 
-            <div class="row" id="productContainer">
-                <!-- 商品由 JS 產生 -->
+            <!-- 🧩 商品卡模板 -->
+            <div class="product-card-template col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+                <div class="product-card">
+                    <img src="" alt="" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name"></div>
+                        <div class="product-price">
+                            <img src="images/diamond.svg" class="diamond-icon" alt="diamond" />
+                            <span class="price-text"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- 📦 商品顯示區 -->
+            <div class="row" id="productContainer"></div>
         </div>
 
         <!-- ⬆️ 回頂按鈕 -->
@@ -236,63 +247,77 @@
 
     <!-- ✅ Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ===============================
+         ⚙️ JavaScript 區塊
+         =============================== -->
     <script>
-        // ===============================
-        // 💎 假資料模擬（日後改 ASMX）
-        // ===============================
-        const products = [
-            { name: "Ave Mujica 001", price: 175, image: "ListeningTest_Images/AveMujica_001.jpg" },
-            { name: "Ave Mujica 002", price: 240, image: "ListeningTest_Images/AveMujica_002.jpg" },
-            { name: "Ave Mujica 003", price: 325, image: "ListeningTest_Images/AveMujica_003.jpg" },
-            { name: "Ave Mujica 004", price: 410, image: "ListeningTest_Images/AveMujica_004.jpg" },
-            { name: "Ave Mujica 005", price: 480, image: "ListeningTest_Images/AveMujica_005.jpg" },
-            { name: "Ave Mujica 006", price: 515, image: "ListeningTest_Images/AveMujica_006.jpg" },
-            { name: "Ave Mujica 007", price: 550, image: "ListeningTest_Images/AveMujica_007.jpg" },
-            { name: "Ave Mujica 008", price: 620, image: "ListeningTest_Images/AveMujica_008.jpg" },
-            { name: "Ave Mujica 009", price: 680, image: "ListeningTest_Images/AveMujica_009.jpg" },
-            { name: "Ave Mujica 010", price: 750, image: "ListeningTest_Images/AveMujica_010.jpg" }
+        // 💎 模擬資料
+        const variants = [
+            { product_id: 1, name: "【傳說對決】710點券造型兌換券", image: "DiamondStore_Images/AOVskin710.jpg", price: 10500 },
+            { product_id: 2, name: "【傳說對決】1200點券造型兌換券", image: "DiamondStore_Images/AOVskin1200.jpg", price: 17500 },
+            { product_id: 3, name: "【茶裏王】系列飲品(600ml*4入)", image: "DiamondStore_Images/ChaiLiWon.jpg", price: 1200 },
+            { product_id: 4, name: "【NISSIN 日清】合味道杯麵系列71g/杯", image: "DiamondStore_Images/CupNoodle.jpg", price: 550 },
+            { product_id: 5, name: "【春風】皇室典藏袖珍包面紙(10抽/36包/1串)", image: "DiamondStore_Images/PocketTissue.jpg", price: 1300 },
+            { product_id: 6, name: "【御茶園】系列茶飲550ml*4瓶", image: "DiamondStore_Images/RoyalTeaGarden.jpg", price: 1500 },
+            { product_id: 7, name: "【購物袋】環保防水可收納購物袋*1", image: "DiamondStore_Images/ShoppingBag.jpg", price: 750 },
+            { product_id: 8, name: "【SOTHING 向物】折疊冰敷高速手持風扇 - 渦輪Ice", image: "DiamondStore_Images/sothingICEfan.jpg", price: 17000 },
+            { product_id: 9, name: "【SOTHING 向物】桌面風扇數顯搖頭版(Type-C充電)", image: "DiamondStore_Images/sothingTABLEfan.jpg", price: 18000 },
+            { product_id: 10, name: "【原萃】系列茶飲580mlx4瓶", image: "DiamondStore_Images/TeaRealLeaf.jpg", price: 1500 }
         ];
 
-        // 🧱 商品卡片生成
+        // 🧮 整理成商品資料（若未來同商品多規格）
+        const products = Object.values(
+            variants.reduce((acc, v) => {
+                if (!acc[v.product_id]) {
+                    acc[v.product_id] = {
+                        name: v.name,
+                        image: v.image,
+                        minPrice: v.price,
+                        maxPrice: v.price
+                    };
+                } else {
+                    acc[v.product_id].minPrice = Math.min(acc[v.product_id].minPrice, v.price);
+                    acc[v.product_id].maxPrice = Math.max(acc[v.product_id].maxPrice, v.price);
+                }
+                return acc;
+            }, {})
+        );
+
+        // 🧱 生成商品卡片（基於模板）
         function renderProducts(list) {
             const container = document.getElementById("productContainer");
+            const template = document.querySelector(".product-card-template");
             container.innerHTML = "";
+
             list.forEach(p => {
-                const card = `
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-            <div class="product-card">
-                <!-- ✅ 新增 class="product-image" 只給主圖 -->
-                <img src="${p.image}" alt="${p.name}" class="product-image">
-                <div class="product-info">
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-price">
-                        <img src="images/diamond.svg" class="diamond-icon" alt="diamond" />
-                        ${p.price}
-                    </div>
-                </div>
-            </div>
-        </div>`;
-                container.insertAdjacentHTML("beforeend", card);
+                const clone = template.cloneNode(true);
+                clone.classList.remove("product-card-template"); // 顯示用
+                const priceDisplay = p.minPrice === p.maxPrice ? `${p.minPrice}` : `${p.minPrice} ~ ${p.maxPrice}`;
+                clone.querySelector(".product-image").src = p.image;
+                clone.querySelector(".product-image").alt = p.name;
+                clone.querySelector(".product-name").textContent = p.name;
+                clone.querySelector(".price-text").textContent = priceDisplay;
+                container.appendChild(clone);
             });
         }
 
-
-        // 🔁 排序
+        // 🔁 排序功能
         document.getElementById("sortSelect").addEventListener("change", function () {
             const value = this.value;
             const sorted = [...products].sort((a, b) =>
-                value === "asc" ? a.price - b.price : b.price - a.price
+                value === "asc" ? a.minPrice - b.minPrice : b.maxPrice - a.maxPrice
             );
             renderProducts(sorted);
         });
 
-        // ⬆️ 回頂
+        // ⬆️ 回頂按鈕
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // 🚀 預設載入
-        window.onload = () => renderProducts(products.sort((a, b) => a.price - b.price));
+        window.onload = () => renderProducts(products.sort((a, b) => a.minPrice - b.minPrice));
     </script>
 </body>
 </html>
