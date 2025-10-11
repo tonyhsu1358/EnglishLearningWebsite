@@ -243,9 +243,9 @@
             }
 
             #specContainer .btn-spec.active {
-                background-color:#4D98D1;
+                background-color: #4D98D1;
                 color: white;
-                border-color:#4D98D1;
+                border-color: #4D98D1;
             }
 
         #detailDesc {
@@ -588,10 +588,8 @@
                 clone.classList.remove("product-card-template");
                 const priceDisplay = p.minPrice === p.maxPrice ? `${p.minPrice}` : `${p.minPrice} ~ ${p.maxPrice}`;
                 const img = clone.querySelector(".product-image");
-                img.src = p.image || '';
-                img.alt = p.name;
-                // 若圖片壞掉顯示預設
-                img.onerror = () => { img.src = 'images/placeholder.png'; };
+                img.src = (p.image || '') + '?v=' + Date.now();
+                img.alt = p.name;        
 
                 clone.querySelector(".product-name").textContent = p.name;
                 clone.querySelector(".price-text").textContent = priceDisplay;
@@ -654,8 +652,7 @@
             const specContainer = document.getElementById("specContainer");
 
             // Step 1️⃣ 初始化頁面內容
-            imgEl.src = product.main_image || "";
-            imgEl.onerror = () => { imgEl.src = "images/placeholder.png"; };
+            imgEl.src = (product.main_image || "") + "?v=" + Date.now();  // 💎 加上時間戳避免舊快取
             nameEl.textContent = product.name;
             descEl.innerHTML = (product.description || "")
                 .replace(/\\n/g, "<br>")
@@ -685,7 +682,7 @@
                     // 🧹 再點一次 → 取消選取
                     if (isActive) {
                         btn.classList.remove("active");
-                        imgEl.src = product.main_image || "";
+                        imgEl.src = (product.main_image || "") + "?v=" + Date.now(); // 💎 這裡也要補上
                         priceTextEl.textContent = "請選擇規格";
                         currentVariantStock = 0;
                         resetDetailControls();
@@ -696,9 +693,9 @@
                     document.querySelectorAll(".btn-spec").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
 
-                    // ✅ 更新顯示價格與圖片
+                    // ✅ 更新顯示價格與圖片（加入防快取）
                     priceTextEl.textContent = v.price.toLocaleString();
-                    fadeImage(imgEl, v.spec_image || product.main_image);
+                    fadeImage(imgEl, ((v.spec_image || product.main_image) || "") + "?v=" + Date.now());  // 💎
 
                     // ✅ 設定當前庫存上限
                     currentVariantStock = v.stock || 0;
@@ -713,7 +710,7 @@
                 specContainer.appendChild(btn);
             });
 
-            // ✅✨ 加這段：自動選取第一個規格（若存在）
+            // ✅✨ 自動選取第一個規格（若存在）
             if (product.variants.length > 0) {
                 const firstBtn = specContainer.querySelector(".btn-spec");
                 if (firstBtn) {
@@ -721,7 +718,7 @@
                 }
             }
 
-            // Step 3️⃣ 顯示詳情面板以及自動捲動到最上方
+            // Step 3️⃣ 顯示詳情面板
             document.querySelector(".store-container").style.display = "none";
             document.getElementById("pnlProductDetail").style.display = "block";
             window.scrollTo(0, 0);
