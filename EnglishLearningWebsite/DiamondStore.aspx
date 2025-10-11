@@ -55,6 +55,7 @@
             right: 115px;
         }
 
+            /* 💎 鑽石圖示尺寸 */
             .resource img {
                 width: 22px;
                 height: 22px;
@@ -78,6 +79,7 @@
             padding: 10px 18px;
         }
 
+            /* 🔽 排序列標籤 */
             .sort-bar label {
                 font-weight: 700;
                 margin-right: 12px;
@@ -85,6 +87,7 @@
                 color: #555;
             }
 
+            /* 🔽 排序列下拉選單 */
             .sort-bar select {
                 border-radius: 10px;
                 padding: 8px 32px 8px 14px;
@@ -97,16 +100,34 @@
                 transition: all 0.25s ease;
             }
 
+                /* 🔽 排序列選單 hover 效果 */
                 .sort-bar select:hover {
                     background-color: #f1f3f5;
                     border-color: #a9b4c3;
                 }
 
+                /* 🔽 排序列選單 focus 效果 */
                 .sort-bar select:focus {
                     outline: none;
                     border-color: #66b3ff;
                     box-shadow: 0 0 6px rgba(102, 179, 255, 0.6);
                 }
+
+        /* 🧾 訂單圖示 */
+        .order-icon {
+            width: 40px;
+            height: 40px;
+            margin-left: auto; /* 推向最右邊 */
+            margin-right: 50px; /* 推向最右邊 */
+            cursor: pointer;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            opacity: 0.9;
+        }
+
+            .order-icon:hover {
+                transform: scale(1.12);
+                opacity: 1;
+            }
 
         /* 🧱 商品卡片外觀 */
         .product-card {
@@ -119,6 +140,7 @@
             cursor: pointer; /* ✅ 滑鼠變手指 */
         }
 
+            /* 🧱 商品卡片 hover 效果 */
             .product-card:hover {
                 transform: translateY(-5px);
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
@@ -162,6 +184,7 @@
             gap: 10px;
         }
 
+        /* 💎 鑽石圖示 */
         .diamond-icon {
             width: 20px !important;
             height: 20px !important;
@@ -191,11 +214,12 @@
             z-index: 999;
         }
 
+            /* ⬆️ 回頂按鈕 hover 效果 */
             #btnScrollTop:hover {
                 background-color: rgba(0, 0, 0, 0.8);
             }
 
-        /* 商品詳細面板樣式*/
+        /* 商品詳細面板樣式 */
         .product-detail-panel {
             background-color: #fff;
             border-radius: 16px;
@@ -213,12 +237,14 @@
             color: #007bff;
         }
 
+            /* 💎 詳細頁：圖示尺寸 */
             .detail-price .diamond-icon {
                 width: 22px;
                 height: 22px;
                 object-fit: contain;
             }
 
+        /* 📷 詳細頁主圖 */
         .detail-main-image {
             width: 100%;
             max-height: 400px;
@@ -228,6 +254,7 @@
             background-color: #f8f8f8;
         }
 
+        /* 🔘 規格按鈕 */
         #specContainer .btn-spec {
             border: 1.5px solid #aaa;
             background-color: #fafafa;
@@ -237,17 +264,20 @@
             transition: all 0.2s ease;
         }
 
+            /* 🔘 規格 hover */
             #specContainer .btn-spec:hover {
                 background-color: #e6f0ff;
                 border-color: #66B3FF;
             }
 
+            /* 🔘 規格 active */
             #specContainer .btn-spec.active {
                 background-color: #4D98D1;
                 color: white;
                 border-color: #4D98D1;
             }
 
+        /* 📝 商品描述支援換行 */
         #detailDesc {
             white-space: pre-line; /* ✅ 支援 \n 換行符號解析 */
         }
@@ -265,13 +295,14 @@
             box-shadow: 0 3px 10px rgba(102, 179, 255, 0.4);
         }
 
+            /* 主按鈕 hover */
             .btn-redeem:hover {
                 background: linear-gradient(135deg, #5aa9ff, #3797ff);
                 transform: translateY(-2px);
                 box-shadow: 0 5px 14px rgba(102, 179, 255, 0.5);
             }
 
-            /* 禁用時的樣式 */
+            /* 主按鈕 disabled */
             .btn-redeem:disabled {
                 background: #b0c4de;
                 color: #fff;
@@ -281,37 +312,31 @@
 
         /* 返回商城按鈕樣式 */
         .btn-back {
-            display: block; /* 讓它佔整行可置中 */
-            margin: 20px auto 0 auto; /* 上方留距離並自動水平置中 */
-            width: 50%; /* 寬度 80% */
-            text-align: center; /* 文字置中 */
+            display: block;
+            margin: 20px auto 0 auto;
+            width: 50%;
+            text-align: center;
             background-color: transparent;
             color: #66B3FF;
             font-weight: 600;
-            font-size: 18px; /* 稍微加大字體 */
+            font-size: 18px;
             border: 2px solid #66B3FF;
             border-radius: 10px;
-            padding: 10px 0; /* 🔹 高度增加關鍵：加大上下 padding */
+            padding: 10px 0;
             transition: all 0.3s ease;
             text-decoration: none;
         }
 
+            /* 返回商城 hover */
             .btn-back:hover {
                 background-color: #66B3FF;
                 color: white;
                 text-decoration: none;
-                transform: translateY(-2px); /* 微浮起感 */
+                transform: translateY(-2px);
                 box-shadow: 0 4px 10px rgba(102, 179, 255, 0.3);
             }
 
-
-            .btn-back:hover {
-                background-color: #66B3FF;
-                color: white;
-                text-decoration: none;
-            }
-
-        /* ✨ 訂單確認面板樣式與動畫*/
+        /* ✨ 訂單確認面板樣式與動畫 */
         .order-confirm-panel {
             background-color: #ffffff;
             border-radius: 16px;
@@ -324,32 +349,250 @@
             transition: all 0.6s ease;
         }
 
-            /* 顯示動畫（右滑進場） */
+            /* ✨ 訂單確認面板顯示動畫 */
             .order-confirm-panel.show {
                 opacity: 1;
                 transform: translateX(0);
             }
 
-        /* 隱藏時動畫（左滑出） */
+        /* ✨ 詳細面板隱藏動畫 */
         .product-detail-panel.hide-left {
             transform: translateX(-100%);
             opacity: 0;
             transition: all 0.6s ease;
         }
 
-        /* 美化按鈕 */
-        #btnConfirmOrder {
-            background: linear-gradient(135deg, #66B3FF, #4da3ff);
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 3px 10px rgba(102, 179, 255, 0.4);
+        /* 🧾 訂單確認面板圖片 */
+        .confirm-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            flex-shrink: 0; /* 🔹 防止圖片被壓縮變形 */
         }
 
-            #btnConfirmOrder:hover {
+        /* 💎 訂單價格顯示區（圖示 + 數字） */
+        .price-display {
+            display: inline-flex;
+            align-items: baseline; /* ✅ 與文字底線對齊 */
+            gap: 5px;
+            line-height: 1; /* 🔹 避免垂直多餘空間 */
+        }
+
+            .price-display .diamond-icon {
+                width: 18px;
+                height: 18px;
+                object-fit: contain;
+                vertical-align: text-bottom; /* ✅ 強制貼齊文字底部 */
+                position: relative;
+                top: 2px; /* 🔹 微調下沉對齊 */
+            }
+
+        /* 🔧 修正兌換後剩餘那行 baseline 對齊 */
+        .d-flex.justify-content-between.fw-bold > span {
+            display: flex;
+            align-items: baseline; /* 讓左右內容對齊底線 */
+        }
+
+        /* 💎 專修「兌換後剩餘」那行的圖示垂直對齊 */
+        .text-success .diamond-icon {
+            position: relative;
+            top: 2px; /* 🔹 微微下沉，貼齊基準線 */
+            vertical-align: text-bottom; /* 🔹 保證與數字底線貼齊 */
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+        /* 🎯 訂單按鈕列：自訂排版 */
+        .order-btn-group {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* 讓主軸中間居中 */
+            gap: 30px; /* 兩顆按鈕間距 */
+            margin-top: 25px;
+            position: relative;
+        }
+
+        /* ← 返回商品：靠左但保持對齊感 */
+        .btn-back-order {
+            position: absolute;
+            left: 0; /* 對齊容器最左 */
+            background-color: transparent;
+            border: 2px solid #66B3FF;
+            color: #66B3FF;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-back-order:hover {
+                background-color: #66B3FF;
+                color: #fff;
+                box-shadow: 0 4px 10px rgba(102, 179, 255, 0.3);
+                transform: translateY(-2px);
+            }
+
+        /* ✅ 確認送出訂單：置中 */
+        .btn-confirm-order {
+            background: linear-gradient(135deg, #66B3FF, #4da3ff);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 20px;
+            border-radius: 8px;
+            padding: 12px 30px;
+            box-shadow: 0 3px 10px rgba(102, 179, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+            .btn-confirm-order:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 5px 14px rgba(102, 179, 255, 0.5);
             }
+
+        /* 🌟 兌換成功提示框 */
+        .redeem-toast {
+            display: inline-flex; /* ✅ 改成 flex */
+            align-items: center; /* ✅ 垂直置中 */
+            justify-content: center; /* ✅ 水平置中 */
+            gap: 6px; /* ✅ emoji 與文字留點間距 */
+            background: rgba(0, 0, 0, 0.82);
+            color: #fff;
+            padding: 10px 26px;
+            font-size: 18px;
+            border-radius: 12px;
+            line-height: 1.2;
+            opacity: 0;
+            pointer-events: none;
+            transition: top 0.8s ease, opacity 0.8s ease;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+            .redeem-toast.show {
+                top: 25%; /* 進場：上滑顯示 */
+                opacity: 1;
+            }
+
+            .redeem-toast.hide {
+                top: 15%; /* 退場：往上淡出 */
+                opacity: 0;
+            }
+
+        /* 訂單一覽面板樣式 */
+        .order-list-panel {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 25px;
+            animation: slideInRight 0.6s ease;
+        }
+
+        /* 🧭 進場動畫 */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 讓每列卡片都保持對齊高度 */
+        #orderListContainer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch; /* ✅ 每張等高 */
+        }
+
+        /* 🧾 訂單卡外觀 */
+        .order-card {
+            background: #ffffff;
+            height: 100%; /* ✅ 撐滿父容器高度 */
+            border-radius: 18px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+            .order-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 20px rgba(102,179,255,0.25);
+            }
+
+            /* 📷 商品圖 */
+            .order-card img {
+                width: 100%;
+                max-height: 180px;
+                object-fit: contain;
+                border-radius: 10px;
+                background: #f9fafc;
+                margin-bottom: 12px;
+            }
+
+        /* 🧾 商品名稱 */
+        .order-name {
+            font-weight: 700;
+            font-size: 17px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        /* 💎 訂單資訊 */
+        .order-info {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 🌈 狀態徽章（美化版） */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* 🎨 各狀態顏色 */
+        .status-processing {
+            background: linear-gradient(135deg, #66B3FF, #4da3ff);
+        }
+
+        .status-shipping {
+            background: linear-gradient(135deg, #f7b733, #fc4a1a);
+        }
+
+        .status-completed {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #e53935, #b71c1c);
+        }
+
+        /* 🕓 訂單日期 */
+        .order-date {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
     </style>
+
 </head>
 
 <body>
@@ -375,6 +618,8 @@
                     <option value="asc">鑽石：由少到多</option>
                     <option value="desc">鑽石：由多到少</option>
                 </select>
+                <!-- 🧾 查看訂單按鈕 -->
+                <img src="images/order.svg" alt="查看訂單" id="btnViewOrders" class="order-icon" title="查看我的訂單">
             </div>
 
             <!-- 🧩 商品卡模板 -->
@@ -451,14 +696,30 @@
 
                 <!-- 商品摘要 -->
                 <div class="d-flex align-items-center border rounded p-3 mb-4 bg-light shadow-sm">
-                    <img id="confirmImage" src="images/placeholder.png" class="me-3 rounded"
-                        style="width: 120px; height: 120px; object-fit: contain;">
+                    <!-- 左側：商品圖片 -->
+                    <img id="confirmImage" src="images/rabbit.png" alt="商品圖片" class="confirm-image me-3">
+
+                    <!-- 右側：文字資訊 -->
                     <div>
                         <h5 id="confirmName" class="fw-bold mb-1">商品名稱</h5>
                         <div class="text-muted mb-1">規格：<span id="confirmSpec">星空灰</span></div>
                         <div class="text-muted mb-1">數量：<span id="confirmQty">1</span></div>
-                        <div class="text-muted mb-1">單價：💎<span id="confirmPrice">120</span></div>
-                        <div class="fw-bold text-danger">小計：💎<span id="confirmTotal">120</span></div>
+                        <div class="text-muted mb-1">
+                            單價：
+                    <span class="price-display">
+                        <img src="images/diamond.svg" alt="diamond" class="diamond-icon">
+                        <span id="confirmPrice">120</span>
+                    </span>
+                        </div>
+
+                        <!-- ✅ 小計 -->
+                        <div class="fw-bold text-danger">
+                            小計：
+                    <span class="price-display">
+                        <img src="images/diamond.svg" alt="diamond" class="diamond-icon">
+                        <span id="confirmTotal">120</span>
+                    </span>
+                        </div>
                     </div>
                 </div>
 
@@ -470,7 +731,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">聯絡電話 <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="inputPhone" placeholder="例如：0912345678">
+                    <input type="text" class="form-control" id="inputPhone" placeholder="例如：0912-345-678（中間不必以-符號隔開。）">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">配送地址 <span class="text-danger">*</span></label>
@@ -484,23 +745,57 @@
                 <!-- 訂單摘要 -->
                 <div class="border-top pt-3 mt-4">
                     <div class="d-flex justify-content-between">
-                        <span>可用鑽石</span><span id="lblUserDiamonds">300</span>
+                        <span>可用鑽石</span>
+                        <span class="price-display">
+                            <span id="lblUserDiamonds">300</span>
+                        </span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span>預計扣除</span><span class="text-danger" id="lblCost">120</span>
+                        <span>預計扣除</span>
+                        <span class="price-display text-danger">
+                            <span id="lblCost">120</span>
+                        </span>
                     </div>
                     <div class="d-flex justify-content-between fw-bold">
-                        <span>兌換後剩餘</span><span id="lblRemain" class="text-success">180</span>
+                        <span>兌換後剩餘</span>
+                        <span class="price-display text-success">
+                            <img src="images/diamond.svg" alt="diamond" class="diamond-icon" />
+                            <span id="lblRemain">180</span>
+                        </span>
                     </div>
                 </div>
 
                 <!-- 按鈕列 -->
-                <div class="text-center mt-4">
-                    <button type="button" class="btn btn-outline-secondary me-3" id="btnBackToDetail">← 返回商品</button>
-                    <button type="button" class="btn btn-primary px-4" id="btnConfirmOrder">✅ 確認送出訂單</button>
+                <div class="order-btn-group mt-4">
+                    <button type="button" class="btn-back-order" id="btnBackToDetail">← 返回商品</button>
+                    <button type="button" class="btn-confirm-order" id="btnConfirmOrder">✅ 確認送出訂單</button>
                 </div>
+
             </div>
         </div>
+
+        <div id="redeemToast" class="redeem-toast">
+            🎉 兌換成功！可至「訂單區」查看您的兌換紀錄
+        </div>
+
+        <!-- =====📋 訂單列表面板（初始隱藏）===== -->
+        <div id="pnlOrderList" class="order-list-panel" style="display: none;">
+            <div class="container py-4">
+                <h3 class="fw-bold text-center mb-4 text-primary">我的訂單</h3>
+
+                <!-- 若暫時無訂單 -->
+                <div id="orderEmpty" class="text-center text-muted py-5">
+                    <img src="images/order.svg" width="60" height="60" class="mb-3 opacity-75" alt="無訂單">
+                    <p class="fs-5">目前尚無兌換紀錄</p>
+                </div>
+
+                <!-- 訂單清單（之後可用 JS 動態生成） -->
+                <div id="orderListContainer" class="row"></div>
+
+                <button type="button" class="btn-back mt-4" id="btnBackToStoreFromOrder">← 返回商城</button>
+            </div>
+        </div>
+
 
     </form>
 
@@ -589,7 +884,7 @@
                 const priceDisplay = p.minPrice === p.maxPrice ? `${p.minPrice}` : `${p.minPrice} ~ ${p.maxPrice}`;
                 const img = clone.querySelector(".product-image");
                 img.src = (p.image || '') + '?v=' + Date.now();
-                img.alt = p.name;        
+                img.alt = p.name;
 
                 clone.querySelector(".product-name").textContent = p.name;
                 clone.querySelector(".price-text").textContent = priceDisplay;
@@ -675,6 +970,7 @@
                 btn.type = "button";
                 btn.textContent = `${v.spec_name}`;
                 btn.classList.add("btn-spec");
+                btn.dataset.variantId = v.variant_id;  // 💎 關鍵：將 variant_id 綁到按鈕上
 
                 btn.onclick = () => {
                     const isActive = btn.classList.contains("active");
@@ -682,7 +978,7 @@
                     // 🧹 再點一次 → 取消選取
                     if (isActive) {
                         btn.classList.remove("active");
-                        imgEl.src = (product.main_image || "") + "?v=" + Date.now(); // 💎 這裡也要補上
+                        imgEl.src = (product.main_image || "") + "?v=" + Date.now();
                         priceTextEl.textContent = "請選擇規格";
                         currentVariantStock = 0;
                         resetDetailControls();
@@ -693,17 +989,11 @@
                     document.querySelectorAll(".btn-spec").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
 
-                    // ✅ 更新顯示價格與圖片（加入防快取）
+                    // ✅ 更新顯示價格與圖片
                     priceTextEl.textContent = v.price.toLocaleString();
-                    fadeImage(imgEl, ((v.spec_image || product.main_image) || "") + "?v=" + Date.now());  // 💎
-
-                    // ✅ 設定當前庫存上限
+                    fadeImage(imgEl, ((v.spec_image || product.main_image) || "") + "?v=" + Date.now());
                     currentVariantStock = v.stock || 0;
-
-                    // ✅ 顯示該規格庫存
                     stockEl.textContent = v.stock;
-
-                    // ✅ 啟用互動控制
                     enableDetailControls();
                 };
 
@@ -805,7 +1095,7 @@
         const orderPanel = document.getElementById("pnlOrderConfirm");
         const detailPanel = document.getElementById("pnlProductDetail");
 
-        // 🟢 點擊兌換 → 動畫左滑 + 顯示訂單確認
+        // 🟢 點擊「兌換去」 → 顯示訂單確認頁面
         document.getElementById("btnRedeem").addEventListener("click", () => {
             const activeSpec = document.querySelector(".btn-spec.active");
             if (!activeSpec) {
@@ -813,6 +1103,7 @@
                 return;
             }
 
+            // 取得數量、商品名稱、價格、圖片等資料
             const qty = parseInt(document.getElementById("inputQty").value);
             const productName = document.getElementById("detailName").textContent;
             let priceText = document.getElementById("detailPriceText").textContent;
@@ -821,7 +1112,7 @@
             const specName = activeSpec.textContent;
             const imgSrc = document.getElementById("detailImage").src;
 
-            // 🪄 填入訂單摘要資料
+            // 🪄 填入訂單摘要（右側面板）
             document.getElementById("confirmName").textContent = productName;
             document.getElementById("confirmSpec").textContent = specName;
             document.getElementById("confirmQty").textContent = qty;
@@ -829,23 +1120,26 @@
             document.getElementById("confirmTotal").textContent = total.toLocaleString();
             document.getElementById("confirmImage").src = imgSrc;
 
-            // 💎 從 ASP.NET 後端取得真實鑽石餘額
-            let userDiamondsText = document.getElementById("lblDiamonds").textContent || document.getElementById("lblDiamonds").innerText;
+
+            // 💎 從頁面上取得目前鑽石餘額
+            let userDiamondsText =
+                document.getElementById("lblDiamonds").textContent ||
+                document.getElementById("lblDiamonds").innerText;
             let userDiamonds = parseInt(userDiamondsText.replace(/[^\d]/g, "")) || 0;
 
-            // 🧮 更新訂單摘要
+            // 🧮 更新訂單摘要顯示
             document.getElementById("lblUserDiamonds").textContent = userDiamonds.toLocaleString();
             document.getElementById("lblCost").textContent = total.toLocaleString();
             document.getElementById("lblRemain").textContent = (userDiamonds - total).toLocaleString();
 
-            // ✅ 判斷鑽石是否足夠兌換
+            // ✅ 判斷鑽石是否足夠
             const btnConfirm = document.getElementById("btnConfirmOrder");
             const inputFields = ["inputName", "inputPhone", "inputAddress", "inputRemark"];
 
             if (userDiamonds < total) {
-                // ❌ 鑽石不足：禁用按鈕 + 禁用輸入欄位 + 改樣式
+                // ❌ 鑽石不足：禁用按鈕與輸入框
                 btnConfirm.disabled = true;
-                btnConfirm.textContent = "💎 鑽石數量不足，無法兌換";
+                btnConfirm.textContent = "鑽石數量不足，無法兌換";
                 btnConfirm.style.background = "#b0c4de";
                 btnConfirm.style.cursor = "not-allowed";
                 btnConfirm.style.boxShadow = "none";
@@ -858,7 +1152,6 @@
                         el.style.cursor = "not-allowed";
                     }
                 });
-
             } else {
                 // ✅ 鑽石足夠：恢復可用
                 btnConfirm.disabled = false;
@@ -877,36 +1170,31 @@
                 });
             }
 
-            // 🎞️ 動畫處理
+            // 🎞️ 顯示訂單確認面板的動畫切換
             detailPanel.classList.add("hide-left");
             setTimeout(() => {
                 detailPanel.style.display = "none";
                 orderPanel.style.display = "block";
+
+                // 自動滾回頂端
+                window.scrollTo({ top: 0, behavior: "smooth" });
                 setTimeout(() => orderPanel.classList.add("show"), 50);
             }, 600);
         });
 
-        // 🔙 返回商品詳情（確保恢復顯示與清除動畫殘留）
+        // 🔙 返回商品詳情
         document.getElementById("btnBackToDetail").addEventListener("click", () => {
             orderPanel.classList.remove("show");
-
             setTimeout(() => {
-                // 關閉訂單面板
                 orderPanel.style.display = "none";
-
-                // 顯示商品詳情面板
                 detailPanel.style.display = "block";
-
-                // ⚠️ 關鍵：移除動畫 class，否則會保持透明狀態
                 detailPanel.classList.remove("hide-left");
-
-                // ⚠️ 再次確保不透明與可互動
                 detailPanel.style.opacity = "1";
                 detailPanel.style.transform = "translateX(0)";
             }, 600);
         });
 
-        // ✅ 確認送出訂單
+        // ✅ 確認送出訂單（呼叫 ASMX API）
         document.getElementById("btnConfirmOrder").addEventListener("click", async () => {
             const btn = document.getElementById("btnConfirmOrder");
             if (btn.disabled) {
@@ -920,35 +1208,235 @@
                 { id: "inputPhone", label: "聯絡電話" },
                 { id: "inputAddress", label: "配送地址" }
             ];
-
             let missingFields = [];
-
             requiredFields.forEach(f => {
                 const el = document.getElementById(f.id);
                 if (!el || el.value.trim() === "") {
                     missingFields.push(f.label);
-                    el.style.border = "2px solid #dc3545"; // 🔴 紅框提示
-                } else {
-                    el.style.border = ""; // ✅ 清除紅框
-                }
+                    el.style.border = "2px solid #dc3545";
+                } else el.style.border = "";
             });
-
             if (missingFields.length > 0) {
                 alert(`⚠️ 以下欄位為必填，請完整填寫：\n\n${missingFields.join("、")}`);
-                return; // ⛔ 阻止提交
+                return;
             }
 
-            alert("✅ 模擬送出訂單成功！之後這裡會串接 AJAX。");
+            // 🟢 收集表單資料
+            const activeSpec = document.querySelector(".btn-spec.active");
+            if (!activeSpec) {
+                alert("⚠️ 未選擇規格，請返回上一頁選擇後再送出。");
+                return;
+            }
 
-            orderPanel.classList.remove("show");
-            setTimeout(() => {
-                orderPanel.style.display = "none";
-                document.querySelector(".store-container").style.display = "block";
-                //重置 detailPanel 狀態
-                detailPanel.classList.remove("hide-left");
-                detailPanel.style.opacity = "1";
-                detailPanel.style.transform = "translateX(0)";
-            }, 600);
+            const variantId = activeSpec.dataset.variantId;
+            const qty = parseInt(document.getElementById("confirmQty").textContent.replace(/[^\d]/g, "")) || 0;
+            const name = document.getElementById("inputName").value.trim();
+            const phone = document.getElementById("inputPhone").value.trim();
+            const address = document.getElementById("inputAddress").value.trim();
+            const remark = document.getElementById("inputRemark").value.trim();
+
+            // ✅ 準備 payload
+            const payload = {
+                variant_id: parseInt(variantId),
+                quantity: qty,
+                name: name,
+                phone: phone,
+                address: address,
+                remark: remark
+            };
+
+            console.log("📦 [Send Payload] →", payload);
+
+            try {
+                // 🚀 呼叫後端 ASMX WebMethod
+                const response = await fetch("DiamondStoreService.asmx/CreateRedemptionRecord", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log("📡 [HTTP Status] →", response.status, response.statusText);
+
+                // 📦 嘗試解析回傳結果
+                const raw = await response.text();
+                console.log("🧾 [Raw Response Text] →", raw);
+
+                let result;
+                try {
+                    result = JSON.parse(raw);
+                } catch (e) {
+                    console.error("❌ JSON.parse 失敗：", e);
+                    alert("⚠️ 後端回傳格式錯誤，請查看 Console。");
+                    return;
+                }
+
+                // 💎 改成這樣，確保能正確解析 result.d 為物件
+                const data = typeof result.d === "string" ? JSON.parse(result.d) : (result.d || result);
+
+                console.log("✅ [Parsed Data] →", data);
+
+                // 🎯 根據 success 判斷
+                if (data.success) {
+                    document.getElementById("lblDiamonds").textContent = data.newDiamonds;
+                    orderPanel.classList.remove("show");
+
+                    setTimeout(() => {
+                        orderPanel.style.display = "none";
+                        document.querySelector(".store-container").style.display = "block";
+                        detailPanel.classList.remove("hide-left");
+                        detailPanel.style.opacity = "1";
+                        detailPanel.style.transform = "translateX(0)";
+                        window.scrollTo(0, 0);
+
+                        // 🌈 顯示成功提示（toast）
+                        const toast = document.getElementById("redeemToast");
+                        toast.classList.add("show");
+                        setTimeout(() => {
+                            toast.classList.remove("show");
+                            toast.classList.add("hide");
+                            setTimeout(() => toast.classList.remove("hide"), 800);
+                        }, 2000);
+                    }, 600);
+
+                    console.log("🎉 兌換成功！伺服器訊息：", data.message);
+                } else {
+                    console.warn("⚠️ 兌換失敗，伺服器回傳：", data.message);
+                    alert(data.message || "❌ 兌換失敗，請稍後再試。");
+                }
+            } catch (err) {
+                console.error("💥 [Fetch Error] 無法連線伺服器：", err);
+                alert("⚠️ 無法連線伺服器，請稍後再試。");
+            }
+        });
+    </script>
+
+    <script>
+        //==========================================
+        /* ==== 第三章：查看訂單邏輯（美化版） === */
+        //==========================================
+
+        // 📦 面板元素
+        const orderListPanel = document.getElementById("pnlOrderList");
+        const storeContainer = document.querySelector(".store-container");
+        const productDetailPanel = document.getElementById("pnlProductDetail");
+        const orderConfirmPanel = document.getElementById("pnlOrderConfirm");
+        const orderEmpty = document.getElementById("orderEmpty");
+        const orderListContainer = document.getElementById("orderListContainer");
+
+        // 🔙 返回商城
+        document.getElementById("btnBackToStoreFromOrder").addEventListener("click", () => {
+            orderListPanel.style.display = "none";
+            storeContainer.style.display = "block";
+        });
+
+        //==========================================
+        // 📦 撈取訂單紀錄 (ASMX)
+        //==========================================
+        async function loadUserOrders() {
+            try {
+                const res = await fetch("DiamondStoreService.asmx/GetUserOrders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: "{}"
+                });
+
+                const raw = await res.json();
+                const data = typeof raw.d === "string" ? JSON.parse(raw.d) : raw;
+
+                if (!data.success) {
+                    console.warn("⚠️ 取得訂單失敗：", data.message);
+                    return [];
+                }
+                return data.data || [];
+            } catch (err) {
+                console.error("🚨 loadUserOrders() 錯誤：", err);
+                return [];
+            }
+        }
+
+        //==========================================
+        // 🌈 狀態徽章顏色分類
+        //==========================================
+        function getStatusClass(status) {
+            switch (status) {
+                case "處理中":
+                    return "status-processing";
+                case "出貨中":
+                    return "status-shipping";
+                case "已完成":
+                    return "status-completed";
+                case "已取消":
+                    return "status-cancelled";
+                default:
+                    return "status-processing";
+            }
+        }
+
+        //==========================================
+        // 🪄 渲染訂單卡片（美化版）
+        //==========================================
+        function renderOrderList(orders) {
+            orderListContainer.innerHTML = "";
+
+            if (orders.length === 0) {
+                orderEmpty.style.display = "block";
+                return;
+            }
+
+            orderEmpty.style.display = "none";
+
+            orders.forEach(o => {
+                const card = document.createElement("div");
+                card.className = "col-md-4 col-sm-6";
+
+                // ⏱️ 狀態徽章 class
+                const statusClass = getStatusClass(o.order_status);
+
+                // ✅ 卡片內容
+                card.innerHTML = `
+  <div class="order-card d-flex flex-column h-100">
+      <img src="${(o.spec_image || "images/placeholder.png") + '?v=' + Date.now()}" 
+           alt="${o.spec_name}">
+      <div class="order-name">${o.spec_name}</div>
+      <div class="order-info flex-grow-1">
+          訂單編號：#${o.redemption_id}<br>
+          數量：${o.quantity}<br>
+          花費鑽石：<span style="color:#4da3ff; font-weight:700;">${o.total_spent}</span><br>
+          狀態：<span class="status-badge ${statusClass}">${o.order_status}</span><br>
+          <span class="order-date">${o.redeemed_at}</span><br>
+          ${o.completed_at
+                        ? `<span class="text-success small">完成於：${o.completed_at}</span><br>`
+                        : `<span class="text-muted small">(尚未完成)</span><br>`
+                    }
+          ${o.remarks
+                        ? `<span class="text-muted small">備註：${o.remarks}</span>`
+                        : ""
+                    }
+      </div>
+  </div>
+`;
+
+                orderListContainer.appendChild(card);
+            });
+        }
+
+        //==========================================
+        // 🧾 點擊右上角「查看訂單」
+        //==========================================
+        document.getElementById("btnViewOrders").addEventListener("click", async () => {
+            // 隱藏商城、商品詳情、確認面板
+            storeContainer.style.display = "none";
+            productDetailPanel && (productDetailPanel.style.display = "none");
+            orderConfirmPanel && (orderConfirmPanel.style.display = "none");
+
+            // 顯示訂單面板
+            orderListPanel.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            // 🚀 載入訂單資料
+            orderListContainer.innerHTML = `<p class="text-center text-muted py-5">載入中...</p>`;
+            const orders = await loadUserOrders();
+            renderOrderList(orders);
         });
     </script>
 
