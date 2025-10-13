@@ -240,24 +240,26 @@ public class FirstLearningService : WebService
                         finalEnergy = curEnergy;
                     }
 
-                    // 4️.更新使用者祭壇進度（首次學習 → learning_status=1，並設定複習時間）
+                    // 4️.更新使用者祭壇進度（learning_status每次完成都 +1，最大值為 7）
                     string updateProgressSql = @"
-                IF EXISTS (SELECT 1 FROM user_altar_progress WHERE user_id = @UserId AND altar_id = @AltarId)
-                BEGIN
-                    UPDATE user_altar_progress
-                    SET learning_status = CASE 
-                                             WHEN learning_status = 0 THEN 1 
-                                             ELSE learning_status 
-                                         END,
-                        last_review_time = GETDATE(),
-                        next_review_time = DATEADD(HOUR, @Hours, GETDATE())
-                    WHERE user_id = @UserId AND altar_id = @AltarId;
-                END
-                ELSE
-                BEGIN
-                    INSERT INTO user_altar_progress (user_id, altar_id, learning_status, last_review_time, next_review_time)
-                    VALUES (@UserId, @AltarId, 1, GETDATE(), DATEADD(HOUR, @Hours, GETDATE()));
-                END";
+IF EXISTS (SELECT 1 FROM user_altar_progress WHERE user_id = @UserId AND altar_id = @AltarId)
+BEGIN
+    UPDATE user_altar_progress
+    SET learning_status = 
+        CASE 
+            WHEN learning_status < 7 THEN learning_status + 1
+            ELSE learning_status 
+        END,
+        last_review_time = GETDATE(),
+        next_review_time = DATEADD(HOUR, @Hours, GETDATE())
+    WHERE user_id = @UserId AND altar_id = @AltarId;
+END
+ELSE
+BEGIN
+    INSERT INTO user_altar_progress (user_id, altar_id, learning_status, last_review_time, next_review_time)
+    VALUES (@UserId, @AltarId, 1, GETDATE(), DATEADD(HOUR, @Hours, GETDATE()));
+END";
+
 
                     using (SqlCommand cmd = new SqlCommand(updateProgressSql, conn, tran))
                     {
@@ -315,8 +317,23 @@ public class FirstLearningService : WebService
             newEnergy = finalEnergy,
             newDiamonds = finalDiamonds,
             altarId = altar_id,
-            newStatus = 1 // 首次學習完成 → 狀態至少會是 1
+            newStatus = Math.Min(7, GetCurrentLearningStatus(userId, altar_id)) // 保證不超過7
         };
+    }
+    private int GetCurrentLearningStatus(int userId, int altarId)
+    {
+        using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["EnglishLearningDB"].ConnectionString))
+        {
+            conn.Open();
+            string sql = "SELECT learning_status FROM user_altar_progress WHERE user_id=@UserId AND altar_id=@AltarId";
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@AltarId", altarId);
+                object val = cmd.ExecuteScalar();
+                return val != null ? Convert.ToInt32(val) : 0;
+            }
+        }
     }
 
 }
