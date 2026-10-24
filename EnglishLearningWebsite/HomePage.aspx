@@ -539,17 +539,17 @@
                     <div class="category-box personal-record">
                         <h5 class="category-title">📌 個人紀錄</h5>
                         <ul class="category-list">
-                            <li><i class="fa-solid fa-book"></i><a href="#">作答紀錄</a></li>
-                            <li><i class="fa-solid fa-chart-line"></i><a href="#">每日統計</a></li>
-                            <li><i class="fa-solid fa-list-check"></i><a href="#">進度列表</a></li>
+                            <li><i class="fa-solid fa-book"></i><a href="#">作答紀錄(即將推出)</a></li>
+                            <li><i class="fa-solid fa-chart-line"></i><a href="#">每日統計(即將推出)</a></li>
+                            <li><i class="fa-solid fa-list-check"></i><a href="#">進度列表(即將推出)</a></li>
                         </ul>
                     </div>
 
                     <div class="category-box">
                         <h5 class="category-title">📌 相關資源</h5>
                         <ul class="category-list">
-                            <li><i class="fa-solid fa-language"></i><a href="#">中英翻譯</a></li>
-                            <li><i class="fa-solid fa-newspaper"></i><a href="#">精選新聞</a></li>
+                            <li><i class="fa-solid fa-language"></i><a href="#">中英翻譯(即將推出)</a></li>
+                            <li><i class="fa-solid fa-newspaper"></i><a href="#">精選新聞(即將推出)</a></li>
                             <li><i class="fa-solid fa-play-circle"></i><a href="EliteChannels.aspx">優質頻道</a></li>
                         </ul>
                     </div>

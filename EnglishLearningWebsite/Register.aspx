@@ -113,7 +113,7 @@
                 </div>
                 <div class="col-8 input-group">
                     <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
-                    <asp:TextBox ID="txtPhoneNumber" runat="server" CssClass="form-control" placeholder="手機號碼(開頭勿+0，否則學習效率只有25%)"></asp:TextBox>
+                    <asp:TextBox ID="txtPhoneNumber" runat="server" CssClass="form-control" placeholder="手機號碼(開頭勿+0)"></asp:TextBox>
                 </div>
             </div>
 
